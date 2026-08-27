@@ -254,5 +254,8 @@ It reported no remaining findings.
 
 ## 10. PR handoff
 
-At report creation the PR is pending push/open. After push, update this section with
-the PR number and URL; keep the target `main`, stacked-P1 note, and stop before merge.
+PR #4: <https://github.com/eiKeViN/DeepSeek-STC/pull/4>
+
+The PR targets `main` from `codex/p2-effect-kernel` and is intentionally stacked on
+the still-open P1 PR #3; the meaningful review range is `7502f6e..HEAD`. The PR is
+review-ready and no merge was performed or scheduled.
