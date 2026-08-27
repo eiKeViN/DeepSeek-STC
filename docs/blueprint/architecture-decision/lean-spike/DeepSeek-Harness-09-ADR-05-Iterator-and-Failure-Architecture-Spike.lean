@@ -23,7 +23,9 @@ universe u v w
 
 namespace CordisADR05
 
-section Core
+/-! ## 1. The ranked machine and its exec fold -/
+
+section MachineCore
 
 variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
@@ -77,7 +79,7 @@ theorem composeUndo_assoc (a b c : Γ → Γ) :
 /- D52's recursive fold.  The first inverse is applied after all inverses of
    its continuation, hence the order `outer ∘ inner` is LIFO. -/
 def execFrom (it : RankedIterator Γ Ξ Q) (q : Q) (γ : Γ) : ExecResult Γ Ξ :=
-  match h : it.run q γ with
+  match _h : it.run q γ with
   | .raise error => .failure error γ id
   | .halt δ undo => .success δ undo
   | .yield δ undo next =>
@@ -88,7 +90,7 @@ def execFrom (it : RankedIterator Γ Ξ Q) (q : Q) (γ : Γ) : ExecResult Γ Ξ 
           .failure error final (composeUndo undo innerUndo)
 termination_by it.rank q
 decreasing_by
-  exact it.next_lt h
+  exact it.next_lt _h
 
 def exec (it : RankedIterator Γ Ξ Q) (γ : Γ) : ExecResult Γ Ξ :=
   execFrom it it.root γ
@@ -123,6 +125,14 @@ def plainEffect (e : Γ → Γ × (Γ → Γ)) : RankedIterator Γ Ξ Unit where
   rw [execFrom.eq_1]
   rfl
 
+end MachineCore
+
+/-! ## 2. Stage counting and the T66 length bound -/
+
+section Counting
+
+variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
+
 /- Exact stage count is a semantic quantity; the rank supplies a cheap
    executable upper bound.  We count the current stage, so the bound is
    `rank + 1`.  This convention is recorded explicitly because the paper's
@@ -154,6 +164,14 @@ def edgeLengthBound (it : RankedIterator Γ Ξ Q) (q : Q) : Nat := it.rank q
 
 def stageLengthBound (it : RankedIterator Γ Ξ Q) (q : Q) : Nat :=
   edgeLengthBound it q + 1
+
+end Counting
+
+/-! ## 3. Reachability and uniform bounds -/
+
+section Reachability
+
+variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 /- Reach is the least continuation closure over every possible input state,
    not merely the nodes visited by one selected run. -/
@@ -208,6 +226,14 @@ def execOption (it : RankedIterator Γ Ξ Q) (γ : Γ) :
       run := it.run
       next_lt := it.next_lt } q γ error h]
 
+end Reachability
+
+/-! ## 4. The successful-stage transform graph -/
+
+section TransformGraph
+
+variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
+
 /- Successful stage graphs are used for the failure-safe form of D60's
    transformation generators.  A forward edge records a successful state
    transition; an inverse edge records the returned undo applied at the
@@ -236,6 +262,14 @@ theorem transformClosure_trans (it : RankedIterator Γ Ξ Q)
     {x y z : Γ} (hxy : TransformClosure it x y)
     (hyz : TransformClosure it y z) : TransformClosure it x z :=
   .trans hxy hyz
+
+end TransformGraph
+
+/-! ## 5. Relation-parametric observations and lawfulness -/
+
+section Observations
+
+variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 /- Relation-parametric stage observations.  ADR-01 supplies the selected
    state relation; errors are exact by default, but the definition accepts a
@@ -287,7 +321,7 @@ def InverseProper (R : Γ → Γ → Prop) (γ δ : Γ) (undo : Γ → Γ) : Pro
   R (undo δ) γ
 
 def StageWitness (R : Γ → Γ → Prop) (it : RankedIterator Γ Ξ Q) : Prop :=
-  ∀ q γ, match h : it.run q γ with
+  ∀ q γ, match it.run q γ with
     | .raise _ => True
     | .halt δ undo => InverseProper R γ δ undo
     | .yield δ undo _ => InverseProper R γ δ undo
@@ -302,7 +336,9 @@ def foldUndo : List (Γ → Γ) → Γ → Γ
     foldUndo (undo :: rest) = composeUndo undo (foldUndo rest) := by
   rfl
 
-end Core
+end Observations
+
+/-! ## 6. Smoke tests -/
 
 section SmokeTests
 

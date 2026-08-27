@@ -17,6 +17,12 @@ universe u v
 
 namespace CordisADR01
 
+/-! ## Relation specifications and pointwise laws -/
+
+section RelationLayer
+
+variable {α : Type u} {β : Type v}
+
 /-- An explicit equivalence value. It is passed as data rather than installed as
     a global `Setoid` instance, because the same carrier may have several
     simultaneous relations (`≃`, the two paper uses of `≈`, and conjunctions). -/
@@ -27,44 +33,48 @@ structure RelSpec (α : Type u) where
   trans : ∀ {x y z}, rel x y → rel y z → rel x z
 
 /-- Heterogeneous relation preservation. -/
-def RespectsOn {α : Type u} {β : Type v}
-    (R : α → α → Prop) (S : β → β → Prop)
+def RespectsOn (R : α → α → Prop) (S : β → β → Prop)
     (f : α → β) : Prop :=
   ∀ {x y}, R x y → S (f x) (f y)
 
 /-- A state transformer preserves the selected relation. -/
-def Respects {α : Type u} (S : RelSpec α) (f : α → α) : Prop :=
+def Respects (S : RelSpec α) (f : α → α) : Prop :=
   RespectsOn S.rel S.rel f
 
 /-- Definition 36's same-input, pointwise relation between maps. -/
-def PointwiseRel {α : Type u} (S : RelSpec α)
+def PointwiseRel (S : RelSpec α)
     (f g : α → α) : Prop :=
   ∀ x, S.rel (f x) (g x)
 
 /-- A useful derived lifting for composition proofs: related inputs are sent by
     possibly different maps to related outputs. -/
-def CrossRel {α : Type u} (S : RelSpec α)
+def CrossRel (S : RelSpec α)
     (f g : α → α) : Prop :=
   ∀ {x y}, S.rel x y → S.rel (f x) (g y)
 
-theorem crossRel_of_respects_pointwise {α : Type u}
-    {S : RelSpec α} {f g : α → α}
+theorem crossRel_of_respects_pointwise {S : RelSpec α} {f g : α → α}
     (hf : Respects S f) (hfg : PointwiseRel S f g) :
     CrossRel S f g := by
   intro x y hxy
   exact S.trans (hf hxy) (hfg y)
 
-theorem pointwiseRel_of_crossRel {α : Type u}
-    {S : RelSpec α} {f g : α → α}
+theorem pointwiseRel_of_crossRel {S : RelSpec α} {f g : α → α}
     (hfg : CrossRel S f g) : PointwiseRel S f g := by
   intro x
   exact hfg (S.refl x)
 
-theorem respects_of_crossRel_self {α : Type u}
-    {S : RelSpec α} {f : α → α}
+theorem respects_of_crossRel_self {S : RelSpec α} {f : α → α}
     (hff : CrossRel S f f) : Respects S f := by
   intro x y hxy
   exact hff hxy
+
+end RelationLayer
+
+/-! ## Raw effects and the lawful-effect record -/
+
+section EffectLayer
+
+variable {Γ : Type u}
 
 /-- The raw, computational result of one effect application. -/
 structure EffectResult (Γ : Type u) where
@@ -78,7 +88,7 @@ namespace EffectResult
 
 /-- The output lifting required by Definitions 36-37: successor states are
     related and the selected inverses are pointwise related. -/
-def Rel {Γ : Type u} (S : RelSpec Γ)
+def Rel (S : RelSpec Γ)
     (x y : EffectResult Γ) : Prop :=
   S.rel x.state y.state ∧ PointwiseRel S x.undo y.undo
 
@@ -89,20 +99,19 @@ end EffectResult
     `run_respects` includes selected-inverse coherence across related inputs;
     `undo_respects` says every inverse returned by an actual run preserves the
     relation; `recovers` is the non-vacuous, run-indexed recovery witness. -/
-structure IsLawfulEffect {Γ : Type u}
-    (S : RelSpec Γ) (e : Effect Γ) : Prop where
+structure IsLawfulEffect (S : RelSpec Γ) (e : Effect Γ) : Prop where
   run_respects : RespectsOn S.rel (EffectResult.Rel S) e
   undo_respects : ∀ γ, Respects S (e γ).undo
   recovers : ∀ γ, S.rel ((e γ).undo (e γ).state) γ
 
 /-- Optional proof-carrying view. Raw functions and `IsLawfulEffect` remain the
     primary API so exact algebra does not depend on proof-field equality. -/
-structure LawfulEffect {Γ : Type u} (S : RelSpec Γ) where
+structure LawfulEffect (S : RelSpec Γ) where
   run : Effect Γ
   lawful : IsLawfulEffect S run
 
 /-- Execute `first`, then `second`, composing inverses in reverse order. -/
-def seqRun {Γ : Type u} (first second : Effect Γ) : Effect Γ :=
+def seqRun (first second : Effect Γ) : Effect Γ :=
   fun γ =>
     let r₁ := first γ
     let r₂ := second r₁.state
@@ -111,7 +120,7 @@ def seqRun {Γ : Type u} (first second : Effect Γ) : Effect Γ :=
 
 /-- The relation-parametric law layer is closed under raw sequential
     composition. The raw computation remains the exact `seqRun` definition. -/
-theorem seqRun_lawful {Γ : Type u} {S : RelSpec Γ}
+theorem seqRun_lawful {S : RelSpec Γ}
     {first second : Effect Γ}
     (hfirst : IsLawfulEffect S first)
     (hsecond : IsLawfulEffect S second) :
@@ -158,10 +167,18 @@ theorem seqRun_lawful {Γ : Type u} {S : RelSpec Γ}
       hfirst.undo_respects γ hsecondRecovery
     exact S.trans hlifted (hfirst.recovers γ)
 
-def lawfulSeq {Γ : Type u} {S : RelSpec Γ}
+def lawfulSeq {S : RelSpec Γ}
     (first second : LawfulEffect S) : LawfulEffect S where
   run := seqRun first.run second.run
   lawful := seqRun_lawful first.lawful second.lawful
+
+end EffectLayer
+
+/-! ## Explicit relation constructions -/
+
+section Constructions
+
+variable {α : Type u} {β : Type v} {Γ : Type u} {Ω : Type v}
 
 /-- Equality is one explicit specialization, not the globally installed
     relation on the carrier. -/
@@ -172,12 +189,12 @@ def equality (α : Type u) : RelSpec α where
   trans := Eq.trans
 
 /-- The repaired, non-vacuous equality reading of Definition 8. -/
-def PaperWitness {Γ : Type u} (e : Effect Γ) : Prop :=
+def PaperWitness (e : Effect Γ) : Prop :=
   ∀ γ, (e γ).undo (e γ).state = γ
 
 /-- Equality specialization recovers the repaired Definition 8 witness exactly.
     The other law fields become automatic congruence of equality. -/
-theorem lawful_equality_iff {Γ : Type u} (e : Effect Γ) :
+theorem lawful_equality_iff (e : Effect Γ) :
     IsLawfulEffect (equality Γ) e ↔ PaperWitness e := by
   constructor
   · intro h γ
@@ -196,27 +213,26 @@ theorem lawful_equality_iff {Γ : Type u} (e : Effect Γ) :
       rfl
 
 /-- Kernel equivalence of a concrete observation. -/
-def observation {Γ : Type u} {Ω : Type v}
-    (observe : Γ → Ω) : RelSpec Γ where
+def observation (observe : Γ → Ω) : RelSpec Γ where
   rel := fun x y => observe x = observe y
   refl := fun _ => rfl
   symm := Eq.symm
   trans := Eq.trans
 
-theorem recovers_observation {Γ : Type u} {Ω : Type v}
-    (observe : Γ → Ω) (e : Effect Γ)
+theorem recovers_observation (observe : Γ → Ω) (e : Effect Γ)
     (h : IsLawfulEffect (observation observe) e) (γ : Γ) :
     observe ((e γ).undo (e γ).state) = observe γ :=
   h.recovers γ
 
 /-- Relations may also be combined explicitly when a theorem genuinely needs
     both observations. No refinement between the two is inferred. -/
-def conjunction {Γ : Type u}
-    (S T : RelSpec Γ) : RelSpec Γ where
+def conjunction (S T : RelSpec Γ) : RelSpec Γ where
   rel := fun x y => S.rel x y ∧ T.rel x y
   refl := fun x => ⟨S.refl x, T.refl x⟩
   symm := fun h => ⟨S.symm h.1, T.symm h.2⟩
   trans := fun h₁ h₂ =>
     ⟨S.trans h₁.1 h₂.1, T.trans h₁.2 h₂.2⟩
+
+end Constructions
 
 end CordisADR01

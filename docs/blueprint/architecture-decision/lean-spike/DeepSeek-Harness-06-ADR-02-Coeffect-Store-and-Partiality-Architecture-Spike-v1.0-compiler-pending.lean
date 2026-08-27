@@ -11,6 +11,10 @@ Validation status at creation:
 
 This is a standalone architecture spike. Production code will import ADR-01's
 relation API instead of repeating the small `RelSpec` definition below.
+
+Layout convention: declarations are grouped into sections by concept, and the
+section-scoped `variable` binders replace the per-declaration repetitions of
+`{K} {V} [DecidableEq K]` and the Kleisli/effect universe variables.
 -/
 
 import Mathlib.Data.Finmap
@@ -21,30 +25,31 @@ namespace CordisADR02
 
 /-! ## 1. Concrete finite dependent store and two specification layers -/
 
-abbrev Store {K : Type u} (V : K → Type v) := Finmap V
+section SpecLayers
+
+variable {K : Type u} {V : K → Type v} [DecidableEq K]
+
+abbrev Store (V : K → Type v) := Finmap V
 abbrev SemanticSpec (K : Type u) := Set K
 abbrev ExecSpec (K : Type u) := Finset K
 abbrev Provision (K : Type u) := Finset K
 
-def semanticize {K : Type u} (d : ExecSpec K) : SemanticSpec K :=
+def semanticize (d : ExecSpec K) : SemanticSpec K :=
   (d : Set K)
 
-def SatisfiesSem {K : Type u} {V : K → Type v}
-    (σ : Store V) (d : SemanticSpec K) : Prop :=
+def SatisfiesSem (σ : Store V) (d : SemanticSpec K) : Prop :=
   ∀ ⦃k : K⦄, k ∈ d → k ∈ σ
 
-def SatisfiesExec {K : Type u} {V : K → Type v} [DecidableEq K]
-    (σ : Store V) (d : ExecSpec K) : Prop :=
+def SatisfiesExec (σ : Store V) (d : ExecSpec K) : Prop :=
   d ⊆ σ.keys
 
-instance instDecidableSatisfiesExec {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (d : ExecSpec K) :
+instance instDecidableSatisfiesExec (σ : Store V) (d : ExecSpec K) :
     Decidable (SatisfiesExec σ d) := by
   dsimp [SatisfiesExec]
   infer_instance
 
-theorem satisfiesExec_iff_semantic {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (d : ExecSpec K) :
+omit [DecidableEq K] in
+theorem satisfiesExec_iff_semantic (σ : Store V) (d : ExecSpec K) :
     SatisfiesExec σ d ↔ SatisfiesSem σ (semanticize d) := by
   constructor
   · intro h k hk
@@ -52,14 +57,14 @@ theorem satisfiesExec_iff_semantic {K : Type u} {V : K → Type v}
   · intro h k hk
     exact Finmap.mem_keys.mpr (h hk)
 
-def satisfiesB {K : Type u} {V : K → Type v} [DecidableEq K]
-    (σ : Store V) (d : ExecSpec K) : Bool :=
+def satisfiesB (σ : Store V) (d : ExecSpec K) : Bool :=
   decide (SatisfiesExec σ d)
 
-theorem satisfiesB_eq_true_iff {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (d : ExecSpec K) :
+theorem satisfiesB_eq_true_iff (σ : Store V) (d : ExecSpec K) :
     satisfiesB σ d = true ↔ SatisfiesExec σ d := by
   simp [satisfiesB]
+
+/-! ### Notification classification across the two layers -/
 
 inductive Notification where
   | activating
@@ -67,92 +72,85 @@ inductive Notification where
   | neutral
   deriving DecidableEq, Repr
 
-def ClassifiesSem {K : Type u} {V : K → Type v}
-    (before after : Store V) (d : SemanticSpec K) : Notification → Prop
+def ClassifiesSem (before after : Store V) (d : SemanticSpec K) : Notification → Prop
   | .activating => ¬ SatisfiesSem before d ∧ SatisfiesSem after d
   | .deactivating => SatisfiesSem before d ∧ ¬ SatisfiesSem after d
   | .neutral => SatisfiesSem before d ↔ SatisfiesSem after d
 
-def ClassifiesExec {K : Type u} {V : K → Type v} [DecidableEq K]
-    (before after : Store V) (d : ExecSpec K) : Notification → Prop
+def ClassifiesExec (before after : Store V) (d : ExecSpec K) : Notification → Prop
   | .activating => ¬ SatisfiesExec before d ∧ SatisfiesExec after d
   | .deactivating => SatisfiesExec before d ∧ ¬ SatisfiesExec after d
   | .neutral => SatisfiesExec before d ↔ SatisfiesExec after d
 
-def notify {K : Type u} {V : K → Type v} [DecidableEq K]
-    (before after : Store V) (d : ExecSpec K) : Notification :=
+def notify (before after : Store V) (d : ExecSpec K) : Notification :=
   if SatisfiesExec before d then
     if SatisfiesExec after d then .neutral else .deactivating
   else if SatisfiesExec after d then .activating else .neutral
 
-theorem notify_classifies_exec {K : Type u} {V : K → Type v}
-    [DecidableEq K] (before after : Store V) (d : ExecSpec K) :
+theorem notify_classifies_exec (before after : Store V) (d : ExecSpec K) :
     ClassifiesExec before after d (notify before after d) := by
   by_cases hb : SatisfiesExec before d <;>
     by_cases ha : SatisfiesExec after d <;>
     simp [notify, ClassifiesExec, hb, ha]
 
-theorem classifiesExec_iff_semantic {K : Type u} {V : K → Type v}
-    [DecidableEq K] (before after : Store V) (d : ExecSpec K)
+omit [DecidableEq K] in
+theorem classifiesExec_iff_semantic (before after : Store V) (d : ExecSpec K)
     (n : Notification) :
     ClassifiesExec before after d n ↔
       ClassifiesSem before after (semanticize d) n := by
   cases n <;>
     simp only [ClassifiesExec, ClassifiesSem, satisfiesExec_iff_semantic]
 
-theorem notify_adequate {K : Type u} {V : K → Type v}
-    [DecidableEq K] (before after : Store V) (d : ExecSpec K) :
+theorem notify_adequate (before after : Store V) (d : ExecSpec K) :
     ClassifiesSem before after (semanticize d) (notify before after d) :=
   (classifiesExec_iff_semantic before after d _).mp
     (notify_classifies_exec before after d)
 
+end SpecLayers
+
 /-! ## 2. Raw store operations versus legal binding transitions -/
+
+section StoreOps
+
+variable {K : Type u} {V : K → Type v} [DecidableEq K]
 
 inductive StoreError where
   | missing
   | alreadyPresent
   deriving DecidableEq, Repr
 
-def provide? {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (value : V k) (σ : Store V) : Option (Store V) :=
+def provide? (k : K) (value : V k) (σ : Store V) : Option (Store V) :=
   if k ∈ σ then none else some (Finmap.insert k value σ)
 
-def provideE {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (value : V k) (σ : Store V) : Except StoreError (Store V) :=
+def provideE (k : K) (value : V k) (σ : Store V) : Except StoreError (Store V) :=
   if k ∈ σ then .error .alreadyPresent
   else .ok (Finmap.insert k value σ)
 
 /-- On success, revocation returns the new store and the captured old value.
     Absence-guarded re-provision of that value is the successful inverse. -/
-def revoke? {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (σ : Store V) : Option (Store V × V k) :=
+def revoke? (k : K) (σ : Store V) : Option (Store V × V k) :=
   match Finmap.lookup k σ with
   | none => none
   | some old => some (Finmap.erase k σ, old)
 
-def revokeE {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (σ : Store V) : Except StoreError (Store V × V k) :=
+def revokeE (k : K) (σ : Store V) : Except StoreError (Store V × V k) :=
   match Finmap.lookup k σ with
   | none => .error .missing
   | some old => .ok (Finmap.erase k σ, old)
 
 /-- Proof-indexed successful interface for theorem statements. -/
-def provideWith {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (value : V k) (σ : Store V) (_fresh : k ∉ σ) : Store V :=
+def provideWith (k : K) (value : V k) (σ : Store V) (_fresh : k ∉ σ) : Store V :=
   Finmap.insert k value σ
 
-theorem provideE_ok_iff_provide_some {K : Type u} {V : K → Type v}
-    [DecidableEq K] (k : K) (value : V k) (σ τ : Store V) :
+theorem provideE_ok_iff_provide_some (k : K) (value : V k) (σ τ : Store V) :
     provideE k value σ = .ok τ ↔ provide? k value σ = some τ := by
   by_cases h : k ∈ σ <;> simp [provideE, provide?, h]
 
-theorem revokeE_ok_iff_revoke_some {K : Type u} {V : K → Type v}
-    [DecidableEq K] (k : K) (σ : Store V) (r : Store V × V k) :
+theorem revokeE_ok_iff_revoke_some (k : K) (σ : Store V) (r : Store V × V k) :
     revokeE k σ = .ok r ↔ revoke? k σ = some r := by
   cases h : Finmap.lookup k σ <;> simp [revokeE, revoke?, h]
 
-theorem erase_insert_fresh {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k : K) (value : V k)
+theorem erase_insert_fresh (σ : Store V) (k : K) (value : V k)
     (fresh : k ∉ σ) :
     Finmap.erase k (Finmap.insert k value σ) = σ := by
   apply Finmap.ext_lookup
@@ -164,8 +162,7 @@ theorem erase_insert_fresh {K : Type u} {V : K → Type v}
   · rw [Finmap.lookup_erase_ne hx]
     rw [Finmap.lookup_insert_of_ne σ hx]
 
-theorem insert_erase_restores {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k : K) (old : V k)
+theorem insert_erase_restores (σ : Store V) (k : K) (old : V k)
     (found : Finmap.lookup k σ = some old) :
     Finmap.insert k old (Finmap.erase k σ) = σ := by
   apply Finmap.ext_lookup
@@ -179,36 +176,30 @@ theorem insert_erase_restores {K : Type u} {V : K → Type v}
 
 /-- The inverse returned by successful provide is itself protocol-guarded:
     it revokes only if the key is still present. -/
-def undoProvide? {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (σ : Store V) : Option (Store V) :=
+def undoProvide? (k : K) (σ : Store V) : Option (Store V) :=
   (revoke? k σ).map Prod.fst
 
 /-- The inverse returned by successful revoke is an absence-guarded provide of
     the value captured by the forward run, never an unchecked overwrite. -/
-def undoRevoke? {K : Type u} {V : K → Type v} [DecidableEq K]
-    (k : K) (old : V k) (σ : Store V) : Option (Store V) :=
+def undoRevoke? (k : K) (old : V k) (σ : Store V) : Option (Store V) :=
   provide? k old σ
 
-theorem undoProvide_recovers {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k : K) (value : V k)
+theorem undoProvide_recovers (σ : Store V) (k : K) (value : V k)
     (fresh : k ∉ σ) :
     undoProvide? k (Finmap.insert k value σ) = some σ := by
   simp [undoProvide?, revoke?, erase_insert_fresh σ k value fresh]
 
-theorem undoRevoke_recovers {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k : K) (old : V k)
+theorem undoRevoke_recovers (σ : Store V) (k : K) (old : V k)
     (found : Finmap.lookup k σ = some old) :
     undoRevoke? k old (Finmap.erase k σ) = some σ := by
   simp [undoRevoke?, provide?, insert_erase_restores σ k old found]
 
-theorem insert_frame {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k j : K) (value : V k)
+theorem insert_frame (σ : Store V) (k j : K) (value : V k)
     (different : j ≠ k) :
     Finmap.lookup j (Finmap.insert k value σ) = Finmap.lookup j σ :=
   Finmap.lookup_insert_of_ne σ different
 
-theorem insert_keys_of_mem {K : Type u} {V : K → Type v}
-    [DecidableEq K] (σ : Store V) (k : K) (value : V k)
+theorem insert_keys_of_mem (σ : Store V) (k : K) (value : V k)
     (present : k ∈ σ) :
     (Finmap.insert k value σ).keys = σ.keys := by
   ext j
@@ -217,29 +208,34 @@ theorem insert_keys_of_mem {K : Type u} {V : K → Type v}
     simp [Finmap.mem_keys, Finmap.mem_insert, present]
   · simp [Finmap.mem_keys, Finmap.mem_insert, hjk]
 
+end StoreOps
+
 /-! ## 3. The Option-Kleisli partiality companion -/
+
+/-! ### Maps and pointwise relations -/
+
+section KleisliMaps
+
+variable {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 abbrev PartialMap (α : Type u) (β : Type v) := α → Option β
 
-def pid {α : Type u} : PartialMap α α := some
+def pid : PartialMap α α := some
 
 /-- Execute `first`, then `second`. -/
-def pcomp {α : Type u} {β : Type v} {γ : Type w}
-    (first : PartialMap α β) (second : PartialMap β γ) : PartialMap α γ :=
+def pcomp (first : PartialMap α β) (second : PartialMap β γ) : PartialMap α γ :=
   fun x => (first x).bind second
 
-theorem pcomp_left_id {α : Type u} {β : Type v}
-    (f : PartialMap α β) : pcomp pid f = f := by
+theorem pcomp_left_id (f : PartialMap α β) : pcomp pid f = f := by
   funext x
   rfl
 
-theorem pcomp_right_id {α : Type u} {β : Type v}
-    (f : PartialMap α β) : pcomp f pid = f := by
+theorem pcomp_right_id (f : PartialMap α β) : pcomp f pid = f := by
   funext x
   cases h : f x <;> simp [pcomp, pid, h]
 
-theorem pcomp_assoc {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-    (f : PartialMap α β) (g : PartialMap β γ) (h : PartialMap γ δ) :
+theorem pcomp_assoc (f : PartialMap α β) (g : PartialMap β γ)
+    (h : PartialMap γ δ) :
     pcomp (pcomp f g) h = pcomp f (pcomp g h) := by
   funext a
   cases hfa : f a with
@@ -247,26 +243,24 @@ theorem pcomp_assoc {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
   | some b =>
       cases hgb : g b <;> simp [pcomp, hfa, hgb]
 
-def OptionRel {α : Type u} (R : α → α → Prop) :
+def OptionRel (R : α → α → Prop) :
     Option α → Option α → Prop
   | none, none => True
   | some x, some y => R x y
   | _, _ => False
 
-def PRespects {α : Type u} {β : Type v}
-    (R : α → α → Prop) (S : β → β → Prop)
+def PRespects (R : α → α → Prop) (S : β → β → Prop)
     (f : PartialMap α β) : Prop :=
   ∀ ⦃x y⦄, R x y → OptionRel S (f x) (f y)
 
-def PPointwiseRel {α : Type u} {β : Type v}
-    (S : β → β → Prop) (f g : PartialMap α β) : Prop :=
+def PPointwiseRel (S : β → β → Prop) (f g : PartialMap α β) : Prop :=
   ∀ x, OptionRel S (f x) (g x)
 
-theorem optionRel_refl {α : Type u} {R : α → α → Prop}
-    (hrefl : ∀ x, R x x) (x : Option α) : OptionRel R x x := by
+theorem optionRel_refl {R : α → α → Prop} (hrefl : ∀ x, R x x) (x : Option α) :
+    OptionRel R x x := by
   cases x <;> simp [OptionRel, hrefl]
 
-theorem optionRel_trans {α : Type u} {R : α → α → Prop}
+theorem optionRel_trans {R : α → α → Prop}
     (htrans : ∀ ⦃x y z⦄, R x y → R y z → R x z)
     {a b c : Option α} :
     OptionRel R a b → OptionRel R b c → OptionRel R a c := by
@@ -274,7 +268,7 @@ theorem optionRel_trans {α : Type u} {R : α → α → Prop}
   cases a <;> cases b <;> cases c <;> simp [OptionRel] at hab hbc ⊢
   exact htrans hab hbc
 
-theorem pcomp_prespects {α : Type u} {R : α → α → Prop}
+theorem pcomp_prespects {R : α → α → Prop}
     {f g : PartialMap α α}
     (hf : PRespects R R f) (hg : PRespects R R g) :
     PRespects R R (pcomp f g) := by
@@ -284,7 +278,7 @@ theorem pcomp_prespects {α : Type u} {R : α → α → Prop}
     simp [OptionRel, pcomp, hx, hy] at h ⊢
   exact hg h
 
-theorem pcomp_pointwise_cross {α : Type u} {R : α → α → Prop}
+theorem pcomp_pointwise_cross {R : α → α → Prop}
     (htrans : ∀ ⦃x y z⦄, R x y → R y z → R x z)
     {f f' g g' : PartialMap α α}
     (hf : PRespects R R f)
@@ -298,7 +292,7 @@ theorem pcomp_pointwise_cross {α : Type u} {R : α → α → Prop}
   have hleft := hf hg
   exact optionRel_trans htrans hleft (hff' _)
 
-theorem optionRel_bind {α : Type u} {R : α → α → Prop}
+theorem optionRel_bind {R : α → α → Prop}
     {f : PartialMap α α} (hf : PRespects R R f)
     {a b : Option α} (hab : OptionRel R a b) :
     OptionRel R (a.bind f) (b.bind f) := by
@@ -312,6 +306,14 @@ structure RelSpec (α : Type u) where
   symm : ∀ ⦃x y⦄, rel x y → rel y x
   trans : ∀ ⦃x y z⦄, rel x y → rel y z → rel x z
 
+end KleisliMaps
+
+/-! ### Partial effects and lawful sequencing -/
+
+section Effects
+
+variable {Γ : Type u} {B : Type v} {C : Type w} {D : Type x}
+
 structure PartialResult (Γ : Type u) (B : Type v) where
   state : Γ
   undo : PartialMap Γ Γ
@@ -321,7 +323,7 @@ abbrev PartialEffect (Γ : Type u) (B : Type v) :=
   Γ → Option (PartialResult Γ B)
 
 /-- Successful effect return. The selected inverse is partial identity. -/
-def ppure {Γ : Type u} {B : Type v} (outcome : B) : PartialEffect Γ B :=
+def ppure (outcome : B) : PartialEffect Γ B :=
   fun state => some {
     state := state
     undo := pid
@@ -331,8 +333,7 @@ def ppure {Γ : Type u} {B : Type v} (outcome : B) : PartialEffect Γ B :=
 /-- Outcome-dependent sequencing for D41. If either stage is undefined, the
     big-step mathematical denotation has no successor. On two successes the
     selected inverses compose in reverse execution order. -/
-def pbindEffect {Γ : Type u} {B : Type v} {C : Type w}
-    (first : PartialEffect Γ B)
+def pbindEffect (first : PartialEffect Γ B)
     (next : B → PartialEffect Γ C) : PartialEffect Γ C :=
   fun state =>
     match first state with
@@ -346,7 +347,7 @@ def pbindEffect {Γ : Type u} {B : Type v} {C : Type w}
             outcome := r₂.outcome
           }
 
-theorem pbindEffect_second_failure {Γ : Type u} {B : Type v} {C : Type w}
+theorem pbindEffect_second_failure
     (first : PartialEffect Γ B) (next : B → PartialEffect Γ C)
     (state : Γ) (r₁ : PartialResult Γ B)
     (hfirst : first state = some r₁)
@@ -354,22 +355,19 @@ theorem pbindEffect_second_failure {Γ : Type u} {B : Type v} {C : Type w}
     pbindEffect first next state = none := by
   simp [pbindEffect, hfirst, hnext]
 
-theorem pbindEffect_left_unit {Γ : Type u} {B : Type v} {C : Type w}
-    (outcome : B) (next : B → PartialEffect Γ C) :
+theorem pbindEffect_left_unit (outcome : B) (next : B → PartialEffect Γ C) :
     pbindEffect (ppure outcome) next = next outcome := by
   funext state
   cases hnext : next outcome state <;>
     simp [pbindEffect, ppure, hnext, pcomp_right_id]
 
-theorem pbindEffect_right_unit {Γ : Type u} {B : Type v}
-    (e : PartialEffect Γ B) :
+theorem pbindEffect_right_unit (e : PartialEffect Γ B) :
     pbindEffect e (fun outcome => ppure outcome) = e := by
   funext state
   cases he : e state <;>
     simp [pbindEffect, ppure, he, pcomp_left_id]
 
-theorem pbindEffect_assoc {Γ : Type u} {B : Type v} {C : Type w}
-    {D : Type x} (e : PartialEffect Γ B)
+theorem pbindEffect_assoc (e : PartialEffect Γ B)
     (f : B → PartialEffect Γ C) (g : C → PartialEffect Γ D) :
     pbindEffect (pbindEffect e f) g =
       pbindEffect e (fun outcome => pbindEffect (f outcome) g) := by
@@ -385,8 +383,7 @@ theorem pbindEffect_assoc {Γ : Type u} {B : Type v} {C : Type w}
 
 namespace PartialResult
 
-def Rel {Γ : Type u} {B : Type v} (S : RelSpec Γ)
-    (left right : PartialResult Γ B) : Prop :=
+def Rel (S : RelSpec Γ) (left right : PartialResult Γ B) : Prop :=
   S.rel left.state right.state ∧
     PPointwiseRel S.rel left.undo right.undo ∧
     left.outcome = right.outcome
@@ -396,8 +393,7 @@ end PartialResult
 /-- ADR-01's output law lifted through `Option`. `run_respects` gives equal
     definedness and, on success, related states, pointwise-related selected
     inverses, and exact outcomes. -/
-structure IsLawfulPartialEffect {Γ : Type u} {B : Type v}
-    (S : RelSpec Γ) (e : PartialEffect Γ B) : Prop where
+structure IsLawfulPartialEffect (S : RelSpec Γ) (e : PartialEffect Γ B) : Prop where
   run_respects : ∀ ⦃x y⦄, S.rel x y →
     OptionRel (PartialResult.Rel S) (e x) (e y)
   undo_respects : ∀ ⦃x⦄ ⦃r : PartialResult Γ B⦄,
@@ -408,8 +404,7 @@ structure IsLawfulPartialEffect {Γ : Type u} {B : Type v}
 /-- Evidence needed to restrict a partial effect to a total effect on an
     invariant subtype. Forward totality alone would not make the selected undo
     total on that subtype. -/
-structure TotalizableOn {Γ : Type u} {B : Type v}
-    (I : Γ → Prop) (e : PartialEffect Γ B) : Prop where
+structure TotalizableOn (I : Γ → Prop) (e : PartialEffect Γ B) : Prop where
   run_total : ∀ x, I x → ∃ r, e x = some r
   state_closed : ∀ ⦃x⦄ ⦃r : PartialResult Γ B⦄,
     I x → e x = some r → I r.state
@@ -417,8 +412,7 @@ structure TotalizableOn {Γ : Type u} {B : Type v}
     I x → e x = some r → ∀ y, I y →
       ∃ z, r.undo y = some z ∧ I z
 
-theorem pbindEffect_lawful {Γ : Type u} {B : Type v} {C : Type w}
-    (S : RelSpec Γ)
+theorem pbindEffect_lawful (S : RelSpec Γ)
     (first : PartialEffect Γ B) (next : B → PartialEffect Γ C)
     (hfirst : IsLawfulPartialEffect S first)
     (hnext : ∀ b, IsLawfulPartialEffect S (next b)) :
@@ -510,31 +504,27 @@ abbrev TotalEffect (Γ : Type u) (B : Type v) := Γ → TotalResult Γ B
 
 namespace TotalResult
 
-def Rel {Γ : Type u} {B : Type v} (S : RelSpec Γ)
-    (left right : TotalResult Γ B) : Prop :=
+def Rel (S : RelSpec Γ) (left right : TotalResult Γ B) : Prop :=
   S.rel left.state right.state ∧
     (∀ z, S.rel (left.undo z) (right.undo z)) ∧
     left.outcome = right.outcome
 
 end TotalResult
 
-structure IsLawfulTotalEffect {Γ : Type u} {B : Type v}
-    (S : RelSpec Γ) (e : TotalEffect Γ B) : Prop where
+structure IsLawfulTotalEffect (S : RelSpec Γ) (e : TotalEffect Γ B) : Prop where
   run_respects : ∀ ⦃x y⦄, S.rel x y → TotalResult.Rel S (e x) (e y)
   undo_respects : ∀ x ⦃a b⦄, S.rel a b →
     S.rel ((e x).undo a) ((e x).undo b)
   recovers : ∀ x, S.rel ((e x).undo (e x).state) x
 
-def embedTotal {Γ : Type u} {B : Type v}
-    (e : TotalEffect Γ B) : PartialEffect Γ B :=
+def embedTotal (e : TotalEffect Γ B) : PartialEffect Γ B :=
   fun x => some {
     state := (e x).state
     undo := fun y => some ((e x).undo y)
     outcome := (e x).outcome
   }
 
-theorem embedTotal_lawful {Γ : Type u} {B : Type v}
-    (S : RelSpec Γ) (e : TotalEffect Γ B)
+theorem embedTotal_lawful (S : RelSpec Γ) (e : TotalEffect Γ B)
     (lawful : IsLawfulTotalEffect S e) :
     IsLawfulPartialEffect S (embedTotal e) := by
   refine {
@@ -559,7 +549,13 @@ theorem embedTotal_lawful {Γ : Type u} {B : Type v}
     cases hr
     exact lawful.recovers x
 
+end Effects
+
 /-! ## 5. Typed heterogeneous D24 operations and their key-local lift -/
+
+section KeyLocal
+
+variable {K : Type u} {V : K → Type v} [DecidableEq K]
 
 structure KeyOperation (K : Type u) (V : K → Type v) where
   Op : K → Type w
@@ -568,8 +564,7 @@ structure KeyOperation (K : Type u) (V : K → Type v) where
   run : (k : K) → (op : Op k) → Arg k op → V k →
     Option (PartialResult (V k) (Out k op))
 
-def liftKey {K : Type u} {V : K → Type v} [DecidableEq K]
-    (I : KeyOperation K V) (k : K) (op : I.Op k) (arg : I.Arg k op) :
+def liftKey (I : KeyOperation K V) (k : K) (op : I.Op k) (arg : I.Arg k op) :
     PartialEffect (Store V) (I.Out k op) :=
   fun σ =>
     match Finmap.lookup k σ with
@@ -589,20 +584,23 @@ def liftKey {K : Type u} {V : K → Type v} [DecidableEq K]
             outcome := r.outcome
           }
 
-theorem liftKey_missing {K : Type u} {V : K → Type v} [DecidableEq K]
-    (I : KeyOperation K V) (k : K) (op : I.Op k) (arg : I.Arg k op)
-    (σ : Store V) (missing : Finmap.lookup k σ = none) :
+theorem liftKey_missing (I : KeyOperation K V) (k : K) (op : I.Op k)
+    (arg : I.Arg k op) (σ : Store V) (missing : Finmap.lookup k σ = none) :
     liftKey I k op arg σ = none := by
   simp [liftKey, missing]
 
+end KeyLocal
+
 /-! ## 6. Store observation preserves definedness and satisfaction -/
 
-def StoreObs {K : Type u} {V : K → Type v} [DecidableEq K]
-    (R : (k : K) → V k → V k → Prop) (left right : Store V) : Prop :=
+section StoreObservation
+
+variable {K : Type u} {V : K → Type v} [DecidableEq K]
+
+def StoreObs (R : (k : K) → V k → V k → Prop) (left right : Store V) : Prop :=
   ∀ k, OptionRel (R k) (Finmap.lookup k left) (Finmap.lookup k right)
 
-theorem storeObs_defined_iff {K : Type u} {V : K → Type v}
-    [DecidableEq K] {R : (k : K) → V k → V k → Prop}
+theorem storeObs_defined_iff {R : (k : K) → V k → V k → Prop}
     {left right : Store V} (h : StoreObs R left right) (k : K) :
     Finmap.lookup k left ≠ none ↔ Finmap.lookup k right ≠ none := by
   have hk := h k
@@ -610,8 +608,7 @@ theorem storeObs_defined_iff {K : Type u} {V : K → Type v}
     cases hr : Finmap.lookup k right <;>
     simp [hl, hr, OptionRel] at hk ⊢
 
-theorem storeObs_mem_iff {K : Type u} {V : K → Type v}
-    [DecidableEq K] {R : (k : K) → V k → V k → Prop}
+theorem storeObs_mem_iff {R : (k : K) → V k → V k → Prop}
     {left right : Store V} (h : StoreObs R left right) (k : K) :
     k ∈ left ↔ k ∈ right := by
   have hisSome :
@@ -627,8 +624,7 @@ theorem storeObs_mem_iff {K : Type u} {V : K → Type v}
     _ ↔ (Finmap.lookup k right).isSome = true := hisSome
     _ ↔ k ∈ right := Finmap.lookup_isSome
 
-theorem storeObs_satisfiesSem_iff {K : Type u} {V : K → Type v}
-    [DecidableEq K] {R : (k : K) → V k → V k → Prop}
+theorem storeObs_satisfiesSem_iff {R : (k : K) → V k → V k → Prop}
     {left right : Store V} (h : StoreObs R left right)
     (d : SemanticSpec K) :
     SatisfiesSem left d ↔ SatisfiesSem right d := by
@@ -637,5 +633,7 @@ theorem storeObs_satisfiesSem_iff {K : Type u} {V : K → Type v}
     exact (storeObs_mem_iff h k).mp (hs hk)
   · intro hs k hk
     exact (storeObs_mem_iff h k).mpr (hs hk)
+
+end StoreObservation
 
 end CordisADR02

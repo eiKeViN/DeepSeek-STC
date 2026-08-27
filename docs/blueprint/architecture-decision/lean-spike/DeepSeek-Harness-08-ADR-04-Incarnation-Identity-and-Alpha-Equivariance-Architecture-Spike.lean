@@ -24,6 +24,10 @@ noncomputable section
 variable {IncarnationId Key Payload Atom Generation : Type u}
 variable [DecidableEq IncarnationId] [DecidableEq Key]
 
+/-! ## 1. Generic name machinery -/
+
+section NameLayer
+
 abbrev ParentRef (N : Type u) := Option N
 
 structure NameCell (N K P : Type u) [DecidableEq K] where
@@ -44,6 +48,12 @@ structure FreshSupply (N : Type u) [DecidableEq N] where
   choose_fresh : ∀ used n, choose used = some n → n ∉ used
   choose_some_if_available : ∀ used, (∃ n, n ∉ used) →
     ∃ n, choose used = some n
+
+end NameLayer
+
+/-! ## 2. Allocation protocol -/
+
+section Allocation
 
 def CurrentFresh (r : NameRegistry IncarnationId Key Payload) (n : IncarnationId) : Prop :=
   n ∉ r.keys
@@ -91,9 +101,16 @@ theorem allocationStep_insert (old : Finset IncarnationId) (n : IncarnationId)
     (h : n ∉ old) : AllocationStep old (insert n old) n := by
   exact ⟨h, rfl⟩
 
+end Allocation
+
+/-! ## 3. Renaming and alpha-equivariance machinery -/
+
+section Renaming
+
 def renameFinset (χ : Equiv.Perm IncarnationId) (s : Finset IncarnationId) : Finset IncarnationId :=
   s.map χ.toEmbedding
 
+omit [DecidableEq IncarnationId] in
 theorem mem_renameFinset_iff (χ : Equiv.Perm IncarnationId) (s : Finset IncarnationId) (n : IncarnationId) :
     n ∈ renameFinset χ s ↔ χ.symm n ∈ s := by
   simp [renameFinset]
@@ -107,6 +124,7 @@ def mapValues (χ : Equiv.Perm IncarnationId) (m : Finmap (fun _ : Key => Incarn
         simp [Finmap.lookup_isSome, Finmap.mem_keys]
     ⟩
 
+omit [DecidableEq IncarnationId] in
 theorem mapValues_lookup (χ : Equiv.Perm IncarnationId)
     (m : Finmap (fun _ : Key => IncarnationId)) (k : Key) :
     (mapValues χ m).lookup k = (m.lookup k).map χ := by
@@ -115,6 +133,7 @@ theorem mapValues_lookup (χ : Equiv.Perm IncarnationId)
 def renameParent (χ : Equiv.Perm IncarnationId) (p : ParentRef IncarnationId) : ParentRef IncarnationId :=
   p.map χ
 
+omit [DecidableEq IncarnationId] in
 theorem renameParent_root (χ : Equiv.Perm IncarnationId) : renameParent χ none = none := by
   rfl
 
@@ -157,6 +176,12 @@ theorem ledgerSound_rename (χ : Equiv.Perm IncarnationId)
   rw [mem_renameFinset_iff]
   exact h ((mem_renameFinset_iff χ r.keys n).mp hn)
 
+end Renaming
+
+/-! ## 4. Soundness bridges -/
+
+section Soundness
+
 theorem everFresh_implies_currentFresh
     (r : NameRegistry IncarnationId Key Payload) (ledger : NameLedger IncarnationId)
     (hsound : LedgerSound r ledger) (n : IncarnationId) (hfresh : EverFresh ledger n) :
@@ -177,6 +202,12 @@ theorem parentAllowed_rename_iff (χ : Equiv.Perm IncarnationId)
       ParentAllowed r p := by
   cases p <;> simp [ParentAllowed, renameParent, renameRegistry_keys,
     renameFinset]
+
+end Soundness
+
+/-! ## 5. The named boundary: registry + ledger + checked registration -/
+
+section Boundary
 
 structure NamedBoundary (N K P : Type u) [DecidableEq N] [DecidableEq K] where
   registry : NameRegistry N K P
@@ -251,6 +282,12 @@ theorem checkRegistration_success (b : NamedBoundary IncarnationId Key Payload) 
       · rfl
       · exact False.elim (hparent w.parentAllowed)
 
+end Boundary
+
+/-! ## 6. Equivariance and identity laws -/
+
+section Equivariance
+
 theorem currentFresh_rename_iff (χ : Equiv.Perm IncarnationId)
     (r : NameRegistry IncarnationId Key Payload) (n : IncarnationId) :
     CurrentFresh (renameRegistry χ r) (χ n) ↔ CurrentFresh r n := by
@@ -272,6 +309,7 @@ theorem allocationStep_rename (χ : Equiv.Perm IncarnationId)
       simpa [renameFinset] using hfresh)
   · simp [renameFinset]
 
+omit [DecidableEq IncarnationId] in
 theorem renameFinset_id (s : Finset IncarnationId) :
     renameFinset (Equiv.refl IncarnationId) s = s := by
   simp [renameFinset]
@@ -281,12 +319,14 @@ theorem renameLedger_id (ledger : NameLedger IncarnationId) :
   cases ledger
   simp [renameLedger, renameFinset]
 
+omit [DecidableEq IncarnationId] in
 theorem mapValues_id (m : Finmap (fun _ : Key => IncarnationId)) :
     mapValues (Equiv.refl IncarnationId) m = m := by
   apply Finmap.ext_lookup
   intro k
   simp [mapValues]
 
+omit [DecidableEq IncarnationId] in
 theorem renameCell_id (c : NameCell IncarnationId Key Payload) :
     renameCell (Equiv.refl IncarnationId) c = c := by
   cases c with
@@ -301,6 +341,12 @@ theorem renameRegistry_id (r : NameRegistry IncarnationId Key Payload) :
   cases h : r.lookup n with
   | none => simp [h]
   | some c => simp [h, renameCell_id]
+
+end Equivariance
+
+/-! ## 7. Runtime identity separation -/
+
+section RuntimeIdentity
 
 structure RuntimeIdentity (A G : Type u) where
   atom : A
@@ -321,12 +367,19 @@ structure RuntimeRefinement (N A G : Type u) where
   encode : RuntimeIdentity A G → N
   injective : Function.Injective encode
 
+omit [DecidableEq IncarnationId] in
 theorem runtime_reuse_separates (R : RuntimeRefinement IncarnationId Atom Generation)
     {a : Atom} {g₁ g₂ : Generation} (h : g₁ ≠ g₂) :
     R.encode ⟨a, g₁⟩ ≠ R.encode ⟨a, g₂⟩ := by
   intro heq
   apply h
   exact congrArg RuntimeIdentity.generation (R.injective heq)
+
+end RuntimeIdentity
+
+/-! ## 8. Traces and their equivariance spec -/
+
+section TraceLayer
 
 def NoReuse {N : Type u} (allocations : List N) : Prop :=
   allocations.Pairwise (· ≠ ·)
@@ -375,6 +428,7 @@ theorem finiteNames_rename (χ : Equiv.Perm IncarnationId) (s : Set IncarnationI
   intro n hn
   exact (mem_renameFinset_iff χ support n).mpr (hsupport hn)
 
+omit [DecidableEq IncarnationId] in
 theorem noReuse_map (χ : Equiv.Perm IncarnationId) (xs : List IncarnationId)
     (h : NoReuse xs) : NoReuse (xs.map χ) := by
   induction xs with
@@ -444,6 +498,12 @@ def TraceEquivariant
       ∃ before' after', TraceRenameSpec χ before before' ∧
         TraceRenameSpec χ after after' ∧ rel before' after'
 
+end TraceLayer
+
+/-! ## 9. Well-formedness and alpha-renaming -/
+
+section WellFormed
+
 def ParentClosed (r : NameRegistry IncarnationId Key Payload) : Prop :=
   ∀ ⦃child parent : IncarnationId⦄ ⦃c : NameCell IncarnationId Key Payload⦄,
     r.lookup child = some c → c.parent = some parent → parent ∈ r.keys
@@ -474,6 +534,8 @@ def WFEquivariant : Prop :=
   ∀ (χ : Equiv.Perm IncarnationId) (r : NameRegistry IncarnationId Key Payload)
     (ledger : NameLedger IncarnationId),
     NameWF r ledger → NameWF (renameRegistry χ r) (renameLedger χ ledger)
+
+end WellFormed
 
 end
 end CordisADR04

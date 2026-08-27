@@ -21,9 +21,11 @@ universe u v w
 
 namespace CordisADR06
 
-/-! --------------------------------------------------------------------------
-    Explicit relation layer (ADR-01 names made canonical)
-    -------------------------------------------------------------------------- -/
+/-! ## 1. Explicit relation layer (ADR-01 names made canonical) -/
+
+section RelationLayer
+
+variable {α : Type u} {β : Type v}
 
 structure RelSpec (α : Type u) where
   rel : α → α → Prop
@@ -31,15 +33,14 @@ structure RelSpec (α : Type u) where
   symm : ∀ {x y}, rel x y → rel y x
   trans : ∀ {x y z}, rel x y → rel y z → rel x z
 
-def RespectsOn {α : Type u} {β : Type v}
-    (R : α → α → Prop) (S : β → β → Prop) (f : α → β) : Prop :=
+def RespectsOn (R : α → α → Prop) (S : β → β → Prop) (f : α → β) : Prop :=
   ∀ {x y}, R x y → S (f x) (f y)
 
-def Respects {α : Type u} (R : RelSpec α) (f : α → α) : Prop :=
+def Respects (R : RelSpec α) (f : α → α) : Prop :=
   RespectsOn R.rel R.rel f
 
 /- Same-input pointwise relation.  This is the canonical `PointwiseRel`. -/
-def PointwiseRel {α : Type u} (R : RelSpec α) (f g : α → α) : Prop :=
+def PointwiseRel (R : RelSpec α) (f g : α → α) : Prop :=
   ∀ z, R.rel (f z) (g z)
 
 /- Heterogeneous form used when the input index is not the state carrier. -/
@@ -48,23 +49,23 @@ def SamePointwiseRel {ι : Type u} {α : Type v}
   ∀ z, S (f z) (g z)
 
 /- Cross-input lifting.  It is deliberately not called PointwiseRel. -/
-def CrossRel {α : Type u} (R : RelSpec α) (f g : α → α) : Prop :=
+def CrossRel (R : RelSpec α) (f g : α → α) : Prop :=
   ∀ {x y}, R.rel x y → R.rel (f x) (g y)
 
-theorem crossRel_of_respects_pointwise {α : Type u}
+theorem crossRel_of_respects_pointwise
     {R : RelSpec α} {f g : α → α}
     (hf : Respects R f) (hfg : PointwiseRel R f g) :
     CrossRel R f g := by
   intro x y hxy
   exact R.trans (hf hxy) (hfg y)
 
-theorem pointwiseRel_of_crossRel {α : Type u}
+theorem pointwiseRel_of_crossRel
     {R : RelSpec α} {f g : α → α}
     (hfg : CrossRel R f g) : PointwiseRel R f g := by
   intro z
   exact hfg (R.refl z)
 
-theorem respects_of_crossRel_self {α : Type u}
+theorem respects_of_crossRel_self
     {R : RelSpec α} {f : α → α}
     (hff : CrossRel R f f) : Respects R f := by
   intro x y hxy
@@ -73,7 +74,7 @@ theorem respects_of_crossRel_self {α : Type u}
 /- For an equivalence, a cross-input lifting already entails properness of
    both maps.  This is recorded explicitly so the directional/directed case
    cannot be confused with the equivalence case. -/
-theorem respects_left_of_crossRel {α : Type u}
+theorem respects_left_of_crossRel
     {R : RelSpec α} {f g : α → α}
     (hfg : CrossRel R f g) : Respects R f := by
   intro x y hxy
@@ -82,7 +83,7 @@ theorem respects_left_of_crossRel {α : Type u}
     R.symm ((pointwiseRel_of_crossRel hfg) y)
   exact R.trans h₁ h₂
 
-theorem respects_right_of_crossRel {α : Type u}
+theorem respects_right_of_crossRel
     {R : RelSpec α} {f g : α → α}
     (hfg : CrossRel R f g) : Respects R g := by
   intro x y hxy
@@ -93,39 +94,39 @@ theorem respects_right_of_crossRel {α : Type u}
 
 /- The second bridge is the one normally used in the right-to-left direction;
    spelling it out avoids relying on implicit symmetry in later proofs. -/
-theorem crossRel_of_pointwise_respects {α : Type u}
+theorem crossRel_of_pointwise_respects
     {R : RelSpec α} {f g : α → α}
     (hf : Respects R f) (hfg : PointwiseRel R f g) : CrossRel R f g :=
   crossRel_of_respects_pointwise hf hfg
 
-theorem respects_id {α : Type u} (R : RelSpec α) : Respects R id := by
+theorem respects_id (R : RelSpec α) : Respects R id := by
   intro x y hxy
   exact hxy
 
-theorem respects_comp {α : Type u} {R : RelSpec α}
+theorem respects_comp {R : RelSpec α}
     {f g : α → α} (hf : Respects R f) (hg : Respects R g) :
     Respects R (f ∘ g) := by
   intro x y hxy
   exact hf (hg hxy)
 
-theorem pointwiseRel_refl {α : Type u} (R : RelSpec α) (f : α → α) :
+theorem pointwiseRel_refl (R : RelSpec α) (f : α → α) :
     PointwiseRel R f f := by
   intro x
   exact R.refl (f x)
 
-theorem pointwiseRel_symm {α : Type u} {R : RelSpec α}
+theorem pointwiseRel_symm {R : RelSpec α}
     {f g : α → α} (h : PointwiseRel R f g) :
     PointwiseRel R g f := by
   intro x
   exact R.symm (h x)
 
-theorem pointwiseRel_trans {α : Type u} {R : RelSpec α}
+theorem pointwiseRel_trans {R : RelSpec α}
     {f g h : α → α} (h₁ : PointwiseRel R f g)
     (h₂ : PointwiseRel R g h) : PointwiseRel R f h := by
   intro x
   exact R.trans (h₁ x) (h₂ x)
 
-theorem compose_pointwiseRel {α : Type u}
+theorem compose_pointwiseRel
     {R : RelSpec α} {f g h k : α → α}
     (hf : Respects R f) (hfg : PointwiseRel R f g)
     (hhk : PointwiseRel R h k) :
@@ -135,20 +136,20 @@ theorem compose_pointwiseRel {α : Type u}
 
 /- A tagged optional result relation.  Constructor tags are never silently
    identified; this is the common partial/failure relator. -/
-def OptionRel {α : Type u} (R : α → α → Prop) :
+def OptionRel (R : α → α → Prop) :
     Option α → Option α → Prop
   | none, none => True
   | some x, some y => R x y
   | _, _ => False
 
-theorem optionRel_none_none {α : Type u} {R : α → α → Prop} :
+theorem optionRel_none_none {R : α → α → Prop} :
     OptionRel R none none := by
   trivial
 
-theorem optionRel_some {α : Type u} {R : α → α → Prop}
+theorem optionRel_some {R : α → α → Prop}
     {x y : α} (h : R x y) : OptionRel R (some x) (some y) := h
 
-theorem optionRel_map {α : Type u} {β : Type v}
+theorem optionRel_map
     {R : α → α → Prop} {S : RelSpec β}
     {f g : α → β} (hfg : RespectsOn R S.rel f)
     (hpoint : SamePointwiseRel S.rel f g)
@@ -192,9 +193,13 @@ def DepStoreObs {K : Type u} {V : K → Type v}
 def NameRenaming (State Name : Type u) :=
   Equiv.Perm Name → State → State
 
-/-! --------------------------------------------------------------------------
-    Raw effects, witnesses, and relation-level independence
-    -------------------------------------------------------------------------- -/
+end RelationLayer
+
+/-! ## 2. Raw effects, witnesses, and relation-level independence -/
+
+section Effects
+
+variable {Γ : Type u}
 
 structure EffectResult (Γ : Type u) where
   state : Γ
@@ -202,7 +207,7 @@ structure EffectResult (Γ : Type u) where
 
 abbrev Effect (Γ : Type u) := Γ → EffectResult Γ
 
-def EffectResultRel {Γ : Type u} (R : RelSpec Γ)
+def EffectResultRel (R : RelSpec Γ)
     (x y : EffectResult Γ) : Prop :=
   R.rel x.state y.state ∧ PointwiseRel R x.undo y.undo
 
@@ -236,7 +241,7 @@ def depStoreObsSpec {K : Type u} {V : K → Type v}
     intro x y z hxy hyz k
     exact (optionRelSpec (keyRel k)).trans (hxy k) (hyz k)
 
-def effectResultRelSpec {Γ : Type u} (R : RelSpec Γ) :
+def effectResultRelSpec (R : RelSpec Γ) :
     RelSpec (EffectResult Γ) where
   rel := EffectResultRel R
   refl := by
@@ -249,24 +254,24 @@ def effectResultRelSpec {Γ : Type u} (R : RelSpec Γ) :
     intro x y z hxy hyz
     exact ⟨R.trans hxy.1 hyz.1, pointwiseRel_trans hxy.2 hyz.2⟩
 
-structure IsLawfulEffect {Γ : Type u}
+structure IsLawfulEffect
     (R : RelSpec Γ) (e : Effect Γ) : Prop where
   run_respects : RespectsOn R.rel (EffectResultRel R) e
   undo_respects : ∀ γ, Respects R (e γ).undo
   recovers : ∀ γ, R.rel ((e γ).undo (e γ).state) γ
 
-structure LawfulEffect {Γ : Type u} (R : RelSpec Γ) where
+structure LawfulEffect (R : RelSpec Γ) where
   run : Effect Γ
   lawful : IsLawfulEffect R run
 
-def seqRun {Γ : Type u} (first second : Effect Γ) : Effect Γ :=
+def seqRun (first second : Effect Γ) : Effect Γ :=
   fun γ =>
     let r₁ := first γ
     let r₂ := second r₁.state
     { state := r₂.state
       undo := fun x => r₁.undo (r₂.undo x) }
 
-theorem seqRun_lawful {Γ : Type u} {R : RelSpec Γ}
+theorem seqRun_lawful {R : RelSpec Γ}
     {first second : Effect Γ}
     (hfirst : IsLawfulEffect R first)
     (hsecond : IsLawfulEffect R second) :
@@ -314,10 +319,10 @@ def equality (α : Type u) : RelSpec α where
   symm := Eq.symm
   trans := Eq.trans
 
-def PaperWitness {Γ : Type u} (e : Effect Γ) : Prop :=
+def PaperWitness (e : Effect Γ) : Prop :=
   ∀ γ, (e γ).undo (e γ).state = γ
 
-theorem lawful_equality_iff {Γ : Type u} (e : Effect Γ) :
+theorem lawful_equality_iff (e : Effect Γ) :
     IsLawfulEffect (equality Γ) e ↔ PaperWitness e := by
   constructor
   · intro h γ
@@ -331,21 +336,21 @@ theorem lawful_equality_iff {Γ : Type u} (e : Effect Γ) :
       cases hxy
       rfl
 
-def CommuteUpTo {Γ : Type u} (R : RelSpec Γ)
+def CommuteUpTo (R : RelSpec Γ)
     (f g : Γ → Γ) : Prop :=
   PointwiseRel R (f ∘ g) (g ∘ f)
 
-def selectedUndo {Γ : Type u} (e : Effect Γ) (γ : Γ) : Γ → Γ :=
+def selectedUndo (e : Effect Γ) (γ : Γ) : Γ → Γ :=
   (e γ).undo
 
 /- D19 clause (2): a foreign transformation must not change which inverse an
    effect selects, modulo the selected relation. -/
-def SelectedInverseStable {Γ : Type u} (R : RelSpec Γ)
+def SelectedInverseStable (R : RelSpec Γ)
     (e : Effect Γ) (foreign : Γ → Γ) : Prop :=
   ∀ γ, PointwiseRel R
     (selectedUndo e (foreign γ)) (selectedUndo e γ)
 
-structure IndependenceContract {Γ : Type u}
+structure IndependenceContract
     (R : RelSpec Γ) (e₁ e₂ : Effect Γ)
     (M₁ M₂ : (Γ → Γ) → Prop) : Prop where
   commute : ∀ {f g}, M₁ f → M₂ g → CommuteUpTo R f g
@@ -367,7 +372,7 @@ structure GeneratedEffectProfile (Γ : Type u) (e : Effect Γ) where
   forward_mem : monoid.mem (fun γ => (e γ).state)
   inverse_mem : ∀ γ, monoid.mem (e γ).undo
 
-structure GeneratedIndependenceContract {Γ : Type u}
+structure GeneratedIndependenceContract
     {R : RelSpec Γ} {e₁ e₂ : Effect Γ}
     (P₁ : GeneratedEffectProfile Γ e₁)
     (P₂ : GeneratedEffectProfile Γ e₂) : Prop where
@@ -377,9 +382,13 @@ structure GeneratedIndependenceContract {Γ : Type u}
   stable₁₂ : ∀ {g}, P₂.monoid.mem g → SelectedInverseStable R e₁ g
   stable₂₁ : ∀ {f}, P₁.monoid.mem f → SelectedInverseStable R e₂ f
 
-/-! --------------------------------------------------------------------------
-    Partial operations and the repaired L35 contract
-    -------------------------------------------------------------------------- -/
+end Effects
+
+/-! ## 3. Partial operations and the repaired L35 contract -/
+
+section PartialOps
+
+variable {Γ : Type u} {Ω : Type v}
 
 structure OpResult (Γ : Type u) (Ω : Type v) where
   state : Γ
@@ -388,7 +397,7 @@ structure OpResult (Γ : Type u) (Ω : Type v) where
 
 abbrev PartialOp (Γ : Type u) (Ω : Type v) := Γ → Option (OpResult Γ Ω)
 
-def WeakOperationRespects {Γ : Type u} {Ω : Type v}
+def WeakOperationRespects
     (R : RelSpec Γ) (op : PartialOp Γ Ω) : Prop :=
   ∀ {x y}, R.rel x y →
     match op x, op y with
@@ -399,25 +408,25 @@ def WeakOperationRespects {Γ : Type u} {Ω : Type v}
         Respects R a.undo ∧ Respects R b.undo
     | _, _ => False
 
-def SelectedInverseCoherent {Γ : Type u} {Ω : Type v}
+def SelectedInverseCoherent
     (R : RelSpec Γ) (op : PartialOp Γ Ω) : Prop :=
   ∀ {x y a b}, R.rel x y → op x = some a → op y = some b →
     PointwiseRel R a.undo b.undo
 
-def OperationRecovers {Γ : Type u} {Ω : Type v}
+def OperationRecovers
     (R : RelSpec Γ) (op : PartialOp Γ Ω) : Prop :=
   ∀ {x a}, op x = some a → R.rel (a.undo a.state) x
 
-def OperationRespects {Γ : Type u} {Ω : Type v}
+def OperationRespects
     (R : RelSpec Γ) (op : PartialOp Γ Ω) : Prop :=
   WeakOperationRespects R op ∧ SelectedInverseCoherent R op ∧
     OperationRecovers R op
 
-theorem operationRespects_implies_weak {Γ : Type u} {Ω : Type v}
+theorem operationRespects_implies_weak
     {R : RelSpec Γ} {op : PartialOp Γ Ω}
     (h : OperationRespects R op) : WeakOperationRespects R op := h.1
 
-theorem operationRespects_implies_coherent {Γ : Type u} {Ω : Type v}
+theorem operationRespects_implies_coherent
     {R : RelSpec Γ} {op : PartialOp Γ Ω}
     (h : OperationRespects R op) : SelectedInverseCoherent R op := h.2.1
 
@@ -426,33 +435,33 @@ theorem operationRespects_implies_coherent {Γ : Type u} {Ω : Type v}
    and selected-inverse stability under every foreign monoid map.  Outcomes
    are equality-specialized here; a future outcome relation must be supplied
    explicitly rather than inferred from R. -/
-def DefinedAt {Γ : Type u} {Ω : Type v}
+def DefinedAt
     (op : PartialOp Γ Ω) (γ : Γ) : Prop :=
   ∃ r, op γ = some r
 
-def DefinednessStable {Γ : Type u} {Ω : Type v}
+def DefinednessStable
     (op : PartialOp Γ Ω) (foreign : Γ → Γ) : Prop :=
   ∀ γ, DefinedAt op (foreign γ) ↔ DefinedAt op γ
 
-def OutcomeStable {Γ : Type u} {Ω : Type v}
+def OutcomeStable
     (op : PartialOp Γ Ω) (foreign : Γ → Γ) : Prop :=
   ∀ {γ : Γ} {a b : OpResult Γ Ω},
     op (foreign γ) = some a → op γ = some b → a.outcome = b.outcome
 
-def SelectedInverseStableOp {Γ : Type u} {Ω : Type v}
+def SelectedInverseStableOp
     (R : RelSpec Γ) (op : PartialOp Γ Ω) (foreign : Γ → Γ) : Prop :=
   ∀ {γ : Γ} {a b : OpResult Γ Ω},
     op (foreign γ) = some a → op γ = some b →
       PointwiseRel R a.undo b.undo
 
-structure OperationForeignStability {Γ : Type u} {Ω : Type v}
+structure OperationForeignStability
     (R : RelSpec Γ) (op : PartialOp Γ Ω)
     (M : TransformationMonoidProfile Γ) : Prop where
   definedness : ∀ {h}, M.mem h → DefinednessStable op h
   outcome : ∀ {h}, M.mem h → OutcomeStable op h
   selected_inverse : ∀ {h}, M.mem h → SelectedInverseStableOp R op h
 
-structure OperationIndependenceContract {Γ : Type u} {Ω₁ Ω₂ : Type v}
+structure OperationIndependenceContract {Ω₁ Ω₂ : Type v}
     (R : RelSpec Γ)
     (op₁ : PartialOp Γ Ω₁) (op₂ : PartialOp Γ Ω₂)
     (M₁ M₂ : TransformationMonoidProfile Γ) : Prop where
@@ -462,9 +471,13 @@ structure OperationIndependenceContract {Γ : Type u} {Ω₁ Ω₂ : Type v}
   left : OperationForeignStability R op₁ M₂
   right : OperationForeignStability R op₂ M₁
 
-/-! --------------------------------------------------------------------------
-    Ranked iterator and its relational output contract
-    -------------------------------------------------------------------------- -/
+end PartialOps
+
+/-! ## 4. Ranked iterator and its relational output contract -/
+
+section Iterator
+
+variable {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 inductive StageResult (Γ : Type u) (Ξ : Type v) (Q : Type w) where
   | halt (state : Γ) (undo : Γ → Γ)
@@ -482,12 +495,12 @@ inductive ExecResult (Γ : Type u) (Ξ : Type v) where
   | success (state : Γ) (undo : Γ → Γ)
   | failure (error : Ξ) (state : Γ) (undo : Γ → Γ)
 
-def composeUndo {Γ : Type u} (outer inner : Γ → Γ) : Γ → Γ :=
+def composeUndo (outer inner : Γ → Γ) : Γ → Γ :=
   outer ∘ inner
 
-def execFrom {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def execFrom
     (it : RankedIterator Γ Ξ Q) (q : Q) (γ : Γ) : ExecResult Γ Ξ :=
-  match h : it.run q γ with
+  match _h : it.run q γ with
   | .raise error => .failure error γ id
   | .halt δ undo => .success δ undo
   | .yield δ undo next =>
@@ -498,14 +511,14 @@ def execFrom {Γ : Type u} {Ξ : Type v} {Q : Type w}
           .failure error final (composeUndo undo innerUndo)
 termination_by it.rank q
 decreasing_by
-  exact it.next_lt h
+  exact it.next_lt _h
 
-def exec {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def exec
     (it : RankedIterator Γ Ξ Q) (γ : Γ) : ExecResult Γ Ξ :=
   execFrom it it.root γ
 
 /- The same-input output relation for an execution result. -/
-def ExecRel {Γ : Type u} {Ξ : Type v}
+def ExecRel
     (R : RelSpec Γ) (E : RelSpec Ξ)
     (a b : ExecResult Γ Ξ) : Prop :=
   match a, b with
@@ -514,7 +527,7 @@ def ExecRel {Γ : Type u} {Ξ : Type v}
       E.rel e e' ∧ R.rel x y ∧ PointwiseRel R f g
   | _, _ => False
 
-def execRelSpec {Γ : Type u} {Ξ : Type v}
+def execRelSpec
     (R : RelSpec Γ) (E : RelSpec Ξ) : RelSpec (ExecResult Γ Ξ) where
   rel := ExecRel R E
   refl := by
@@ -537,7 +550,7 @@ def execRelSpec {Γ : Type u} {Ξ : Type v}
     · exact ⟨E.trans hxy.1 hyz.1, R.trans hxy.2.1 hyz.2.1,
         pointwiseRel_trans hxy.2.2 hyz.2.2⟩
 
-def StageRelC {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def StageRelC
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (a b : StageResult Γ Ξ Q) : Prop :=
   match a, b with
@@ -549,7 +562,7 @@ def StageRelC {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 /- A directional simulation.  Keeping this name separate from bisimulation is
    important: the execution theorem below only consumes the forward direction. -/
-def IteratorSimulation {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def IteratorSimulation
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (a b : RankedIterator Γ Ξ Q) : Prop :=
   C a.root b.root ∧
@@ -557,7 +570,7 @@ def IteratorSimulation {Γ : Type u} {Ξ : Type v} {Q : Type w}
       StageRelC R E C (a.run q x) (b.run q' y)
 
 /- A genuine bisimulation is a pair of simulations. -/
-def IteratorBisim {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def IteratorBisim
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (a b : RankedIterator Γ Ξ Q) : Prop :=
   IteratorSimulation R E C a b ∧
@@ -567,7 +580,7 @@ def IteratorBisim {Γ : Type u} {Ξ : Type v} {Q : Type w}
    selected inverse, and continuation.  It is stronger than inverse-only
    stability and deliberately remains parameterized by the continuation
    relation C. -/
-def ContinuationStable {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def ContinuationStable
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (it : RankedIterator Γ Ξ Q) (foreign : Γ → Γ) : Prop :=
   ∀ q γ, StageRelC R E C
@@ -575,17 +588,16 @@ def ContinuationStable {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 /- Each inverse selected by a stage is required to preserve R.  This is what
    lets a same-input inverse relation compose across related boundary states. -/
-def StageInverseProper {Γ : Type u} {Ξ : Type v} {Q : Type w}
-    (R : RelSpec Γ) : StageResult Γ Ξ Q → Prop
+def StageInverseProper (R : RelSpec Γ) : StageResult Γ Ξ Q → Prop
   | .raise _ => True
   | .halt _ undo => Respects R undo
   | .yield _ undo _ => Respects R undo
 
-def IteratorInverseProper {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def IteratorInverseProper
     (R : RelSpec Γ) (it : RankedIterator Γ Ξ Q) : Prop :=
   ∀ q γ, StageInverseProper R (it.run q γ)
 
-structure IteratorIndependenceContract {Γ : Type u} {Ξ : Type v} {Q : Type w}
+structure IteratorIndependenceContract
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (a b : RankedIterator Γ Ξ Q)
     (M₁ M₂ : TransformationMonoidProfile Γ) : Prop where
@@ -600,29 +612,27 @@ structure IteratorIndependenceContract {Γ : Type u} {Ξ : Type v} {Q : Type w}
 
 /- The local inverse witness required by D51/D52.  A raise has no successful
    state and therefore carries no invented recovery equation. -/
-def StageWitness {Γ : Type u} {Ξ : Type v} {Q : Type w}
-    (R : RelSpec Γ) (γ : Γ) : StageResult Γ Ξ Q → Prop
+def StageWitness (R : RelSpec Γ) (γ : Γ) : StageResult Γ Ξ Q → Prop
   | .raise _ => True
   | .halt δ undo => R.rel (undo δ) γ
   | .yield δ undo _ => R.rel (undo δ) γ
 
-def IteratorWitness {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def IteratorWitness
     (R : RelSpec Γ) (it : RankedIterator Γ Ξ Q) : Prop :=
   ∀ q γ, StageWitness R γ (it.run q γ)
 
 /- Same-node stage relation used by the local step law.  The continuation code
    is compared by ordinary equality here; StageRelC supports a wider C. -/
-def StageRel {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def StageRel
     (R : RelSpec Γ) (E : RelSpec Ξ)
     (a b : StageResult Γ Ξ Q) : Prop :=
   StageRelC R E (fun q q' => q = q') a b
 
-def StepLawful {Γ : Type u} {Ξ : Type v} {Q : Type w}
+def StepLawful
     (R : RelSpec Γ) (E : RelSpec Ξ) (it : RankedIterator Γ Ξ Q) : Prop :=
   ∀ q ⦃x y : Γ⦄, R.rel x y → StageRel R E (it.run q x) (it.run q y)
 
 theorem iteratorSimulation_self_of_stepLawful
-    {Γ : Type u} {Ξ : Type v} {Q : Type w}
     (R : RelSpec Γ) (E : RelSpec Ξ)
     (it : RankedIterator Γ Ξ Q)
     (hstep : StepLawful R E it) :
@@ -637,7 +647,7 @@ theorem iteratorSimulation_self_of_stepLawful
    transport proof below deliberately takes the components separately so that
    a caller can supply a reachable-indexed refinement instead of this
    conservative all-node contract. -/
-structure IteratorLawful {Γ : Type u} {Ξ : Type v} {Q : Type w}
+structure IteratorLawful
     (R : RelSpec Γ) (E : RelSpec Ξ) (it : RankedIterator Γ Ξ Q) : Prop where
   step_lawful : StepLawful R E it
   inverse_proper : IteratorInverseProper R it
@@ -646,7 +656,6 @@ structure IteratorLawful {Γ : Type u} {Ξ : Type v} {Q : Type w}
 /- D52 recovery closure: a stage witness plus inverse properness gives a
    relation-level recovery theorem for the complete (possibly failing) run. -/
 theorem execFrom_witness
-    {Γ : Type u} {Ξ : Type v} {Q : Type w}
     (it : RankedIterator Γ Ξ Q) (R : RelSpec Γ)
     (hW : IteratorWitness R it)
     (hP : IteratorInverseProper R it)
@@ -657,7 +666,7 @@ theorem execFrom_witness
   rw [execFrom.eq_1]
   cases hrun : it.run q γ with
   | raise error =>
-      simp [hrun]
+      simp
       exact R.refl γ
   | halt δ undo =>
       have hw := hW q γ
@@ -666,7 +675,7 @@ theorem execFrom_witness
       exact hw
   | yield δ undo next =>
       have ih := execFrom_witness it R hW hP next δ
-      simp [hrun]
+      simp
       cases hnext : execFrom it next δ with
       | success final innerUndo =>
           have hi : R.rel (innerUndo final) δ := by
@@ -697,7 +706,7 @@ decreasing_by
   exact it.next_lt hrun
 
 /- A helper for the yield branch of the execution-transport proof. -/
-theorem yield_undo_transport {Γ : Type u}
+theorem yield_undo_transport
     {R : RelSpec Γ} {f g h k : Γ → Γ}
     (hf : Respects R f) (hfg : PointwiseRel R f g)
     (hhk : PointwiseRel R h k) :
@@ -707,7 +716,6 @@ theorem yield_undo_transport {Γ : Type u}
 /- Coupled execution transport.  The induction measure is the sum of the two
    ranks; hence no equality of ranks is required by a continuation bisimulation. -/
 theorem execFrom_rel
-    {Γ : Type u} {Ξ : Type v} {Q : Type w}
     (a b : RankedIterator Γ Ξ Q)
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (hsim : IteratorSimulation R E C a b)
@@ -750,7 +758,7 @@ theorem execFrom_rel
           have hnextB : b.rank next' < b.rank q' := b.next_lt hb
           have ih := execFrom_rel a b R E C hsim hproperA hproperB
             next next' δ δ' hout.2.2 hout.1
-          simp [ha, hb]
+          simp
           cases hca : execFrom a next δ with
           | success finalA innerA =>
               cases hcb : execFrom b next' δ' with
@@ -786,7 +794,6 @@ termination_by a.rank q + b.rank q'
 decreasing_by omega
 
 theorem exec_rel
-    {Γ : Type u} {Ξ : Type v} {Q : Type w}
     (a b : RankedIterator Γ Ξ Q)
     (R : RelSpec Γ) (E : RelSpec Ξ) (C : Q → Q → Prop)
     (hsim : IteratorSimulation R E C a b)
@@ -797,10 +804,14 @@ theorem exec_rel
   exact execFrom_rel a b R E C hsim hproperA hproperB
     a.root b.root x y hsim.1 hxy
 
-/-! --------------------------------------------------------------------------
-    Generic alpha actions and transport of states, inverse witnesses, iterators,
-    and traces
-    -------------------------------------------------------------------------- -/
+end Iterator
+
+/-! ## 5. Generic alpha actions and transport of states, inverse witnesses,
+      iterators, and traces -/
+
+section AlphaActions
+
+variable {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
 
 structure AlphaAction (N : Type u) (X : Type v) where
   act : Equiv.Perm N → X → X
@@ -809,19 +820,19 @@ structure AlphaAction (N : Type u) (X : Type v) where
     act (χ * ψ) x = act χ (act ψ x)
   act_inv : ∀ (χ : Equiv.Perm N) x, act χ.symm (act χ x) = x
 
-def AlphaInvariant {N : Type u} {X : Type v}
+def AlphaInvariant
     (A : AlphaAction N X) (R : X → X → Prop) : Prop :=
   ∀ χ x y, R x y ↔ R (A.act χ x) (A.act χ y)
 
-def renameUndo {N : Type u} {X : Type v}
+def renameUndo
     (A : AlphaAction N X) (χ : Equiv.Perm N) (undo : X → X) : X → X :=
   fun z => A.act χ (undo (A.act χ.symm z))
 
-theorem renameUndo_apply {N : Type u} {X : Type v}
+theorem renameUndo_apply
     (A : AlphaAction N X) (χ : Equiv.Perm N) (undo : X → X) (z : X) :
     renameUndo A χ undo z = A.act χ (undo (A.act χ.symm z)) := rfl
 
-theorem respects_renameUndo {N : Type u} {X : Type v}
+theorem respects_renameUndo
     (A : AlphaAction N X) (R : RelSpec X)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     (undo : X → X) (hundo : Respects R undo) :
@@ -832,7 +843,7 @@ theorem respects_renameUndo {N : Type u} {X : Type v}
   have hu := hundo hxy'
   exact (hinv χ _ _).1 hu
 
-theorem pointwise_renameUndo {N : Type u} {X : Type v}
+theorem pointwise_renameUndo
     (A : AlphaAction N X) (R : RelSpec X)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     {f g : X → X} (hfg : PointwiseRel R f g) :
@@ -841,14 +852,13 @@ theorem pointwise_renameUndo {N : Type u} {X : Type v}
   have hfg' := hfg (A.act χ.symm z)
   exact (hinv χ _ _).1 hfg'
 
-def renameStage {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
-    (A : AlphaAction N X) (χ : Equiv.Perm N)
+def renameStage (A : AlphaAction N X) (χ : Equiv.Perm N)
     : StageResult X Ξ Q → StageResult X Ξ Q
   | .raise e => .raise e
   | .halt x undo => .halt (A.act χ x) (renameUndo A χ undo)
   | .yield x undo q => .yield (A.act χ x) (renameUndo A χ undo) q
 
-theorem stageRelC_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem stageRelC_rename
     (A : AlphaAction N X) (R : RelSpec X) (E : RelSpec Ξ)
     (C : Q → Q → Prop) (hinv : AlphaInvariant A R.rel)
     (χ : Equiv.Perm N) {s t : StageResult X Ξ Q}
@@ -858,29 +868,28 @@ theorem stageRelC_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
   | raise e =>
       cases t with
       | raise e' => simpa [StageRelC, renameStage] using h
-      | halt y g => simp [StageRelC, renameStage] at h
-      | yield y g q' => simp [StageRelC, renameStage] at h
+      | halt y g => simp [StageRelC] at h
+      | yield y g q' => simp [StageRelC] at h
   | halt x f =>
       cases t with
-      | raise e' => simp [StageRelC, renameStage] at h
+      | raise e' => simp [StageRelC] at h
       | halt y g =>
           have hxy : R.rel x y := h.1
           have hfg : PointwiseRel R f g := h.2
           refine ⟨(hinv χ x y).1 hxy, ?_⟩
           exact pointwise_renameUndo A R hinv χ hfg
-      | yield y g q' => simp [StageRelC, renameStage] at h
+      | yield y g q' => simp [StageRelC] at h
   | yield x f q =>
       cases t with
-      | raise e' => simp [StageRelC, renameStage] at h
-      | halt y g => simp [StageRelC, renameStage] at h
+      | raise e' => simp [StageRelC] at h
+      | halt y g => simp [StageRelC] at h
       | yield y g q' =>
           have hxy : R.rel x y := h.1
           have hfg : PointwiseRel R f g := h.2.1
           refine ⟨(hinv χ x y).1 hxy, ?_, h.2.2⟩
           exact pointwise_renameUndo A R hinv χ hfg
 
-def renameIterator {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
-    (A : AlphaAction N X) (χ : Equiv.Perm N)
+def renameIterator (A : AlphaAction N X) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) : RankedIterator X Ξ Q where
   root := it.root
   rank := it.rank
@@ -900,8 +909,7 @@ def renameIterator {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
         exact it.next_lt (q := q) (γ := A.act χ.symm x)
           (δ := s) (undo := u) (q' := n) hrun
 
-theorem renameIterator_run_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
-    (A : AlphaAction N X) (χ : Equiv.Perm N)
+theorem renameIterator_run_transport (A : AlphaAction N X) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (q : Q) (x : X) :
     (renameIterator A χ it).run q (A.act χ x) =
       renameStage A χ (it.run q x) := by
@@ -909,7 +917,7 @@ theorem renameIterator_run_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q 
       (it.run q (A.act χ.symm (A.act χ x))) = renameStage A χ (it.run q x)
   rw [A.act_inv]
 
-theorem iteratorSimulation_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem iteratorSimulation_rename
     (A : AlphaAction N X) (R : RelSpec X) (E : RelSpec Ξ)
     (C : Q → Q → Prop) (hinv : AlphaInvariant A R.rel)
     (χ : Equiv.Perm N) (a b : RankedIterator X Ξ Q)
@@ -926,7 +934,7 @@ theorem iteratorSimulation_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : T
       (renameStage A χ (b.run q' (A.act χ.symm y)))
     exact stageRelC_rename A R E C hinv χ hs
 
-theorem iteratorBisim_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem iteratorBisim_rename
     (A : AlphaAction N X) (R : RelSpec X) (E : RelSpec Ξ)
     (C : Q → Q → Prop) (hinv : AlphaInvariant A R.rel)
     (χ : Equiv.Perm N) (a b : RankedIterator X Ξ Q)
@@ -935,7 +943,7 @@ theorem iteratorBisim_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u
   exact ⟨iteratorSimulation_rename A R E C hinv χ a b hbis.1,
     iteratorSimulation_rename A R E (fun q q' => C q' q) hinv χ b a hbis.2⟩
 
-theorem iteratorInverseProper_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem iteratorInverseProper_rename
     (A : AlphaAction N X) (R : RelSpec X)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q)
@@ -974,22 +982,19 @@ theorem iteratorInverseProper_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q 
       change Respects R (renameUndo A χ u)
       exact hren
 
-def renameExec {N : Type u} {X : Type v} {Ξ : Type w}
-    (A : AlphaAction N X) (χ : Equiv.Perm N) :
+def renameExec (A : AlphaAction N X) (χ : Equiv.Perm N) :
     ExecResult X Ξ → ExecResult X Ξ
   | .success x undo => .success (A.act χ x) (renameUndo A χ undo)
   | .failure e x undo => .failure e (A.act χ x) (renameUndo A χ undo)
 
-theorem renameUndo_comp {N : Type u} {X : Type v}
-    (A : AlphaAction N X) (χ : Equiv.Perm N)
+theorem renameUndo_comp (A : AlphaAction N X) (χ : Equiv.Perm N)
     (f g : X → X) :
     renameUndo A χ (f ∘ g) =
       renameUndo A χ f ∘ renameUndo A χ g := by
   funext z
-  simp [renameUndo, Function.comp_def, A.act_inv]
+  simp [renameUndo, A.act_inv]
 
-theorem alpha_act_inv_right {N : Type u} {X : Type v}
-    (A : AlphaAction N X) (χ : Equiv.Perm N) (x : X) :
+theorem alpha_act_inv_right (A : AlphaAction N X) (χ : Equiv.Perm N) (x : X) :
     A.act χ (A.act χ.symm x) = x := by
   have h := A.act_comp χ χ.symm x
   have hmul : χ * χ.symm = Equiv.refl N := by
@@ -998,7 +1003,7 @@ theorem alpha_act_inv_right {N : Type u} {X : Type v}
   rw [hmul, A.act_id] at h
   exact h.symm
 
-theorem iteratorWitness_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem iteratorWitness_rename
     (A : AlphaAction N X) (R : RelSpec X)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (hW : IteratorWitness R it) :
@@ -1028,7 +1033,7 @@ theorem iteratorWitness_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type
       rw [A.act_inv]
       exact hw'
 
-theorem stepLawful_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem stepLawful_rename
     (A : AlphaAction N X) (R : RelSpec X) (E : RelSpec Ξ)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (hstep : StepLawful R E it) :
@@ -1042,7 +1047,7 @@ theorem stepLawful_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
     (renameStage A χ (it.run q (A.act χ.symm y)))
   exact stageRelC_rename A R E (fun q q' => q = q') hinv χ hs
 
-theorem iteratorLawful_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem iteratorLawful_rename
     (A : AlphaAction N X) (R : RelSpec X) (E : RelSpec Ξ)
     (hinv : AlphaInvariant A R.rel) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (hL : IteratorLawful R E it) :
@@ -1055,7 +1060,7 @@ theorem iteratorLawful_rename {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type 
 /- Full execution transport is proved by well-founded induction on the
    iterator rank.  The continuation/error payloads remain name-neutral in
    this profile; name-bearing variants must provide corresponding actions. -/
-theorem execFrom_rename_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem execFrom_rename_transport
     (A : AlphaAction N X) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (q : Q) (x : X) :
     execFrom (renameIterator A χ it) q (A.act χ x) =
@@ -1066,28 +1071,28 @@ theorem execFrom_rename_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q : T
   rw [execFrom.eq_1]
   cases hrun : it.run q x with
   | raise e =>
-      simp [renameStage, renameExec, hrun]
+      simp [renameStage, renameExec]
       apply funext
       intro z
       simp [renameUndo, alpha_act_inv_right]
   | halt δ undo =>
-      simp [renameStage, renameExec, hrun]
+      simp [renameStage, renameExec]
   | yield δ undo next =>
-      simp [renameStage, renameExec, hrun]
+      simp [renameStage, renameExec]
       have ih := execFrom_rename_transport A χ it next δ
       rw [ih]
       cases hres : execFrom it next δ with
       | success final innerUndo =>
-          simp [hres, renameExec, composeUndo]
+          simp [renameExec, composeUndo]
           rw [renameUndo_comp]
       | failure error final innerUndo =>
-          simp [hres, renameExec, composeUndo]
+          simp [renameExec, composeUndo]
           rw [renameUndo_comp]
 termination_by it.rank q
 decreasing_by
   exact it.next_lt hrun
 
-theorem exec_rename_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem exec_rename_transport
     (A : AlphaAction N X) (χ : Equiv.Perm N)
     (it : RankedIterator X Ξ Q) (x : X) :
     exec (renameIterator A χ it) (A.act χ x) =
@@ -1099,13 +1104,12 @@ theorem exec_rename_transport {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type 
 /- The recursive evaluator's full equality transport is an explicit boundary
    contract.  It is intentionally not asserted for name-bearing `Q`/`Ξ`; an
    integration profile must either supply opacity or actions on those payloads. -/
-def ExecTransportContract {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
-    (A : AlphaAction N X) : Prop :=
+def ExecTransportContract (A : AlphaAction N X) : Prop :=
   ∀ (χ : Equiv.Perm N) (it : RankedIterator X Ξ Q) (x : X),
     exec (renameIterator A χ it) (A.act χ x) =
       renameExec A χ (exec it x)
 
-theorem execTransportContract_proof {N : Type u} {X : Type v} {Ξ : Type w} {Q : Type u}
+theorem execTransportContract_proof
     (A : AlphaAction N X) : @ExecTransportContract N X Ξ Q A := by
   intro χ it x
   exact exec_rename_transport A χ it x
@@ -1115,18 +1119,18 @@ structure Event (N : Type u) (X : Type v) where
   state : X
   name : Option N
 
-def renameEvent {N : Type u} {X : Type v}
+def renameEvent
     (A : AlphaAction N X) (χ : Equiv.Perm N) (e : Event N X) : Event N X :=
   { kind := e.kind, state := A.act χ e.state, name := e.name.map χ }
 
-theorem renameEvent_id {N : Type u} {X : Type v}
+theorem renameEvent_id
     (A : AlphaAction N X) (e : Event N X) :
     renameEvent A (Equiv.refl N) e = e := by
   cases e with
   | mk kind state name =>
       simp [renameEvent, A.act_id]
 
-theorem renameEvent_comp {N : Type u} {X : Type v}
+theorem renameEvent_comp
     (A : AlphaAction N X) (χ ψ : Equiv.Perm N) (e : Event N X) :
     renameEvent A (χ * ψ) e = renameEvent A χ (renameEvent A ψ e) := by
   cases e with
@@ -1136,11 +1140,11 @@ theorem renameEvent_comp {N : Type u} {X : Type v}
 structure Trace (N : Type u) (X : Type v) where
   events : List (Event N X)
 
-def renameTrace {N : Type u} {X : Type v}
+def renameTrace
     (A : AlphaAction N X) (χ : Equiv.Perm N) (t : Trace N X) : Trace N X :=
   { events := t.events.map (renameEvent A χ) }
 
-theorem renameTrace_id {N : Type u} {X : Type v}
+theorem renameTrace_id
     (A : AlphaAction N X) (t : Trace N X) :
     renameTrace A (Equiv.refl N) t = t := by
   cases t with
@@ -1154,7 +1158,7 @@ theorem renameTrace_id {N : Type u} {X : Type v}
           simp only [List.map_cons]
           rw [renameEvent_id A e, ih]
 
-theorem renameTrace_comp {N : Type u} {X : Type v}
+theorem renameTrace_comp
     (A : AlphaAction N X) (χ ψ : Equiv.Perm N) (t : Trace N X) :
     renameTrace A (χ * ψ) t = renameTrace A χ (renameTrace A ψ t) := by
   cases t with
@@ -1168,10 +1172,12 @@ theorem renameTrace_comp {N : Type u} {X : Type v}
           simp only [List.map_cons]
           rw [renameEvent_comp A χ ψ e, ih]
 
-/-! --------------------------------------------------------------------------
-    Finite countermodel: weak inverse properness does not imply selected-
-    inverse coherence (the repaired L35 obligation).
-    -------------------------------------------------------------------------- -/
+end AlphaActions
+
+/-! ## 6. Finite countermodel: weak inverse properness does not imply selected-
+      inverse coherence (the repaired L35 obligation) -/
+
+section Countermodel
 
 inductive Toy where
   | a | b | c
@@ -1221,8 +1227,8 @@ theorem weakEffectResult_weak : WeakOperationLaw WeakEffectResult := by
     cases x
     · exact toyG_proper
     · exact toyG'_proper
-    · intro a b hab
-      exact hab
+    · intro x y hxy
+      exact hxy
   constructor
   · intro x
     cases x <;> simp [WeakEffectResult, toyG, toyG', toyRel, toyObs]
@@ -1234,6 +1240,8 @@ theorem weakEffectResult_not_coherent :
   intro h
   have hab : toyRel.rel Toy.a Toy.b := by rfl
   have hc := h (x := Toy.a) (y := Toy.b) hab Toy.c
-  simpa [WeakEffectResult, toyG, toyG', toyRel, toyObs] using hc
+  simp [WeakEffectResult, toyG, toyG', toyRel, toyObs] at hc
+
+end Countermodel
 
 end CordisADR06
