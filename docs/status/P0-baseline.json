@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "DH-P0-EXEC-01",
+  "blueprint_id": "DH-FORMAL-BP-01",
+  "generated_on": "2026-08-27T19:52:12+08:00",
+  "executing_branch": "agent/p0-baseline",
+  "task_scope": ["P0-T01 (materialized)", "P0-T02"],
+  "p0_t01_record": {
+    "handoff_status": "lead-reported complete; record materialized from workspace facts (no T01 decision redone)",
+    "source_of_truth_checkout": "C:\\Users\\eiKevinZ\\my_coursework\\DeepSeek-STC",
+    "git": {
+      "initial_branch": "main",
+      "initial_head": "9cf89966148469c088b3bf876e484030228bb683",
+      "remote": "origin https://github.com/eiKeViN/DeepSeek-STC.git (fetch/push)",
+      "initial_working_tree": "clean except untracked docs/plans/ (P0 plan file: allowed setup exception, listed below)"
+    },
+    "setup_exceptions": [
+      "docs/plans/ (P0-Execution-Plan.md): the plan-generation file itself; committed together with the p0 baseline unit"
+    ],
+    "lean_toolchain": "leanprover/lean4:v4.33.0",
+    "lakefile_toml": {
+      "package": "DeepSeek-STC",
+      "version": "0.1.0",
+      "defaultTargets": ["STC"],
+      "leanOptions": {"autoImplicit": false, "pp.unicode.fun": true},
+      "require": "mathlib leanprover-community rev v4.33.0",
+      "lean_lib": "STC"
+    },
+    "lake_manifest_json": {
+      "manifest_version": "1.2.0",
+      "mathlib_rev": "db584cd6d46c92f209a44c0f1c829460d327499d",
+      "mathlib_input_rev": "v4.33.0"
+    },
+    "toolchain_versions": {
+      "lake": "Lake version 5.0.0-src+d8b1897 (Lean version 4.33.0)",
+      "lean": "Lean (version 4.33.0, x86_64-w64-windows-gnu, commit d8b18978322de05a8f3dba51ef03cf5461676c17, Release)",
+      "installed_via": "elan"
+    },
+    "root_module": "STC.lean (minimal Mathlib import + smoke #eval; no substantive STC/ modules yet)",
+    "baseline_commands": [
+      {
+        "command": "lake build",
+        "raw_tail": "info: STC.lean:3:0: 1\nBuild completed successfully (517 jobs).",
+        "exit": 0,
+        "note": "incremental; .lake/packages/mathlib at manifest rev db584cd6, oleans present"
+      }
+    ]
+  },
+  "p0_t02_freeze": {
+    "freeze_branch": "agent/p0-baseline",
+    "freeze_head": "9cf89966148469c088b3bf876e484030228bb683",
+    "hasher": "sha256sum (GNU coreutils, Git Bash)",
+    "hash_command_raw": "sha256sum docs/blueprint/baseline/*.json docs/blueprint/architecture-decision/json/*.json docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure-Spike.lean docs/blueprint/DeepSeek-Harness-11-Executable-Formalization-Blueprint.json docs/blueprint/DeepSeek-Harness-11-Executable-Formalization-Blueprint.md",
+    "frozen_baselines": [
+      {
+        "id": "H03",
+        "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
+        "frozen_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+        "observed_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+        "verified": true
+      },
+      {
+        "id": "H04",
+        "path": "docs/blueprint/baseline/DeepSeek-Harness-04-Formalization-Disposition-Specification.json",
+        "frozen_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db",
+        "observed_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db",
+        "verified": true
+      }
+    ],
+    "project_source": {
+      "path": "docs/blueprint/baseline/DeepSeek-Harness-01-Formal-Reference.md",
+      "blueprint_manifest_sha256": "99f99d48f65e4735edb5a1207c1e98e076efcb4b066750cd483d51d744ef3b1b",
+      "observed_sha256": "99f99d48f65e4735edb5a1207c1e98e076efcb4b066750cd483d51d744ef3b1b",
+      "verified": true,
+      "note": "extra provenance check beyond the required ADR set"
+    },
+    "adr_artifacts": [
+      {
+        "id": "ADR-01",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-05-ADR-01-Equivalence-Architecture.json",
+        "blueprint_manifest_sha256": "1963c468ebaca2cd86635e88881ecda373b8278d0895c3805c52717e0a056dd5",
+        "workspace_sha256": "489a7e4d3d43e1bd12db99f185fe3931e1e4ee55dcade35238b0e1f69429c3fe",
+        "verified_against_manifest": false
+      },
+      {
+        "id": "ADR-02",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-06-ADR-02-Coeffect-Store-and-Partiality-Architecture.json",
+        "blueprint_manifest_sha256": "f1b8e298edb7405a4a67fa10869d621a2bfeab80d5e5cf6a86feb752878699e5",
+        "workspace_sha256": "7d83bd3380f082c5340c52b2b495f603ae1385567c6038a5b576d29276954a9a",
+        "verified_against_manifest": false
+      },
+      {
+        "id": "ADR-03",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-07-ADR-03-Unified-State-and-Registry-Architecture.json",
+        "blueprint_manifest_sha256": "0c6861367cf3061358366e90b2e2848649d96f5ad792185ed5f2e186d0520d48",
+        "workspace_sha256": "0c6861367cf3061358366e90b2e2848649d96f5ad792185ed5f2e186d0520d48",
+        "verified_against_manifest": true
+      },
+      {
+        "id": "ADR-03-CLOSURE",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-07-ADR-03-BD-STATE-Closure-Packet.json",
+        "blueprint_manifest_sha256": "2ef858c0a4d99bdf792e98e779d4c452884690f1a3d68addcefec6d827469a35",
+        "workspace_sha256": "2ef858c0a4d99bdf792e98e779d4c452884690f1a3d68addcefec6d827469a35",
+        "verified_against_manifest": true
+      },
+      {
+        "id": "ADR-04",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-08-ADR-04-Incarnation-Identity-and-Alpha-Equivariance-Architecture.json",
+        "blueprint_manifest_sha256": "80beaaf2c29930527fee17419ae74718ea26140058fda67bb834d8cc435e36cc",
+        "workspace_sha256": "80beaaf2c29930527fee17419ae74718ea26140058fda67bb834d8cc435e36cc",
+        "verified_against_manifest": true
+      },
+      {
+        "id": "ADR-05",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-09-ADR-05-Iterator-and-Failure-Architecture.json",
+        "blueprint_manifest_sha256": "86c555027a0a49bb40c95f1d612c12fcb6962d9801c5ed953ba9b1a7d1df04e9",
+        "workspace_sha256": "86c555027a0a49bb40c95f1d612c12fcb6962d9801c5ed953ba9b1a7d1df04e9",
+        "verified_against_manifest": true
+      },
+      {
+        "id": "ADR-06-CLOSURE",
+        "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure.json",
+        "blueprint_manifest_sha256": "e1baf7b96b2df72d1289e6148be3d801dc2477aa7c9230201f113ee91f118fea",
+        "workspace_sha256": "e1baf7b96b2df72d1289e6148be3d801dc2477aa7c9230201f113ee91f118fea",
+        "verified_against_manifest": true
+      },
+      {
+        "id": "ADR-06-SPIKE",
+        "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure-Spike.lean",
+        "blueprint_manifest_sha256": "91239ee5aece9a485453aefd805bfbc37fec11a9c6e4e46841234462d63b4de4",
+        "workspace_sha256": "7726a13f40dec56f2f6a57058d657808fe3da059577c36c5935c08b5b5c86a90",
+        "verified_against_manifest": false
+      }
+    ],
+    "reconciliation_subgate": {
+      "mismatched_artifacts": ["ADR-01", "ADR-02", "ADR-06-SPIKE"],
+      "explanation": "Workspace holds the repository variants; the blueprint companion manifest records older/pending bytes for these three artifacts (matches the plan's pre-recorded repository hashes exactly).",
+      "decision": "Lead ruling (2026-08-27): the workspace copies are canonical and are the precise artifacts to refer to; do not replace them and do not revert to manifest values.",
+      "selected_option": 2,
+      "option_2_text": "declare the repository variants canonical and issue a reviewed Blueprint/hash revision",
+      "pending_lead_followup": "Blueprint/hash revision reflecting these three canonical hashes (lead-level provenance action; the executing agent does not edit the Blueprint).",
+      "subgate_state": "resolved by lead decision, recorded here"
+    },
+    "immutability_confirmation": {
+      "h03_h04_unchanged": true,
+      "no_graph_edge_edited": true,
+      "no_disposition_entry_edited": true,
+      "no_adr_artifact_edited": true
+    }
+  }
+}
