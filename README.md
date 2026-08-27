@@ -1,7 +1,8 @@
 # DeepSeek-STC
 
-Lean 4 formalization and audit workspace for the metatheory of *A Programming
-Paradigm for Spatiotemporal Composability*.  The project builds a paper-facing
+Lean 4 formalization and audit workspace for the metatheory of [*A Programming
+Paradigm for Spatiotemporal Composability*](https://arxiv.org/abs/2608.25512)
+(arXiv:2608.25512).  The project builds a paper-facing
 STC kernel first, with a deliberately separate future refinement boundary for
 the Cordis implementation.
 
@@ -18,17 +19,16 @@ and recorded in [`docs/status`](docs/status/).  The 82-item ledger and its
 validator are part of the repository, and the minimal bootstrap builds under
 the pinned Lean 4.33.0 / Mathlib v4.33.0 environment.
 
-P1 is the next execution step: relation and result foundations.  A compiling
-file is an interface result, not automatically a semantic proof; the project
-records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
+P1 is the next execution step: relation and result foundations; its execution
+plan lives in [`docs/plans/P1-Execution-Plan.md`](docs/plans/P1-Execution-Plan.md).
+
+A compiling file is an interface result, not automatically a semantic proof;
+the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
 
 ## Authoritative material
 
-The executable plan and paper/architecture baseline live under
-[`docs/blueprint`](docs/blueprint/).  The current P0 plan and handoff are:
-
-- [`docs/plans/P0-Execution-Plan.md`](docs/plans/P0-Execution-Plan.md)
-- [`docs/status/P0-handoff-report.md`](docs/status/P0-handoff-report.md)
+Execution plans live under [`docs/plans`](docs/plans/) and the paper/architecture
+baseline under [`docs/blueprint`](docs/blueprint/).
 
 The formalization inputs are the paper, the Formal Reference, H03/H04, and the
 accepted ADRs.  
