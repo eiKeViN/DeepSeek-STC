@@ -1,6 +1,9 @@
 import STC.Foundation.Relation
 import STC.Foundation.Result
 import STC.Examples.RelationResult
+import STC.Core.Effect
+import STC.Core.EffectCode
+import STC.Examples.Effect
 
 /-!
 # STC production bootstrap

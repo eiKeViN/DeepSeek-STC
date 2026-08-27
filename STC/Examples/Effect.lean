@@ -2,7 +2,7 @@ import Mathlib.Data.Fin.Basic
 import Mathlib.Data.Fintype.Basic
 import STC.Core.Effect
 
-namespace STC.Examples
+namespace STC.Examples.EffectFixture
 
 abbrev Toy := Fin 3
 
@@ -217,4 +217,4 @@ theorem composedSet_recovers :
     toyRelSpec.rel ((composedSet fin0).undo (composedSet fin0).state) fin0 := by
   exact (composedSet_lawful).recovers fin0
 
-end STC.Examples
+end STC.Examples.EffectFixture
