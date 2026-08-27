@@ -47,7 +47,7 @@ instance unitEqualityDecidable (x y : Unit) : Decidable ((equality Unit).rel x y
   change Decidable (x = y)
   exact inferInstance
 
-/- This map preserves each class pointwise but does not preserve related inputs. -/
+/- Its self-comparison is pointwise true, but the map does not preserve related inputs. -/
 def badMap : Toy → Toy
   | x => if x = fin0 then fin0 else if x = fin1 then fin2 else if x = fin2 then fin2 else fin0
 
