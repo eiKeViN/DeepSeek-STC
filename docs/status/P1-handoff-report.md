@@ -5,7 +5,7 @@
 | Plan | `DH-P1-EXEC-01` |
 | Wave | P1 — relation and result foundations |
 | Base commit | `02b50d25d78a0b216439732a1c597cf195c9a523` (`main`) |
-| Final commit | `f9d96acc79a92ca5c0b0f43efe18a64b7fcec6d1` |
+| Final implementation commit | `02864d3c32e2b7bb02cb7ce3beaebae4476f45ce` |
 | Branch | `codex/p1-relation-result` |
 | Worktree at handoff | clean after the integration commit |
 | Namespace | `STC` |
@@ -287,3 +287,6 @@ historical Lean spike was modified. No active production file contains
 
 The next planned wave is P2's shallow reversible Effect kernel. This handoff
 does not claim Cordis runtime verification or any R0/R1+ refinement.
+
+The current `HEAD` is a docs-only follow-up that finalizes this handoff metadata
+after the implementation commit above.
