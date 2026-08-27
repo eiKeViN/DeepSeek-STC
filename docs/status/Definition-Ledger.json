@@ -35,14 +35,14 @@
       "title": "Twisted composition of transformation pairs",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "in_progress",
-      "evidence_state": "aligned",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [],
       "adr_refs": [
         "ADR-01",
         "ADR-05"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: twisted Effect composition awaits the P2 Effect kernel.",
       "notes": "",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
@@ -961,8 +961,8 @@
       "title": "Tests and operation-induced indistinguishability",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "completed",
-      "evidence_state": "proved",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D17",
         "D24"
@@ -974,8 +974,8 @@
         "ADR-03-CLOSURE",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
-      "notes": "P1-T01/T03: canonical relation vocabulary, bridge laws, OptionRel shell, pullback shell, and equality specialization compile with checked generic proofs",
+      "deferred_reason": "P1 boundary: typed operation tests and indistinguishability await the P3/P5 partial-operation layers and BD-COEFFECT.",
+      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "decomposition",

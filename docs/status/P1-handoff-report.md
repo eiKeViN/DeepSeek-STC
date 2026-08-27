@@ -224,7 +224,9 @@ negative by constructor tag, so no failure information is erased.
 
 | Row | Delivery | Evidence | P1 interpretation |
 |---|---|---|---|
+| D1 | `planned` | `pending` | Twisted Effect composition remains part of the P2 Effect kernel; P1 supplies no D1 implementation. |
 | D33 | `in_progress` | `aligned` | Generic pullback shell only; concrete State/Like observation remains ADR-02/03 dependent. |
+| D34 | `planned` | `pending` | Typed operation tests and operation-induced indistinguishability remain a P3/P5 partial-operation obligation; P1's generic finite tests do not discharge this row. |
 | D36 | `completed` | `proved` | Canonical relation vocabulary and checked relation laws are delivered. |
 | D37 | `in_progress` | `aligned` | Result/selected-inverse relator shape is present; lawful effects and recovery remain later work. |
 | L38 | `in_progress` | `aligned` | Relation bridges and equality specialization are present; full effect theorem transport remains staged. |
