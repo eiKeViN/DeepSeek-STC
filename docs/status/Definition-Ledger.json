@@ -1050,7 +1050,7 @@
       "kind": "Definition",
       "paper_anchor": "3.3.2",
       "title": "Witnessed effects modulo observational equivalence",
-      "target_module": "STC/Foundation/Result.lean",
+      "target_module": "STC/Core/Effect.lean",
       "treatment": "REPAIR",
       "delivery_status": "completed",
       "evidence_state": "proved",

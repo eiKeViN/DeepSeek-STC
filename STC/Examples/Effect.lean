@@ -149,11 +149,12 @@ def badWeakCheck : Bool :=
     infer_instance
   decide (WeakLawfulAt toyRelSpec badCoherence)
 
-def badLawfulCheck : Bool :=
+def badSelectedInversePointwiseAtFin2 : Bool :=
   decide (toyRel (badUndo0 fin2) (badUndo1 fin2))
 
 theorem badWeakCheck_eq_true : badWeakCheck = true := rfl
-theorem badLawfulCheck_eq_false : badLawfulCheck = false := rfl
+theorem badSelectedInversePointwiseAtFin2_eq_false :
+    badSelectedInversePointwiseAtFin2 = false := rfl
 
 structure EffectReport where
   composedFinal : Toy
@@ -168,7 +169,7 @@ structure EffectReport where
   liftedRecoveredState : Toy
   liftedAccumulatorApplied : Toy
   weakSelectedInversePackage : Bool
-  fullSelectedInverseLaw : Bool
+  selectedInversePointwiseAtFin2 : Bool
 deriving DecidableEq, Repr
 
 def effectReport : EffectReport :=
@@ -186,7 +187,7 @@ def effectReport : EffectReport :=
     liftedRecoveredState := liftedRecovered.1
     liftedAccumulatorApplied := liftedRecovered.2 fin2
     weakSelectedInversePackage := badWeakCheck
-    fullSelectedInverseLaw := badLawfulCheck }
+    selectedInversePointwiseAtFin2 := badSelectedInversePointwiseAtFin2 }
 
 #eval effectReport
 
@@ -203,7 +204,7 @@ example : effectReport =
       liftedRecoveredState := fin0
       liftedAccumulatorApplied := fin0
       weakSelectedInversePackage := true
-      fullSelectedInverseLaw := false } := by
+      selectedInversePointwiseAtFin2 := false } := by
   decide
 
 example : composedSet (fin0 : Toy) =

@@ -18,3 +18,9 @@ Rules that must hold as production modules appear:
 * keep executable checks finite and preserve all result fields;
 * keep the selected relation explicit in semantic declarations.
 -/
+
+/-!
+P2 integration checkpoint: this cumulative bootstrap also imports the shallow
+reversible Effect kernel, its type-parametric R0 seam, and the finite Effect
+fixtures used for executable and negative evidence.
+-/
