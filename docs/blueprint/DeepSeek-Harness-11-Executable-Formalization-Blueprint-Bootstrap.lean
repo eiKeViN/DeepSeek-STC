@@ -1,4 +1,5 @@
 import Std
+import Mathlib.Logic.Equiv.Defs
 
 /-!
   STC metatheory BP-01 bootstrap contract.
@@ -45,7 +46,7 @@ def CrossRel {α : Type u} {β : Type v}
 
 def EqRel (α : Type u) : RelSpec α where
   rel := Eq
-  refl := fun x => rfl
+  refl := fun _ => rfl
   symm := fun h => h.symm
   trans := fun h₁ h₂ => h₁.trans h₂
 
@@ -104,17 +105,17 @@ structure RankedIterator (S : Type u) (E : Type v) (Q : Type w) where
 
 def execFrom {S : Type u} {E : Type v} {Q : Type w}
     (it : RankedIterator S E Q) (q : Q) (s : S) : ExecResult S E :=
-  match h : it.run q s with
+  match _h : it.run q s with
   | .halt s' u => .success s' u
   | .raise e => .failure e s id
   | .yield s' u q' =>
       match execFrom it q' s' with
       | .success sf uf => .success sf (composeUndo u uf)
-      | .failure e boundary prefix =>
-          .failure e boundary (composeUndo u prefix)
+      | .failure e boundary prefixUndo =>
+          .failure e boundary (composeUndo u prefixUndo)
 termination_by it.rank q
 decreasing_by
-  exact it.next_lt h
+  exact it.next_lt _h
 
 structure RegistryLike (K : Type u) (V : Type v) (R : Type w)
     [DecidableEq K] where
@@ -129,7 +130,7 @@ structure RegistryLike (K : Type u) (V : Type v) (R : Type w)
 
 structure AlphaAction (N : Type u) (X : Type v) where
   act : Equiv.Perm N → X → X
-  act_id : ∀ x, act Equiv.refl x = x
+  act_id : ∀ x, act (Equiv.refl N) x = x
   act_comp : ∀ (p q : Equiv.Perm N) x,
     act (p.trans q) x = act p (act q x)
   act_inv : ∀ (p : Equiv.Perm N) x,

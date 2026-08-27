@@ -29,6 +29,9 @@ variable [DecidableEq Key] [DecidableEq IncarnationId]
 
 /-! ## 1. Parameters, stores, lifecycle policy, and provider views -/
 
+/-! The `FiberT`/`RegistryT`/`RawStateT` notations stay outside sections on
+    purpose: every later section refers to them. -/
+
 abbrev Store (Value : Key → Type v) := Finmap Value
 
 structure LifecyclePolicy (Life : Type u) where
@@ -87,6 +90,8 @@ def contributesNow (policy : LifecyclePolicy Life) (c : FiberT) : Prop :=
 
 /-! ## 2. Derived active coeffect projection -/
 
+section ActiveUnion
+
 def activeUnionAux (policy : LifecyclePolicy Life) (r : RegistryT) :
     List IncarnationId → Store Value → Store Value
   | [], acc => acc
@@ -119,7 +124,11 @@ theorem seededCoeffect_empty (seed : Store Value) (policy : LifecyclePolicy Life
     seededCoeffect seed policy (emptyRaw ambient : RawStateT) = seed := by
   simp [seededCoeffect, activeUnion, activeUnionAux, emptyRaw]
 
+end ActiveUnion
+
 /-! ## 3. Well-formedness predicates and provider relation -/
+
+section WellFormed
 
 def ParentEdge (r : RegistryT) (child parent : IncarnationId) : Prop :=
   ∃ c, Finmap.lookup child r = some c ∧ c.parent = some parent
@@ -204,7 +213,11 @@ noncomputable def providerOf (policy : LifecyclePolicy Life) (s : RawStateT)
   else
     exact none
 
+end WellFormed
+
 /-! ## 4. Target/committed lookup shells -/
+
+section Lookups
 
 def targetEligible (_policy : LifecyclePolicy Life) (c : FiberT) : Prop :=
   -- An unretired Inactive fiber still has a target and may reload.
@@ -254,7 +267,11 @@ def ReliedOn (policy : LifecyclePolicy Life) (r : RegistryT)
     c.committed = some view ∧
     Finmap.lookup k view.providers = some provider
 
+end Lookups
+
 /-! ## 5. Pure registry updates and frame laws -/
+
+section Updates
 
 def insertFiber (n : IncarnationId) (c : FiberT) (s : RawStateT) : RawStateT :=
   { s with registry := Finmap.insert n c s.registry }
@@ -292,7 +309,11 @@ theorem removeFiber_frame (n m : IncarnationId) (s : RawStateT)
     Finmap.lookup m (removeFiber n s).registry = Finmap.lookup m s.registry := by
   simp [removeFiber, Finmap.lookup_erase_ne hne]
 
+end Updates
+
 /-! ## 6. D32 tracking and external actor-indexed semantics -/
+
+section D32
 
 structure TrackedContext (Ambient IncarnationId Key : Type u) (Value : Key → Type v)
     (ComponentCode BehaviorCode AccumulatorCode Life : Type u) [DecidableEq Key] where
@@ -347,7 +368,11 @@ theorem composeStep_apply (edit : ControlEdit RawStateT) (body : StateMap RawSta
     (s : RawStateT) :
     composeStep edit body s = edit (body s) := rfl
 
+end D32
+
 /-! ## 7. ADR-01/ADR-02 observation boundary -/
+
+section ObservationBoundary
 
 def OptionRel {α : Type w} (R : α → α → Prop) :
     Option α → Option α → Prop
@@ -377,6 +402,8 @@ def ProviderUniqueContract (policy : LifecyclePolicy Life) : Prop :=
   ∀ s : RawStateT, WellFormed policy s →
     ∀ {n m k}, ProvidesNow policy s.registry n k →
       ProvidesNow policy s.registry m k → n = m
+
+end ObservationBoundary
 
 end
 end CordisADR03
@@ -421,6 +448,8 @@ local notation "TrackedContextT" =>
 
 /-! ## 1. Core and boundary well-formedness -/
 
+section CoreBoundary
+
 def CoreWellFormed (policy : LifecyclePolicy Life) (s : RawStateT) : Prop :=
   ParentClosed s.registry ∧
   ParentAcyclic s.registry ∧
@@ -445,7 +474,11 @@ def BoundaryWellFormed
     (s : RawStateT) : Prop :=
   CoreWellFormed policy s ∧ rootSpec s ∧ declarationSpec s
 
+end CoreBoundary
+
 /-! ## 2. Provider provenance and lookup contracts -/
+
+section Providers
 
 def ActiveProviders (policy : LifecyclePolicy Life) (s : RawStateT) (k : Key) : Type u :=
   { n : IncarnationId // ProvidesNow policy s.registry n k }
@@ -475,7 +508,11 @@ def CommittedSupportClosed (s : RawStateT) : Prop :=
       ∃ providerCell, Finmap.lookup m s.registry = some providerCell ∧
         k ∈ providerCell.localStore
 
+end Providers
+
 /-! ## 3. Active-store aggregation contracts -/
+
+section Aggregation
 
 def StoreDisjoint (σ τ : StoreT) : Prop :=
   ∀ k, k ∈ σ → k ∈ τ → False
@@ -509,7 +546,11 @@ def ActiveFoldOrderIndependent (policy : LifecyclePolicy Life) (s : RawStateT) :
       activeUnionAux policy s.registry l₁ ∅ =
         activeUnionAux policy s.registry l₂ ∅
 
+end Aggregation
+
 /-! ## 4. Static-field partition and checked raw updates -/
+
+section StaticPartition
 
 structure StaticFields
     (ComponentCode BehaviorCode IncarnationId Key : Type u) where
@@ -556,7 +597,11 @@ def CheckedModifyPreservesWF (policy : LifecyclePolicy Life) : Prop :=
     checkedModify n f s = some t →
     CoreWellFormed policy t
 
+end StaticPartition
+
 /-! ## 5. Lifecycle and observation boundaries -/
+
+section LifecycleBoundary
 
 def ProvidesNowPolicySound
     (policy : LifecyclePolicy Life) (isActive : Life → Prop) : Prop :=
@@ -577,6 +622,8 @@ theorem trackedContext_projection_spec
     (policy : LifecyclePolicy Life) (ctx : TrackedContextT) :
     TrackedContextProjectionSpec policy ctx := by
   rfl
+
+end LifecycleBoundary
 
 end
 end CordisADR03Closure
