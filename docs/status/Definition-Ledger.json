@@ -1,0 +1,2657 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "DH-P0-EXEC-01",
+  "generated_on": "2026-08-27T19:55:55+08:00",
+  "source_graph": {
+    "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
+    "sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8"
+  },
+  "source_disposition": {
+    "path": "docs/blueprint/baseline/DeepSeek-Harness-04-Formalization-Disposition-Specification.json",
+    "sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db"
+  },
+  "delivery_vocabulary": [
+    "planned",
+    "in_progress",
+    "completed",
+    "blocked",
+    "deferred"
+  ],
+  "evidence_vocabulary": [
+    "pending",
+    "aligned",
+    "passed",
+    "proved",
+    "tested",
+    "seam_only",
+    "deferred",
+    "not_applicable"
+  ],
+  "items": [
+    {
+      "id": "D1",
+      "kind": "Definition",
+      "paper_anchor": "3.1.1",
+      "title": "Twisted composition of transformation pairs",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 1
+    },
+    {
+      "id": "D2",
+      "kind": "Definition",
+      "paper_anchor": "3.1.1",
+      "title": "Effect context",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 2
+    },
+    {
+      "id": "D3",
+      "kind": "Definition",
+      "paper_anchor": "3.1.1",
+      "title": "Tracking transformation",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 3
+    },
+    {
+      "id": "T4",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.1",
+      "title": "Projection of tracking",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D3"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 4
+    },
+    {
+      "id": "T5",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.1",
+      "title": "Tracking is a monoid homomorphism",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 5
+    },
+    {
+      "id": "D6",
+      "kind": "Definition",
+      "paper_anchor": "3.1.1",
+      "title": "Recovery transformation",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 6
+    },
+    {
+      "id": "T7",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.1",
+      "title": "One-step recovery invariance",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D3",
+        "D6"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "h03_section": "3.1.1",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 7
+    },
+    {
+      "id": "D8",
+      "kind": "Definition",
+      "paper_anchor": "3.1.2",
+      "title": "Effect functions and witnessed effect functions",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "F-D8-WITNESS repair: let-bound/output-indexed witness, not the displayed vacuous pair",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 8
+    },
+    {
+      "id": "D9",
+      "kind": "Definition",
+      "paper_anchor": "3.1.2",
+      "title": "Effect composition",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 9
+    },
+    {
+      "id": "T10",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "Monoid of effects and embedding of uniform pairs",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D1",
+        "D8",
+        "D9"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 10
+    },
+    {
+      "id": "T11",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "Witnessing survives composition",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D8",
+        "D9",
+        "T10"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 11
+    },
+    {
+      "id": "D12",
+      "kind": "Definition",
+      "paper_anchor": "3.1.2",
+      "title": "Lift of an effect to the effect context",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D3",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 12
+    },
+    {
+      "id": "T13",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "The effect lift preserves composition",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D12",
+        "D8",
+        "D9",
+        "T5"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 13
+    },
+    {
+      "id": "T14",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "Projection compatibility across effect levels",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D12",
+        "D2",
+        "D8",
+        "T4"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 14
+    },
+    {
+      "id": "T15",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "Exact behavior of the lifted inverse",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D12",
+        "D2",
+        "D3",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 15
+    },
+    {
+      "id": "T16",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.2",
+      "title": "LIFO recovery for witnessed effects",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D12",
+        "D2",
+        "D8",
+        "T15",
+        "T7"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.2",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 16
+    },
+    {
+      "id": "D17",
+      "kind": "Definition",
+      "paper_anchor": "3.1.3",
+      "title": "Transformation monoid of an effect",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D8"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "h03_section": "3.1.3",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 17
+    },
+    {
+      "id": "L18",
+      "kind": "Lemma",
+      "paper_anchor": "3.1.3",
+      "title": "Generator commutation and composition closure",
+      "target_module": "STC/Core/Effect.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D8",
+        "D9"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "h03_section": "3.1.3",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [],
+      "h04_readiness": "ready",
+      "number": 18
+    },
+    {
+      "id": "D19",
+      "kind": "Definition",
+      "paper_anchor": "3.1.3",
+      "title": "Independence of effect functions",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.3",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 19
+    },
+    {
+      "id": "T20",
+      "kind": "Theorem",
+      "paper_anchor": "3.1.3",
+      "title": "Selective removal across later independent effects",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D19",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.3",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 20
+    },
+    {
+      "id": "C21",
+      "kind": "Corollary",
+      "paper_anchor": "3.1.3",
+      "title": "Arbitrary-order recovery",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D19",
+        "D8",
+        "T20"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.1.3",
+      "h04_target_layer": "EFFECT-CORE",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 21
+    },
+    {
+      "id": "D22",
+      "kind": "Definition",
+      "paper_anchor": "3.2.1",
+      "title": "Finite dependent partial-map coeffect context",
+      "target_module": "STC/Prelude/Finite.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "deferred_reason": "",
+      "notes": "blueprint DAG logical layer STC/Prelude/Finite; ADR-02 authoritative dependent Finmap store",
+      "h03_section": "3.2.1",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 22
+    },
+    {
+      "id": "D23",
+      "kind": "Definition",
+      "paper_anchor": "3.2.1",
+      "title": "Basic get and revertible set",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.2.1",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 23
+    },
+    {
+      "id": "D24",
+      "kind": "Definition",
+      "paper_anchor": "3.2.1",
+      "title": "Coeffect interface at a key and its context lift",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.2.1",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 24
+    },
+    {
+      "id": "D25",
+      "kind": "Definition",
+      "paper_anchor": "3.2.2",
+      "title": "Coeffect specifications",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.2.2",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "computability-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 25
+    },
+    {
+      "id": "D26",
+      "kind": "Definition",
+      "paper_anchor": "3.2.2",
+      "title": "Reactive transition classifier notify",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D25",
+        "SAT"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.2.2",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "computability-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 26
+    },
+    {
+      "id": "D27",
+      "kind": "Definition",
+      "paper_anchor": "3.2.3",
+      "title": "In-place and derived realizations",
+      "target_module": "STC/State/Observation.lean",
+      "treatment": "EXPOSITORY",
+      "delivery_status": "deferred",
+      "evidence_state": "not_applicable",
+      "depends_on": [
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "deferred_reason": "EXPOSITORY per H04: realization/refinement concern; no core theorem declaration",
+      "notes": "in-place vs derived realization note lives with the P5-T04 store/registry boundary doc",
+      "h03_section": "3.2.3",
+      "h04_target_layer": "COEFFECT-SCOPED",
+      "h04_paper_relation": "refinement-only",
+      "h04_blocking_decisions": [
+        "BD-SCOPED"
+      ],
+      "h04_readiness": "non-core",
+      "number": 27
+    },
+    {
+      "id": "D28",
+      "kind": "Definition",
+      "paper_anchor": "3.2.3",
+      "title": "Isolation context",
+      "target_module": "STC/State/Observation.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D22"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "h03_section": "3.2.3",
+      "h04_target_layer": "COEFFECT-SCOPED",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 28
+    },
+    {
+      "id": "D29",
+      "kind": "Definition",
+      "paper_anchor": "3.2.3",
+      "title": "Isolation-aware get, set, and isolate",
+      "target_module": "STC/State/Observation.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D23",
+        "D27",
+        "D28"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "h03_section": "3.2.3",
+      "h04_target_layer": "COEFFECT-SCOPED",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 29
+    },
+    {
+      "id": "D30",
+      "kind": "Definition",
+      "paper_anchor": "3.2.3",
+      "title": "Interception context and specification",
+      "target_module": "STC/State/Observation.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D22",
+        "D25"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "h03_section": "3.2.3",
+      "h04_target_layer": "COEFFECT-SCOPED",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 30
+    },
+    {
+      "id": "D31",
+      "kind": "Definition",
+      "paper_anchor": "3.2.3",
+      "title": "Interception-aware get, set, and intercept",
+      "target_module": "STC/State/Observation.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D23",
+        "D27",
+        "D30"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "h03_section": "3.2.3",
+      "h04_target_layer": "COEFFECT-SCOPED",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 31
+    },
+    {
+      "id": "D32",
+      "kind": "Definition",
+      "paper_anchor": "3.3.1",
+      "title": "Recursive unified context",
+      "target_module": "STC/State/Like.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D22"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "abstract StateLike first; ADR-03 RawState/ValidState adapter seam in P5-T03",
+      "h03_section": "3.3.1",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "replacement",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 32
+    },
+    {
+      "id": "D33",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Observational relation on coeffect contexts and states",
+      "target_module": "STC/State/Like.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D24",
+        "D32"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "primary state-level relation in State/Like; result relators in Foundation/Result (P1-T02)",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 33
+    },
+    {
+      "id": "D34",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Tests and operation-induced indistinguishability",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D24"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 34
+    },
+    {
+      "id": "L35",
+      "kind": "Lemma",
+      "paper_anchor": "3.3.2",
+      "title": "Indistinguishability is the coarsest operation-respecting relation",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D24",
+        "D34"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "F-L35-INVERSE repair: corrected universal property plus countermodel for the rejected combination",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 35
+    },
+    {
+      "id": "D36",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Equivalence-respecting and pointwise-related maps",
+      "target_module": "STC/Foundation/Relation.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D33"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 36
+    },
+    {
+      "id": "D37",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Witnessed effects modulo observational equivalence",
+      "target_module": "STC/Foundation/Relation.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D33",
+        "D36",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "F-L35-INVERSE: must identify the inverse actually returned by the run",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 37
+    },
+    {
+      "id": "L38",
+      "kind": "Lemma",
+      "paper_anchor": "3.3.2",
+      "title": "Transport of Section 3.1 equalities to observational equivalence",
+      "target_module": "STC/Foundation/Relation.lean",
+      "treatment": "SUBSUMED",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "C21",
+        "D1",
+        "D12",
+        "D17",
+        "D19",
+        "D2",
+        "D3",
+        "D36",
+        "D37",
+        "D6",
+        "D8",
+        "D9",
+        "L18",
+        "T10",
+        "T11",
+        "T13",
+        "T14",
+        "T15",
+        "T16",
+        "T20",
+        "T4",
+        "T5",
+        "T7"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "SUBSUMED per H04: instantiated by the relation-parametric core, not duplicated",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "generalization",
+      "h04_blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 38
+    },
+    {
+      "id": "D39",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Operation independence and commutative keys",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D19",
+        "D24",
+        "D34",
+        "L38"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 39
+    },
+    {
+      "id": "T40",
+      "kind": "Theorem",
+      "paper_anchor": "3.3.2",
+      "title": "Operations at distinct keys are independent",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D22",
+        "D24",
+        "D39",
+        "L18"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 40
+    },
+    {
+      "id": "D41",
+      "kind": "Definition",
+      "paper_anchor": "3.3.2",
+      "title": "Coeffect-mediated effect functions",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D24",
+        "D8",
+        "D9",
+        "T10"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 41
+    },
+    {
+      "id": "T42",
+      "kind": "Theorem",
+      "paper_anchor": "3.3.2",
+      "title": "Independence of coeffect-mediated effect functions",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D19",
+        "D24",
+        "D39",
+        "D41",
+        "D9",
+        "L18",
+        "L38",
+        "T10",
+        "T40"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "3.3.2",
+      "h04_target_layer": "OBSERVATIONAL",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 42
+    },
+    {
+      "id": "D43",
+      "kind": "Definition",
+      "paper_anchor": "4.1",
+      "title": "Components",
+      "target_module": "STC/State/FinmapAdapter.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D23",
+        "D25",
+        "D32",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "provisional: no dedicated task; ADR-03 closure/FinmapAdapter territory",
+      "h03_section": "4.1",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-COEFFECT",
+        "BD-ITER"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 43
+    },
+    {
+      "id": "D44",
+      "kind": "Definition",
+      "paper_anchor": "4.1",
+      "title": "Fibers and the base lifecycle state",
+      "target_module": "STC/State/RegistryLike.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D2",
+        "D22",
+        "D43",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "fiber shell: action codes, not State→State closures inside State (ADR-03)",
+      "h03_section": "4.1",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 44
+    },
+    {
+      "id": "D45",
+      "kind": "Definition",
+      "paper_anchor": "4.1",
+      "title": "Registry, derived coeffect context, and providers",
+      "target_module": "STC/State/RegistryLike.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D25",
+        "D43",
+        "D44",
+        "SAT"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "4.1",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-COEFFECT",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 45
+    },
+    {
+      "id": "D46",
+      "kind": "Definition",
+      "paper_anchor": "4.2",
+      "title": "Target view and base quiescence",
+      "target_module": "STC/State/RegistryLike.lean",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D44",
+        "D45",
+        "SAT"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "4.2",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-STAGING"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 46
+    },
+    {
+      "id": "D47",
+      "kind": "Definition",
+      "paper_anchor": "4.2",
+      "title": "Nested registration primitive",
+      "target_module": "STC/State/RegistryLike.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D51",
+        "D8",
+        "R.base"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "4.2",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 47
+    },
+    {
+      "id": "D48",
+      "kind": "Definition",
+      "paper_anchor": "4.2",
+      "title": "Confinement",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D47",
+        "D51",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; confinement predicate unassigned (BD-STATE/BD-EQUIV/BD-ITER resolved)",
+      "h03_section": "4.2",
+      "h04_target_layer": "CALCULUS-SHELL",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-ITER"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 48
+    },
+    {
+      "id": "D49",
+      "kind": "Definition",
+      "paper_anchor": "4.3",
+      "title": "Extended lifecycle, installed/failed predicates, and quiescence",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D44",
+        "D45",
+        "D46",
+        "D51",
+        "R.fail"
+      ],
+      "adr_refs": [
+        "ADR-03",
+        "ADR-05"
+      ],
+      "deferred_reason": "BD-STAGING and BD-CONTROL deferred; extended lifecycle forward-refers to iterator/failure machinery",
+      "notes": "",
+      "h03_section": "4.3",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 49
+    },
+    {
+      "id": "D50",
+      "kind": "Definition",
+      "paper_anchor": "4.3.1",
+      "title": "Relied-upon relation",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D44",
+        "D45",
+        "D49"
+      ],
+      "adr_refs": [
+        "ADR-03"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; provisional (BD-STATE resolved via ADR-03)",
+      "h03_section": "4.3.1",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-STATE"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 50
+    },
+    {
+      "id": "D51",
+      "kind": "Definition",
+      "paper_anchor": "4.3.2",
+      "title": "Witnessed effect iterators",
+      "target_module": "STC/Core/Iterator.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D33",
+        "D36",
+        "D37",
+        "D8"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "4.3.2",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 51
+    },
+    {
+      "id": "D52",
+      "kind": "Definition",
+      "paper_anchor": "4.3.2",
+      "title": "Effect-iterator transformation",
+      "target_module": "STC/Core/Iterator.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D12",
+        "D2",
+        "D3",
+        "D51"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "h03_section": "4.3.2",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 52
+    },
+    {
+      "id": "D53",
+      "kind": "Definition",
+      "paper_anchor": "4.4",
+      "title": "Indexed traces, episodes, step factorization, and state relations",
+      "target_module": "STC/Alpha/Transport.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D33",
+        "D36",
+        "D37",
+        "D44",
+        "D45",
+        "D46",
+        "D47",
+        "D49",
+        "D50",
+        "D51",
+        "L38",
+        "R.full"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL); name-neutral transport planned P6",
+      "notes": "",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 53
+    },
+    {
+      "id": "L54",
+      "kind": "Lemma",
+      "paper_anchor": "4.4",
+      "title": "Structural write facts",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D44",
+        "D47",
+        "D48",
+        "D49",
+        "D53",
+        "R.full",
+        "Table1"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "BD-CONTROL deferred: labelled lifecycle semantics not in the first slice",
+      "notes": "",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 54
+    },
+    {
+      "id": "L55",
+      "kind": "Lemma",
+      "paper_anchor": "4.4",
+      "title": "Observational-equivalence invariance",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D33",
+        "D36",
+        "D37",
+        "D43",
+        "D45",
+        "D46",
+        "D49",
+        "D50",
+        "D51",
+        "D53",
+        "R.full"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 55
+    },
+    {
+      "id": "L56",
+      "kind": "Lemma",
+      "paper_anchor": "4.4",
+      "title": "Equivariance under fiber-name renaming",
+      "target_module": "STC/Alpha/Transport.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D44",
+        "D45",
+        "D46",
+        "D47",
+        "D48",
+        "D50",
+        "D53",
+        "D58",
+        "R.full"
+      ],
+      "adr_refs": [
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "name-bearing control-payload variant deferred (P6-T03, BD-CONTROL)",
+      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-NAMES",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 56
+    },
+    {
+      "id": "L57",
+      "kind": "Lemma",
+      "paper_anchor": "4.4",
+      "title": "Vestigial entries",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D44",
+        "D45",
+        "D46",
+        "D48",
+        "D49",
+        "D50",
+        "D53",
+        "L54",
+        "R.full",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 57
+    },
+    {
+      "id": "D58",
+      "kind": "Definition",
+      "paper_anchor": "4.4.1",
+      "title": "Well-formed registry",
+      "target_module": "STC/State/FinmapAdapter.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D49"
+      ],
+      "adr_refs": [
+        "ADR-03",
+        "ADR-04"
+      ],
+      "deferred_reason": "",
+      "notes": "provisional: WellFormed territory of the ADR-03 FinmapAdapter seam (P5-T03)",
+      "h03_section": "4.4.1",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 58
+    },
+    {
+      "id": "T59",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.1",
+      "title": "Preservation of registry well-formedness",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D49",
+        "D50",
+        "D53",
+        "D58",
+        "L54",
+        "R.full",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "deferred_reason": "BD-CONTROL deferred: trace-level preservation not in the first slice",
+      "notes": "",
+      "h03_section": "4.4.1",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 59
+    },
+    {
+      "id": "D60",
+      "kind": "Definition",
+      "paper_anchor": "4.4.2",
+      "title": "Iterator reach, length, transformation monoid, and independence",
+      "target_module": "STC/Core/Iterator.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D17",
+        "D19",
+        "D36",
+        "D44",
+        "D47",
+        "D51",
+        "D53",
+        "R.fail"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL); iteration reach/length planned P4",
+      "notes": "",
+      "h03_section": "4.4.2",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 60
+    },
+    {
+      "id": "T61",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.2",
+      "title": "Recovery exactness",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D36",
+        "D37",
+        "D44",
+        "D47",
+        "D48",
+        "D49",
+        "D51",
+        "D53",
+        "D60",
+        "L38",
+        "L54",
+        "L57",
+        "R.full",
+        "T7",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.2",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 61
+    },
+    {
+      "id": "C62",
+      "kind": "Corollary",
+      "paper_anchor": "4.4.2",
+      "title": "Terminal recovery",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D49",
+        "D53",
+        "D60",
+        "L54",
+        "R.full",
+        "T61",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.2",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 62
+    },
+    {
+      "id": "T63",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.3",
+      "title": "Provider-consumer ordering",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D49",
+        "D50",
+        "D53",
+        "L54",
+        "R.full",
+        "SAT",
+        "Table1"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.3",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 63
+    },
+    {
+      "id": "T64",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.3",
+      "title": "Resolution coherence",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "A.async",
+        "C62",
+        "D46",
+        "D49",
+        "D53",
+        "D60",
+        "L54",
+        "R.fail",
+        "R.full",
+        "R.iter",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.3",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 64
+    },
+    {
+      "id": "D65",
+      "kind": "Definition",
+      "paper_anchor": "4.4.4",
+      "title": "Precedence relation",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45"
+      ],
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; BD-NAMES resolved via ADR-04",
+      "h03_section": "4.4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 65
+    },
+    {
+      "id": "T66",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.4",
+      "title": "Progress and lifecycle termination",
+      "target_module": "STC/Core/Iterator.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D47",
+        "D49",
+        "D50",
+        "D51",
+        "D53",
+        "D60",
+        "D65",
+        "L54",
+        "R.full",
+        "T63",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "global lifecycle-termination suffix deferred (BD-CONTROL); rank termination planned P4",
+      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces",
+      "h03_section": "4.4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 66
+    },
+    {
+      "id": "D67",
+      "kind": "Definition",
+      "paper_anchor": "4.4.5",
+      "title": "Support relation and support set",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D65",
+        "L68"
+      ],
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "deferred_reason": "BD-SUPPORT deferred: support recursion/well-foundedness needs a separate treatment",
+      "notes": "",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "type-repair",
+      "h04_blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 67
+    },
+    {
+      "id": "L68",
+      "kind": "Lemma",
+      "paper_anchor": "4.4.5",
+      "title": "Support is well founded",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D43",
+        "D45",
+        "D46",
+        "D47",
+        "D53",
+        "D58",
+        "D65",
+        "D67",
+        "R.full",
+        "T59"
+      ],
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "deferred_reason": "BD-SUPPORT deferred; F-L68-CYCLE counterexample to mechanize first",
+      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "logical-repair",
+      "h04_blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 68
+    },
+    {
+      "id": "D69",
+      "kind": "Definition",
+      "paper_anchor": "4.4.5",
+      "title": "Totality on declared provision",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D49",
+        "R.iter"
+      ],
+      "adr_refs": [
+        "ADR-02",
+        "ADR-05"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; BD-ITER/BD-COEFFECT resolved",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 69
+    },
+    {
+      "id": "L70",
+      "kind": "Lemma",
+      "paper_anchor": "4.4.5",
+      "title": "Support at quiescence",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D44",
+        "D45",
+        "D46",
+        "D47",
+        "D49",
+        "D65",
+        "D67",
+        "D69",
+        "L68",
+        "R.full"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 70
+    },
+    {
+      "id": "L71",
+      "kind": "Lemma",
+      "paper_anchor": "4.4.5",
+      "title": "Transposition of adjacent independent steps",
+      "target_module": "",
+      "treatment": "DIRECT",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D33",
+        "D36",
+        "D43",
+        "D45",
+        "D46",
+        "D47",
+        "D48",
+        "D49",
+        "D51",
+        "D53",
+        "D58",
+        "D60",
+        "R.full",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful",
+      "h04_blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 71
+    },
+    {
+      "id": "L72",
+      "kind": "Lemma",
+      "paper_anchor": "4.4.5",
+      "title": "Deletion of a closed episode",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "C62",
+        "D46",
+        "D47",
+        "D49",
+        "D50",
+        "D53",
+        "D58",
+        "D60",
+        "D65",
+        "D69",
+        "L54",
+        "L57",
+        "L70",
+        "R.full",
+        "T59",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "faithful-explicit",
+      "h04_blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 72
+    },
+    {
+      "id": "T73",
+      "kind": "Theorem",
+      "paper_anchor": "4.4.5",
+      "title": "Canonical form and confluence",
+      "target_module": "STC/Alpha/Transport.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D46",
+        "D47",
+        "D49",
+        "D53",
+        "D58",
+        "D60",
+        "D65",
+        "D67",
+        "D69",
+        "L54",
+        "L56",
+        "L68",
+        "L70",
+        "L71",
+        "L72",
+        "R.full",
+        "T59",
+        "T66",
+        "Table1"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL); name-neutral equivariance planned P6",
+      "notes": "",
+      "h03_section": "4.4.5",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-EQUIV",
+        "BD-ITER",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked",
+      "number": 73
+    },
+    {
+      "id": "D74",
+      "kind": "Definition",
+      "paper_anchor": "5.2.1",
+      "title": "Declarative configuration entry",
+      "target_module": "STC/Adapter.lean",
+      "treatment": "DEFER",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D28",
+        "D29",
+        "D30",
+        "D31",
+        "D43",
+        "D44",
+        "D47",
+        "D49",
+        "D67",
+        "D69",
+        "L70"
+      ],
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "deferred_reason": "H04 DEFER: implementation-refinement phase; only the P8 R0 seam is planned",
+      "notes": "P8-T02 R0 adapter seam only; R1+ refinement deferred",
+      "h03_section": "5.2.1",
+      "h04_target_layer": "IMPLEMENTATION-REFINEMENT",
+      "h04_paper_relation": "refinement-only",
+      "h04_blocking_decisions": [
+        "BD-SCOPED",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "later-phase",
+      "number": 74
+    },
+    {
+      "id": "SAT",
+      "kind": "auxiliary",
+      "paper_anchor": "3.2.2",
+      "title": "Satisfaction predicate (Equation 24)",
+      "target_module": "STC/Core/Partial.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D22",
+        "D25"
+      ],
+      "adr_refs": [
+        "ADR-02"
+      ],
+      "deferred_reason": "",
+      "notes": "provisional: expected with the D25/D26 specification family; F-D26-DECIDE repair",
+      "h03_section": "3.2.2",
+      "h04_target_layer": "COEFFECT-FLAT",
+      "h04_paper_relation": "computability-repair",
+      "h04_blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "R.base",
+      "kind": "auxiliary",
+      "paper_anchor": "4.2",
+      "title": "Base operational rules",
+      "target_module": "",
+      "treatment": "SUBSUMED",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D43",
+        "D44",
+        "D45",
+        "D46",
+        "D8"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "SUBSUMED derived base view; BD-STAGING and BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.2",
+      "h04_target_layer": "CALCULUS-BASE",
+      "h04_paper_relation": "specialization",
+      "h04_blocking_decisions": [
+        "BD-STAGING",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "R.withdraw",
+      "kind": "auxiliary",
+      "paper_anchor": "4.3.1",
+      "title": "Withdrawal rules",
+      "target_module": "",
+      "treatment": "SUBSUMED",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D46",
+        "D49",
+        "D50"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "SUBSUMED rule subfamily of R.full; BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.3.1",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "R.iter",
+      "kind": "auxiliary",
+      "paper_anchor": "4.3.2",
+      "title": "Iteration lifecycle rules",
+      "target_module": "STC/Core/Iterator.lean",
+      "treatment": "SUBSUMED",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D44",
+        "D46",
+        "D49",
+        "D51",
+        "D52"
+      ],
+      "adr_refs": [
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "L-Begin/L-Iter/L-Finish rule constructors deferred (BD-CONTROL); execution slice planned P4",
+      "notes": "",
+      "h03_section": "4.3.2",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "A.async",
+      "kind": "auxiliary",
+      "paper_anchor": "4.3.3",
+      "title": "Asynchronous inertia restriction",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D49",
+        "R.iter"
+      ],
+      "adr_refs": [
+        "ADR-05"
+      ],
+      "deferred_reason": "BD-CONTROL deferred; needs an in-flight semantic carrier (H04 replacement repair)",
+      "notes": "",
+      "h03_section": "4.3.3",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "replacement",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "R.fail",
+      "kind": "auxiliary",
+      "paper_anchor": "4.3.4",
+      "title": "Failing iterator refinement and L-Raise",
+      "target_module": "STC/Foundation/Result.lean",
+      "treatment": "REPAIR",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "depends_on": [
+        "D49",
+        "D51",
+        "D52",
+        "R.iter"
+      ],
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "deferred_reason": "L-Raise rule constructor deferred (BD-CONTROL); failure outcome/prefix undo planned P3-P4",
+      "notes": "",
+      "h03_section": "4.3.4",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "R.full",
+      "kind": "auxiliary",
+      "paper_anchor": "4.3-4.4",
+      "title": "Full ten-rule calculus",
+      "target_module": "",
+      "treatment": "REPAIR",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "A.async",
+        "D47",
+        "D48",
+        "R.base",
+        "R.fail",
+        "R.iter",
+        "R.withdraw"
+      ],
+      "adr_refs": [
+        "ADR-03",
+        "ADR-04",
+        "ADR-05"
+      ],
+      "deferred_reason": "Authoritative labelled semantics; BD-CONTROL/BD-STAGING deferred",
+      "notes": "",
+      "h03_section": "4.3-4.4",
+      "h04_target_layer": "CALCULUS-EXTENDED",
+      "h04_paper_relation": "decomposition",
+      "h04_blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "h04_readiness": "decision-blocked"
+    },
+    {
+      "id": "Table1",
+      "kind": "auxiliary",
+      "paper_anchor": "4.4",
+      "title": "Rule decomposition into state maps and control edits",
+      "target_module": "",
+      "treatment": "SUBSUMED",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "depends_on": [
+        "D53",
+        "R.full"
+      ],
+      "adr_refs": [],
+      "deferred_reason": "SUBSUMED as derived per-constructor facts; BD-CONTROL deferred",
+      "notes": "",
+      "h03_section": "4.4",
+      "h04_target_layer": "METATHEORY",
+      "h04_paper_relation": "derived",
+      "h04_blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "h04_readiness": "decision-blocked"
+    }
+  ]
+}
