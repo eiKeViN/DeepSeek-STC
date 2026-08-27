@@ -3,15 +3,15 @@
 | Field | Value |
 |---|---|
 | Blueprint ID | `DH-FORMAL-BP-01` |
-| Version | `1.0.1` |
+| Version | `1.0.2` |
 | Status | **proposed-executable / deliberately revisable** |
 | Date | 2026-08-27 |
 | Semantic change | **None** — this blueprint consumes accepted decisions; it does not supersede an ADR. |
 | Supersedes | Nothing |
-| Revision note | Formalization pipeline inputs narrowed: Project Guide and Research Ledger are excluded. |
+| Revision note | Lean namespace boundary renamed to `STC`; formalization inputs remain narrowed. |
 | Primary target | Standalone Lean formalization of the paper's metatheory kernel |
 | First executable slice | Two disjoint counters + failure + ranked iterator + alpha transport |
-| Namespace | `DeepSeekHarness` (runtime connection reserved as `DeepSeekHarness.CordisAdapter`) |
+| Namespace | `STC` (runtime connection reserved as `STC.Adapter`) |
 | Bootstrap validation in this workspace | **Not run** — `lean`/`lake` are not installed here; the file is a compile-targeted skeleton, not a claimed compiler result. |
 
 This blueprint turns the accepted formalization inputs into an executable, staged work plan.
@@ -82,7 +82,7 @@ pipeline and should not be assigned as Agent inputs:
 | `DeepSeek-Harness-02-Research-Ledger.md` | Research-history record, not a formalization dependency |
 
 The ADR spike files are historical, standalone compiler mirrors.  Production modules are
-ported declaration by declaration under the `DeepSeekHarness` namespace; they must not
+ported declaration by declaration under the `STC` namespace; they must not
 import spikes that redeclare the same names.
 
 ## 4. Production module DAG
@@ -107,7 +107,7 @@ Core + State interfaces ──> Adapters.Cordis (R0 only)
 Recommended initial tree:
 
 ```text
-DeepSeekHarness/
+STC/
   Foundation/Relation.lean
   Foundation/Result.lean
   Core/Effect.lean
@@ -216,7 +216,7 @@ prerequisite for the first Effect proofs.
 | Task | Work | Deliverable |
 |---|---|---|
 | `P8-T01` | Generate a derived readiness manifest from H03/H04 plus current task evidence. | no baseline mutation; paper-ID traceability |
-| `P8-T02` | Add `DeepSeekHarness.CordisAdapter` abstraction/simulation types only. | R0 seam; explicitly no runtime verification claim |
+| `P8-T02` | Add `STC.Adapter` abstraction/simulation types only. | R0 seam; explicitly no runtime verification claim |
 | `P8-T03` | Record feedback, failed proof attempts, counterexamples, and proposed superseding ADR triggers. | reproducible iteration log |
 
 ## 6. Initial API sketch
@@ -226,7 +226,7 @@ toolchain audit.  They are a contract sketch, not a claim that every theorem is 
 proved.
 
 ```lean
-namespace DeepSeekHarness
+namespace STC
 
 structure RelSpec (α : Type u) where
   rel : α → α → Prop
@@ -291,7 +291,7 @@ structure AlphaAction (N X : Type u) where
   act_comp : ∀ (p q : Equiv.Perm N) x, act (p.trans q) x = act p (act q x)
   act_inv : ∀ (p : Equiv.Perm N) x, act p.symm (act p x) = x
 
-end DeepSeekHarness
+end STC
 ```
 
 The exact `RegistryLike` laws will be expanded as the Toy and Finmap instances expose
@@ -332,8 +332,8 @@ The slice is successful only when all of the following are separately recorded:
 The exact commands depend on P0's toolchain audit.  The default protocol is:
 
 ```bash
-lake env lean DeepSeekHarness/Foundation/Relation.lean
-lake env lean DeepSeekHarness/Examples/TwoCounter.lean
+lake env lean STC/Foundation/Relation.lean
+lake env lean STC/Examples/TwoCounter.lean
 lake build
 ```
 

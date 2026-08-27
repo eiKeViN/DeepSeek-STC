@@ -15,7 +15,7 @@ relation API instead of repeating the small `RelSpec` definition below.
 
 import Mathlib.Data.Finmap
 
-universe u v w x y
+universe u v w x
 
 namespace CordisADR02
 
@@ -36,6 +36,12 @@ def SatisfiesSem {K : Type u} {V : K → Type v}
 def SatisfiesExec {K : Type u} {V : K → Type v} [DecidableEq K]
     (σ : Store V) (d : ExecSpec K) : Prop :=
   d ⊆ σ.keys
+
+instance instDecidableSatisfiesExec {K : Type u} {V : K → Type v}
+    [DecidableEq K] (σ : Store V) (d : ExecSpec K) :
+    Decidable (SatisfiesExec σ d) := by
+  dsimp [SatisfiesExec]
+  infer_instance
 
 theorem satisfiesExec_iff_semantic {K : Type u} {V : K → Type v}
     [DecidableEq K] (σ : Store V) (d : ExecSpec K) :
@@ -193,8 +199,7 @@ theorem undoRevoke_recovers {K : Type u} {V : K → Type v}
     [DecidableEq K] (σ : Store V) (k : K) (old : V k)
     (found : Finmap.lookup k σ = some old) :
     undoRevoke? k old (Finmap.erase k σ) = some σ := by
-  simp [undoRevoke?, provide?, Finmap.notMem_erase_self,
-    insert_erase_restores σ k old found]
+  simp [undoRevoke?, provide?, insert_erase_restores σ k old found]
 
 theorem insert_frame {K : Type u} {V : K → Type v}
     [DecidableEq K] (σ : Store V) (k j : K) (value : V k)
@@ -207,7 +212,10 @@ theorem insert_keys_of_mem {K : Type u} {V : K → Type v}
     (present : k ∈ σ) :
     (Finmap.insert k value σ).keys = σ.keys := by
   ext j
-  simp [Finmap.mem_keys, present]
+  by_cases hjk : j = k
+  · subst j
+    simp [Finmap.mem_keys, Finmap.mem_insert, present]
+  · simp [Finmap.mem_keys, Finmap.mem_insert, hjk]
 
 /-! ## 3. The Option-Kleisli partiality companion -/
 
@@ -262,9 +270,9 @@ theorem optionRel_trans {α : Type u} {R : α → α → Prop}
     (htrans : ∀ ⦃x y z⦄, R x y → R y z → R x z)
     {a b c : Option α} :
     OptionRel R a b → OptionRel R b c → OptionRel R a c := by
-  cases a <;> cases b <;> cases c <;>
-    simp only [OptionRel]
-  exact htrans
+  intro hab hbc
+  cases a <;> cases b <;> cases c <;> simp [OptionRel] at hab hbc ⊢
+  exact htrans hab hbc
 
 theorem pcomp_prespects {α : Type u} {R : α → α → Prop}
     {f g : PartialMap α α}
@@ -436,6 +444,7 @@ theorem pbindEffect_lawful {Γ : Type u} {B : Type v} {C : Type w}
             rcases s₁ with ⟨state₂, undo₂, out₂⟩
             change S.rel state₁ state₂ ∧
               PPointwiseRel S.rel undo₁ undo₂ ∧ out₁ = out₂ at hrs
+            have hout : out₁ = out₂ := hrs.2.2
             subst out₂
             have h₂ := (hnext out₁).run_respects hrs.1
             cases en : next out₁ state₁ with
@@ -554,8 +563,8 @@ theorem embedTotal_lawful {Γ : Type u} {B : Type v}
 
 structure KeyOperation (K : Type u) (V : K → Type v) where
   Op : K → Type w
-  Arg : (k : K) → Op k → Type x
-  Out : (k : K) → Op k → Type y
+  Arg : (k : K) → Op k → Type w
+  Out : (k : K) → Op k → Type w
   run : (k : K) → (op : Op k) → Arg k op → V k →
     Option (PartialResult (V k) (Out k op))
 
@@ -565,8 +574,8 @@ def liftKey {K : Type u} {V : K → Type v} [DecidableEq K]
   fun σ =>
     match Finmap.lookup k σ with
     | none => none
-    | some local =>
-        match I.run k op arg local with
+    | some localVal =>
+        match I.run k op arg localVal with
         | none => none
         | some r => some {
             state := Finmap.insert k r.state σ

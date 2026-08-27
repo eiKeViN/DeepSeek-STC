@@ -1,7 +1,7 @@
 import Std
 
 /-!
-  DeepSeek Harness BP-01 bootstrap contract.
+  STC metatheory BP-01 bootstrap contract.
 
   This file is intentionally a small, standalone smoke-test mirror for the
   executable blueprint.  It is not the production formalization and it does
@@ -10,7 +10,7 @@ import Std
   file (or an equivalent fixture) as a regression test.
 -/
 
-namespace DeepSeekHarness
+namespace STC
 
 universe u v w
 
@@ -172,4 +172,4 @@ def demoSuccess : CounterState :=
 
 #eval demoSuccess
 
-end DeepSeekHarness
+end STC
