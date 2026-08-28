@@ -79,10 +79,16 @@ Every production `.lean` file, top to bottom:
 
 ### Scoping
 
+- Wrap every file's declarations in `@[expose] public section … end` (mathlib form).  The module system demands that exported theorems unfold only *exposed* definitions: with plain `public section`, every `rfl`/`change`/`simp [def]` proof over a public declaration fails with "Not a definitional equality".  `@[expose]` is not optional.
 - One named `section Name … end Name` per concept; a concept's definitions and its theorems stay together inside it.
 - Section-scoped `variable` replaces repeated per-declaration binders (`{α : Type u}`, `[DecidableEq α]`, explicit parameters exactly as mathlib writes them).  Type-family declarations (`Store (V)`, `PartialMap (α) (β)`, …) keep their explicit parameters.
 - Section variables are auto-included only when used; where Lean over-includes an unused instance, drop it with `omit [Foo] in` (linter `unusedSectionVars`).
 - Notations needed by several sections stay outside sections (precedent: ADR-03 closure spike).
+
+### Evaluation
+
+- No top-level `#eval` over `@[expose]`d declarations in library modules.  Exposure marks declarations external, and the interpreter then needs the package's native shared library — which cannot be linked on Windows (DLL export limit of 65,535 symbols; `Mathlib:shared` link fails at ~203k symbols).  Executable checks are `example … := by decide` blocks that pin the expected value at elaboration time; `#eval` belongs to scratch/tooling files outside the library.
+- Do not set `precompileModules`/shared-library facets on `lean_lib` targets: they pull the dependency's shared library into the link and fail the same way.
 
 ### Verification
 
