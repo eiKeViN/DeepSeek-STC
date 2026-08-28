@@ -177,6 +177,17 @@ theorem inc12_independent :
       intro x
       simp only [Function.comp_apply, equality], rfl⟩⟩
 
+/-- The two increment results commute exactly at every input, including their selected
+inverses; this is the concrete equality instance behind `inc12_independent`. -/
+theorem inc12_commutes_exact (input : CounterState) :
+    seqRun inc1 inc2 input = seqRun inc2 inc1 input := by
+  cases input with
+  | mk first second =>
+      apply effectResult_ext
+      · rfl
+      · funext value
+        ext <;> simp [seqRun, inc1, inc2] <;> omega
+
 /-- A selected inverse that projects away the second counter. -/
 def fstProjectUndo : CounterState → CounterState := fun t => (t.1, 0)
 
@@ -198,6 +209,10 @@ theorem fstProjectOp_not_foreignStable :
   simp [fstProjectUndo, swapCounters] at hw
   have hfst := congrArg Prod.fst hw
   omega
+
+/-- A concrete finite witness for the failed foreign-stability claim. -/
+def foreignStabilityCounterexample : Bool :=
+  decide (fstProjectUndo (swapCounters (1, 2)) ≠ swapCounters (fstProjectUndo (1, 2)))
 
 end Independence
 
@@ -276,6 +291,8 @@ structure CounterFailureReport where
   decDefinedState : Bool
   dec2ZeroUndefined : Bool
   dec2DefinedState : Bool
+  inc12Commutes : Bool
+  foreignStabilityCounterexample : Bool
   optionMixedRejected : Bool
   failureBoundary : Bool
 deriving DecidableEq, Repr
@@ -290,6 +307,9 @@ def counterFailureReport : CounterFailureReport :=
     decDefinedState := decDefinedState
     dec2ZeroUndefined := dec2ZeroUndefined
     dec2DefinedState := dec2DefinedState
+    inc12Commutes := decide ((seqRun inc1 inc2 (0, 0)).state =
+      (seqRun inc2 inc1 (0, 0)).state)
+    foreignStabilityCounterexample := foreignStabilityCounterexample
     optionMixedRejected := optionMixedRejected
     failureBoundary := failureBoundary }
 
@@ -306,6 +326,8 @@ example : counterFailureReport =
       decDefinedState := true
       dec2ZeroUndefined := true
       dec2DefinedState := true
+      inc12Commutes := true
+      foreignStabilityCounterexample := true
       optionMixedRejected := true
       failureBoundary := true } := by
   decide
