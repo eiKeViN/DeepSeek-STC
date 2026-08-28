@@ -84,6 +84,72 @@ theorem failIfZero_atomic : ∀ s r, failIfZero s = some r → r.state = s ∧ r
 
 end Counters
 
+/-! ### Recovery and observation contracts -/
+
+section Recovery
+
+/-- Exact recovery for the first increment. -/
+theorem inc1_recovers_exact (input : CounterState) :
+    (inc1 input).undo (inc1 input).state = input := by
+  cases input
+  simp [inc1]
+
+/-- Exact recovery for the second increment. -/
+theorem inc2_recovers_exact (input : CounterState) :
+    (inc2 input).undo (inc2 input).state = input := by
+  cases input
+  simp [inc2]
+
+/-- The first decrement recovers every defined run under equality. -/
+theorem dec1_recovers_defined :
+    OperationRecovers (equality CounterState) dec1 := by
+  intro input result h
+  by_cases hz : input.1 = 0
+  · simp [dec1, hz] at h
+  · simp [dec1, hz] at h
+    cases h
+    have hle : 1 ≤ input.1 := Nat.one_le_iff_ne_zero.mpr hz
+    simp [equality, Nat.sub_add_cancel hle]
+
+/-- The second decrement recovers every defined run under equality. -/
+theorem dec2_recovers_defined :
+    OperationRecovers (equality CounterState) dec2 := by
+  intro input result h
+  by_cases hz : input.2 = 0
+  · simp [dec2, hz] at h
+  · simp [dec2, hz] at h
+    cases h
+    have hle : 1 ≤ input.2 := Nat.one_le_iff_ne_zero.mpr hz
+    simp [equality, Nat.sub_add_cancel hle]
+
+/-- Any selected inverse of `dec1` preserves equality. -/
+theorem dec1_selectedInverse_stable :
+    SelectedInverseStableOp (equality CounterState) dec1 := by
+  intro input result _h x y hxy
+  cases hxy
+  rfl
+
+/-- Any selected inverse of `dec2` preserves equality. -/
+theorem dec2_selectedInverse_stable :
+    SelectedInverseStableOp (equality CounterState) dec2 := by
+  intro input result _h x y hxy
+  cases hxy
+  rfl
+
+/-- The observation that forgets the first counter. -/
+def secondCounterObservation : RelSpec CounterState where
+  rel := fun left right => left.2 = right.2
+  refl := by intro s; rfl
+  symm := by intro left right h; exact h.symm
+  trans := by intro left middle right h₁ h₂; exact h₁.trans h₂
+
+/-- First-counter increments recover under the explicit second-counter observation. -/
+theorem inc1_recovers_second_observation (input : CounterState) :
+    secondCounterObservation.rel ((inc1 input).undo (inc1 input).state) input := by
+  rfl
+
+end Recovery
+
 /-! ### Independence and foreign stability -/
 
 section Independence
