@@ -35,7 +35,7 @@
       "title": "Twisted composition of transformation pairs",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "completed",
+      "delivery_status": "in_progress",
       "evidence_state": "tested",
       "depends_on": [],
       "adr_refs": [
@@ -610,7 +610,7 @@
         "ADR-03"
       ],
       "deferred_reason": "",
-      "notes": "P5-T04: authoritative dependent Finmap facade with lookup/domain/update laws, pointwise StoreObs, and a finite Nat/Bool dependent fixture.",
+      "notes": "P5-T04: authoritative dependent Finmap facade with lookup/domain/update laws, pointwise StoreObs, and a finite Nat/Bool dependent fixture. Extract/union/extensionality, support-update/recovery, distinct-key algebra, and disjoint-union theorems remain deferred.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "faithful-explicit",

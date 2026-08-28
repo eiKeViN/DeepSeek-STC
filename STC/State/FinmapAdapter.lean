@@ -25,7 +25,7 @@ universe u v w
 
 namespace STC.State.FinmapAdapter
 
-/-- The positive ADR-03 raw carrier: ambient data plus a finite registry. -/
+/-- The positive ADR-03 raw carrier: ambient data plus an abstract registry carrier. -/
 structure RawState (Ambient Registry : Type u) where
   ambient : Ambient
   registry : Registry
