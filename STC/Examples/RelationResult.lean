@@ -1,9 +1,33 @@
-import Mathlib.Data.Fin.Basic
-import Mathlib.Data.Fintype.Basic
-import STC.Foundation.Result
+module
+
+public import Mathlib.Data.Fin.Basic
+public import Mathlib.Data.Fintype.Basic
+public import STC.Foundation.Result
+
+/-!
+# Finite executable relation/result checks
+
+A finite `Fin 4` toy carrier with a two-class observational partition, decidable instances
+for the relation API, a negative countermodel for the two map liftings, and a `CheckReport`
+that records every executable orientation check.  The final `example` pins the expected
+report value.
+
+## Main declarations
+
+* `Toy`, `toyClass`, `toyRelSpec`: the finite two-class carrier;
+* `badMap`, `withinClassSwap`: the negative and positive map fixtures;
+* `CheckReport`, `report`: the aggregated executable checks.
+-/
 
 namespace STC.Examples
 
+@[expose] public section
+
+/-! ### The finite toy carrier -/
+
+section ToyFixture
+
+/-- The finite toy state carrier. -/
 abbrev Toy := Fin 4
 
 def fin0 : Toy := ⟨0, by decide⟩
@@ -14,11 +38,13 @@ def fin2 : Toy := ⟨2, by decide⟩
 
 def fin3 : Toy := ⟨3, by decide⟩
 
+/-- The two-class partition: the first two elements form one observation class. -/
 def toyClass : Toy → Nat
   | x => if x.val < 2 then 0 else 1
 
 def toyRel (x y : Toy) : Prop := toyClass x = toyClass y
 
+/-- The selected observational relation on `Toy`. -/
 def toyRelSpec : RelSpec Toy where
   rel := toyRel
   refl := by
@@ -47,18 +73,27 @@ instance unitEqualityDecidable (x y : Unit) : Decidable ((equality Unit).rel x y
   change Decidable (x = y)
   exact inferInstance
 
-/- Its self-comparison is pointwise true, but the map does not preserve related inputs. -/
+end ToyFixture
+
+/-! ### The two map liftings and their countermodel -/
+
+section MapFixtures
+
+/-- Its self-comparison is pointwise true, but the map does not preserve related inputs. -/
 def badMap : Toy → Toy
   | x => if x = fin0 then fin0 else if x = fin1 then fin2 else if x = fin2 then fin2 else fin0
 
+/-- The within-class swap preserves the partition pointwise. -/
 def withinClassSwap : Toy → Toy
   | x => if x = fin0 then fin1 else if x = fin1 then fin0 else if x = fin2 then fin3 else fin2
 
+/-- `withinClassSwap` preserves the selected relation. -/
 theorem withinClassSwap_respects : Respects toyRelSpec withinClassSwap := by
   change ∀ x y : Toy, toyRelSpec.rel x y →
     toyRelSpec.rel (withinClassSwap x) (withinClassSwap y)
   decide
 
+/-- `withinClassSwap` is pointwise related to the identity. -/
 theorem withinClassSwap_pointwise_id :
     PointwiseRel toyRelSpec withinClassSwap id := by
   change ∀ x : Toy, toyRelSpec.rel (withinClassSwap x) (id x)
@@ -98,12 +133,20 @@ def execRelDecidable (left right : ExecResult Toy Unit) :
   · unfold ExecRel FailureRel PointwiseRel
     infer_instance
 
+/-- Composition of pointwise-related maps stays pointwise related to the identity
+composition. -/
 theorem composed_pointwise_check :
     PointwiseRel toyRelSpec
       (withinClassSwap ∘ withinClassSwap) (id ∘ id) := by
   exact compose_pointwiseRel (R := toyRelSpec)
     (f := withinClassSwap) (g := id) (h := withinClassSwap) (k := id)
     withinClassSwap_respects withinClassSwap_pointwise_id withinClassSwap_pointwise_id
+
+end MapFixtures
+
+/-! ### Executable orientation checks -/
+
+section Checks
 
 def effectLeft : EffectResult Toy :=
   { state := fin0
@@ -181,6 +224,7 @@ def equalityRejectsDistinctState : Bool :=
     equalityEffectResultRelDecidable effectLeft effectRight
   decide (EffectResultRel (equality Toy) effectLeft effectRight)
 
+/-- The aggregated executable orientation report. -/
 structure CheckReport where
   pointwiseOrientation : Bool
   crossOrientation : Bool
@@ -194,6 +238,7 @@ structure CheckReport where
   equalityDistinctState : Bool
 deriving DecidableEq, Repr
 
+/-- The computed orientation report. -/
 def report : CheckReport :=
   { pointwiseOrientation := pointwiseOrientationCheck
     crossOrientation := crossOrientationCheck
@@ -206,8 +251,11 @@ def report : CheckReport :=
     equalityReflexive := equalityAcceptsReflexiveResult
     equalityDistinctState := equalityRejectsDistinctState }
 
-#eval report
+-- The report is executed by the pinned `example` below; no top-level `#eval`
+-- (library modules must not evaluate exposed declarations on Windows, where the
+-- native shared library cannot be linked).
 
+/-- The expected orientation report, pinned by an executable check. -/
 example : report =
     { pointwiseOrientation := true
       crossOrientation := false
@@ -220,5 +268,9 @@ example : report =
       equalityReflexive := true
       equalityDistinctState := false } := by
   decide
+
+end Checks
+
+end
 
 end STC.Examples
