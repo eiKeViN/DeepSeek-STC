@@ -8,8 +8,8 @@ import STC.Examples.Effect
 /-!
 # STC production bootstrap
 
-P1 checkpoint: this file imports the canonical relation and result foundations
-and their finite executable checks.  It is the package entrypoint actually
+Bootstrap checkpoint: this file imports the canonical relation/result foundations,
+plus the shallow reversible Effect kernel and their finite executable checks.  It is the package entrypoint actually
 checked by `lake build` (via the root `STC.lean`).
 
 Rules that must hold as production modules appear:
