@@ -8,8 +8,9 @@
 | Teammate-plan baseline | `9969ec5114ce0d94887f540e67b4581ff560ae1d` |
 | Plan integration commit | `2a5214950852ebe6d459b4c1bf39d21520698426` |
 | Branch-alignment merge | `c20ca6a` |
+| Latest main sync | `0971772`; merged as `bcd65a2` |
 | Branch | `codex/p5-state-registry` |
-| Final implementation commit | `2bf1ae0` |
+| Final implementation commit | `bcd65a2` |
 | Handoff commit | The commit containing this report |
 | PR target | `main` |
 | Namespace | `STC`; P5 state seam under `STC.State.FinmapAdapter` |
@@ -17,10 +18,12 @@
 
 ## 1. Authority and provenance
 
-The branch was realigned to `origin/main` after the teammate plan landed. The
-effective P5 implementation base is `2a52149`, whose parent `9969ec5` contains
-the merged P1/P2 implementation assumed by the plan. P5 does not import P3 or
-P4 modules and remains independently buildable.
+The branch was realigned to `origin/main` after the teammate plan landed. Its
+initial effective P5 base was `2a52149`, whose parent `9969ec5` contains the
+merged P1/P2 implementation assumed by the plan. Before PR handoff, main
+advanced to `0971772`; merge `bcd65a2` incorporated its module-format migration
+and converted all P5 files to the same module/public-import conventions. P5
+does not import P3 or P4 modules and remains independently buildable.
 
 The following boundaries were preserved:
 
@@ -115,13 +118,13 @@ No theorem relates `EraseControl` and `LifecycleObs` in either direction.
 
 ## 4. Executable evidence
 
-The standalone Toy check evaluates to:
+The standalone Toy theorem pins the following elaboration-time result:
 
 ```text
 [true, true, true, true]
 ```
 
-The final `STC/Examples/State.lean` report evaluates to:
+The final `STC/Examples/State.lean` theorem pins the following computed report:
 
 ```text
 { emptyLookup := none,
@@ -190,22 +193,18 @@ Each requires actual merged semantics and explicit preservation hypotheses.
 P5 retains a name-aware view and does not bake alpha equivalence into raw
 execution equality.
 
-## 8. BLOCKED and format deviation
+## 8. BLOCKED and module-format integration
 
 No semantic P5 obligation in the independently executable scope is blocked.
 
-`FORMAT-DEVIATION-P5-01` records a baseline incompatibility: the latest
-`AGENTS.md` requests `module` plus `public import`, while the frozen P1
-`STC.Foundation.Relation` and its import closure are legacy non-module files.
-Lean 4.33 rejects a module file importing them with:
+The earlier `FORMAT-DEVIATION-P5-01` was resolved by main commit `133b7da`,
+which migrated the Foundation/P2 import closure to Lean 4.33 modules. Merge
+`bcd65a2` adopted that lead-owned migration and converted every P5 production
+file to `module`, sorted `public import`s, and `@[expose] public section`.
 
-```text
-cannot import non-`module` STC.Foundation.Relation from `module`
-```
-
-P5 therefore retains the repository's compiling plain-import form. Resolving
-this consistently requires a lead-owned migration or explicit convention
-waiver; P5 does not modify frozen Foundation files to satisfy formatting alone.
+Main also prohibited top-level `#eval` in exposed library modules. P5 now pins
+all finite results with `example`/theorem proofs using `by decide`; no library
+module relies on native shared-library evaluation.
 
 ## 9. Validation evidence
 
@@ -268,16 +267,15 @@ changed D1 instead of D22. Commit `2bf1ae0` restored D1 to
 `completed`/`tested` and set D22 to `in_progress`/`proved`. The validator,
 build, scanner, and diff checks all passed again after the exact correction.
 
-The reviewer independently confirmed observer non-vacuity, registry laws,
+The reviewers independently confirmed observer non-vacuity, registry laws,
 Toy correctness, store/registry separation, honest R0 claim strength, P3/P4
 independence, P6 compatibility, standard proof axioms only, and all validation
-gates. The module-format mismatch was classified as real but non-semantic.
+gates. Their final pre-sync verdict was `PASS`.
 
-Final fresh re-review verdict: **PASS**. The reviewer reported no actionable
-findings and independently repeated all focused Lean, build, Ledger, scanner,
-diff, frozen-boundary, and worktree-cleanliness checks.
+Post-main-sync fresh re-review verdict: **PENDING**.
 
 ## 11. PR handoff
 
-After a fresh re-review returns `PASS`, push `codex/p5-state-registry` and open
-or update a review-ready PR to `main`. Stop before merge; no merge is automatic.
+PR #5 targets `main` from `codex/p5-state-registry`. After the post-main-sync
+fresh review returns `PASS`, push the conflict-resolution merge and updated
+handoff. Stop before merge; no merge is automatic.
