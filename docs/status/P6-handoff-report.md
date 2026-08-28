@@ -16,7 +16,7 @@ the §8 gate passed.
 
 ## 2. Changed files
 
-New files only; no tracked file was modified:
+New files, plus two integration-owner-requested tracked edits (see below):
 
 - `STC/Alpha/Core.lean`: the action algebra and the result-carrier actions.
 - `STC/Alpha/Trace.lean`: the T03 freshness boundary. **Deliberate boundary split** per
@@ -25,6 +25,10 @@ New files only; no tracked file was modified:
 - `STC/Alpha/Transport.lean`: the iterator/execution transport; imports and re-exports
   `STC.Alpha.Trace`.
 - `STC/Examples/Alpha.lean`: the finite `Fin 2` swap fixture.
+- `STC/Bootstrap.lean`: cumulative imports (`STC.Alpha.Transport`,
+  `STC.Examples.Alpha`) added on integration-owner request (2026-08-28); docstring
+  extended.
+- `docs/status/Definition-Ledger.json`: P6 row patch applied (see §6).
 - `docs/status/P6-scan-raw.txt`: scan output (empty = clean). Integration-owned per
   §3; retained here for review, as in P3/P4.
 - `docs/plans/P6-Execution-Plan.md`: the plan file, committed with the unit (P0
@@ -148,25 +152,30 @@ $ python scripts/scan_lean.py STC                                               
 Scanner interpretation: exit `1` = clean (no lexical match), per the project
 protocol; the raw output is empty.
 
-## 6. Ledger row patch (NOT applied; integration owner applies after review)
+## 6. Ledger row patch (applied 2026-08-28; validator PASS)
 
 ```text
-D45  notes: add "P6: explicit freshness-boundary product (AlphaBoundary) delivered;
-     provider adequacy and active-store semantics remain deferred"
-D53  delivery_status: planned -> in_progress; evidence_state: pending -> seam_only;
+D45  (retain in_progress/seam_only) notes: add "P6: explicit freshness-boundary
+     product (AlphaBoundary) delivered; provider adequacy and active-store semantics
+     remain deferred"
+D53  delivery_status: planned -> in_progress; evidence_state: aligned -> seam_only;
      notes: "P6: NameLedger/NameTrace/TraceSupport/TraceNoReuse shell delivered;
-     lifecycle/control trace decomposition remains BD-CONTROL"
+     lifecycle/control trace decomposition remains BD-CONTROL"; deferred_reason drops
+     the resolved P6 clause
 L56  delivery_status: planned -> in_progress; evidence_state: pending -> proved;
      notes: "P6: name-neutral execFrom/exec transport checked (ExecTransportContract);
-     named Q/Xi/payload variant remains deferred"
-D60  notes: "P6: iteratorSimulation/Bisim/inverse-properness/witness transports
-     delivered; reach-closed lifecycle monoid remains BD-CONTROL"
-T73  notes: "P6: alpha-support and no-reuse transport evidence only; support/
-     confluence remains BD-SUPPORT + BD-CONTROL"
-D65, L68, L71, L72  notes: "no completion claim from P6 alone"
+     named Q/Xi/payload variant remains deferred"; deferred_reason drops the resolved
+     P6-T03 clause
+D60  delivery_status: planned -> in_progress; evidence_state: pending -> proved
+     (per plan §9: retain the P4 transport/iterator evidence — the P4-proposed status
+     had not yet been applied); notes combine P4 stageCountFrom and P6 transports
+T73  (retain planned/pending) notes: "P6: alpha-support and no-reuse transport
+     evidence only; support/confluence remains BD-SUPPORT + BD-CONTROL"
+D65, L68, L71, L72  (retain statuses) notes: "P6: no completion claim from P6 alone"
 ```
 
 `BD-CONTROL`, `BD-SUPPORT`, `BD-STAGING`, `BD-SCOPED` stay in place.
+`python scripts/validate_definition_ledger.py` PASS after the patch.
 
 ## 7. Deferred obligations
 
@@ -183,15 +192,15 @@ D65, L68, L71, L72  notes: "no completion claim from P6 alone"
 
 ## 8. Frozen/shared confirmation
 
-No H03/H04, ADR, Blueprint, spike, `STC.lean`, `STC/Bootstrap.lean`,
-`Definition-Ledger.json`, P1–P5 module, or `TwoCounter.lean`/`VerticalSlice.lean`
-file was modified. `STC/Core/Iterator.lean` and `STC/State/**` untouched.
+No H03/H04, ADR, Blueprint, spike, or P1–P5 module was modified.
+`STC/Core/Iterator.lean` and `STC/State/**` untouched. On integration-owner request
+(2026-08-28): `STC/Bootstrap.lean` gained the cumulative alpha imports and
+`Definition-Ledger.json` received the §6 patch; `STC.lean` is unchanged (it already
+imports `STC.Bootstrap`). Post-integration gate: Bootstrap exit 0, `lake build` 754
+jobs exit 0, scan exit 1.
 
 ## 9. Notes for the integration owner
 
-- Cumulative `STC.lean`/`STC/Bootstrap.lean` imports (e.g. `STC.Alpha.Transport`
-  and `STC.Examples.Alpha`) are left to the integration owner; the alpha modules
-  also build as `lake build` targets.
 - `P6-scan-raw.txt` is integration-owned; retained here per P3/P4 precedent.
 - Lean 4.33.0 quirks hit and worked around: typeclass search does not unfold
   compound predicate defs (allocate? guard unfolded); `cases h : e` generalizes
@@ -202,5 +211,7 @@ file was modified. `STC/Core/Iterator.lean` and `STC/State/**` untouched.
 
 ## Unresolved Questions
 
-1. Integration owner: apply the ledger patch in §6 after review?
-2. Integration owner: add the cumulative imports to `STC.lean`/`STC/Bootstrap.lean`?
+1. The P3/P4/P5 ledger patches beyond §6 (D51, D52, T66, R.iter, ...) and the
+   P3/P4 cumulative imports (`STC/Core/Partial`, `STC/Core/Iterator`,
+   `STC/Examples/TwoCounter`, `STC/Examples/VerticalSlice`) are still not applied
+   to `STC/Bootstrap.lean`/`Definition-Ledger.json` — apply them next?

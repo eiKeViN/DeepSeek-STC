@@ -1,7 +1,9 @@
 module
 
+public import STC.Alpha.Transport
 public import STC.Core.Effect
 public import STC.Core.EffectCode
+public import STC.Examples.Alpha
 public import STC.Examples.Effect
 public import STC.Examples.RelationResult
 public import STC.Examples.State
@@ -35,5 +37,9 @@ Rules that must hold as production modules appear:
 * `STC.StateLike`, `STC.ObservationProfile`: abstract state observations;
 * `STC.RegistryLike`, `STC.ToyRegistry`: finite registry interfaces;
 * `STC.Coeffect.Store`: the dependent coeffect façade;
-* `STC.State.FinmapAdapter.RawState`: the state-side ADR-03 R0 seam.
+* `STC.State.FinmapAdapter.RawState`: the state-side ADR-03 R0 seam;
+* `STC.AlphaAction`, `STC.renameIterator`, `STC.execFrom_rename_transport`: the name-neutral
+  alpha transport layer (Core/Trace/Transport);
+* `STC.NameLedger`, `STC.NameTrace`, `STC.AlphaBoundary`: the trace/freshness boundary;
+* `STC.Examples.Alpha.alphaReport`: the finite swap fixture report.
 -/

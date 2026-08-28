@@ -1355,7 +1355,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred.",
+      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred. P6: explicit freshness-boundary product (AlphaBoundary) delivered; provider adequacy and active-store semantics remain deferred.",
       "h03_section": "4.1",
       "h04_target_layer": "CALCULUS-SHELL",
       "h04_paper_relation": "decomposition",
@@ -1604,8 +1604,8 @@
       "title": "Indexed traces, episodes, step factorization, and state relations",
       "target_module": "STC/Alpha/Transport.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "aligned",
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
       "depends_on": [
         "D33",
         "D36",
@@ -1626,8 +1626,8 @@
         "ADR-04",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL); name-neutral transport planned P6",
-      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries; traces, episodes, steps, and alpha transport remain planned for P6 or later.",
+      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL)",
+      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries. P6: NameLedger/NameTrace/TraceSupport/TraceNoReuse shell delivered; lifecycle/control trace decomposition remains BD-CONTROL.",
       "h03_section": "4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -1717,8 +1717,8 @@
       "title": "Equivariance under fiber-name renaming",
       "target_module": "STC/Alpha/Transport.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D44",
         "D45",
@@ -1734,8 +1734,8 @@
         "ADR-04",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "name-bearing control-payload variant deferred (P6-T03, BD-CONTROL)",
-      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness",
+      "deferred_reason": "name-bearing control-payload variant deferred (BD-CONTROL)",
+      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness. P6: name-neutral execFrom/exec transport checked (ExecTransportContract); named Q/Xi/payload variant remains deferred.",
       "h03_section": "4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -1858,8 +1858,8 @@
       "title": "Iterator reach, length, transformation monoid, and independence",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D19",
@@ -1876,8 +1876,8 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL); iteration reach/length planned P4",
-      "notes": "",
+      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL)",
+      "notes": "P4: stageCountFrom/stageCountFrom_le delivered; P6: iterator simulation/bisimulation, inverse-properness, and witness transports delivered; reach-closed lifecycle monoid remains BD-CONTROL.",
       "h03_section": "4.4.2",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -2058,7 +2058,7 @@
         "ADR-04"
       ],
       "deferred_reason": "",
-      "notes": "no dedicated task; BD-NAMES resolved via ADR-04",
+      "notes": "no dedicated task; BD-NAMES resolved via ADR-04. P6: no completion claim from P6 alone.",
       "h03_section": "4.4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -2168,7 +2168,7 @@
         "ADR-04"
       ],
       "deferred_reason": "BD-SUPPORT deferred; F-L68-CYCLE counterexample to mechanize first",
-      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first",
+      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first. P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "logical-repair",
@@ -2277,7 +2277,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "BD-CONTROL deferred",
-      "notes": "",
+      "notes": "P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful",
@@ -2322,7 +2322,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
-      "notes": "",
+      "notes": "P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -2371,8 +2371,8 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL); name-neutral equivariance planned P6",
-      "notes": "",
+      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL)",
+      "notes": "P6: alpha-support and no-reuse transport evidence only; support/confluence remains BD-SUPPORT + BD-CONTROL.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
