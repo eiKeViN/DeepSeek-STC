@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "plan_id": "DH-P2-EXEC-01",
+  "plan_id": "DH-P5-EXEC-01",
   "generated_on": "2026-08-28T00:00:00+08:00",
   "source_graph": {
     "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
@@ -600,17 +600,17 @@
       "kind": "Definition",
       "paper_anchor": "3.2.1",
       "title": "Finite dependent partial-map coeffect context",
-      "target_module": "STC/Prelude/Finite.lean",
+      "target_module": "STC/State/CoeffectStore.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [],
       "adr_refs": [
         "ADR-02",
         "ADR-03"
       ],
       "deferred_reason": "",
-      "notes": "blueprint DAG logical layer STC/Prelude/Finite; ADR-02 authoritative dependent Finmap store",
+      "notes": "P5-T04: authoritative dependent Finmap facade with lookup/domain/update laws, pointwise StoreObs, and a finite Nat/Bool dependent fixture. Extract/union/extensionality, support-update/recovery, distinct-key algebra, and disjoint-union theorems remain deferred.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "faithful-explicit",
@@ -894,10 +894,10 @@
       "kind": "Definition",
       "paper_anchor": "3.3.1",
       "title": "Recursive unified context",
-      "target_module": "STC/State/Like.lean",
+      "target_module": "STC/State/Like.lean; STC/State/FinmapAdapter.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
       "depends_on": [
         "D2",
         "D22"
@@ -909,7 +909,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "abstract StateLike first; ADR-03 RawState/ValidState adapter seam in P5-T03",
+      "notes": "P5-T01/T03: abstract StateLike plus RawState/ValidState, explicit WF components, checked-update, and one-way abstraction seams; no full unified calculus or runtime refinement.",
       "h03_section": "3.3.1",
       "h04_target_layer": "CALCULUS-SHELL",
       "h04_paper_relation": "replacement",
@@ -925,10 +925,10 @@
       "kind": "Definition",
       "paper_anchor": "3.3.2",
       "title": "Observational relation on coeffect contexts and states",
-      "target_module": "STC/State/Like.lean",
+      "target_module": "STC/State/Observation.lean; STC/State/CoeffectStore.lean",
       "treatment": "REPAIR",
       "delivery_status": "in_progress",
-      "evidence_state": "aligned",
+      "evidence_state": "proved",
       "depends_on": [
         "D22",
         "D24",
@@ -942,7 +942,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "generic PullbackRel/pullbackRelSpec shell aligned in Foundation/Relation; primary state-level observation remains in State/Like with ADR-02/03 dependencies",
+      "notes": "P5-T01/T04: explicit core, lifecycle, control-erased, name-aware, registry, and dependent-store observations with checked pullback/boundary laws; complete operation-induced equivalence remains deferred.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "faithful-explicit",
@@ -1300,10 +1300,10 @@
       "kind": "Definition",
       "paper_anchor": "4.1",
       "title": "Fibers and the base lifecycle state",
-      "target_module": "STC/State/RegistryLike.lean",
+      "target_module": "STC/State/RegistryLike.lean; STC/State/Toy.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "aligned",
       "depends_on": [
         "D2",
         "D22",
@@ -1318,7 +1318,7 @@
         "ADR-05"
       ],
       "deferred_reason": "",
-      "notes": "fiber shell: action codes, not State→State closures inside State (ADR-03)",
+      "notes": "P5-T02: finite uniform registry shell and nondegenerate List+Nodup Toy instance; concrete FiberCell payload and lifecycle state remain deferred.",
       "h03_section": "4.1",
       "h04_target_layer": "CALCULUS-SHELL",
       "h04_paper_relation": "type-repair",
@@ -1336,10 +1336,10 @@
       "kind": "Definition",
       "paper_anchor": "4.1",
       "title": "Registry, derived coeffect context, and providers",
-      "target_module": "STC/State/RegistryLike.lean",
+      "target_module": "STC/State/RegistryLike.lean; STC/State/FinmapAdapter.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
       "depends_on": [
         "D22",
         "D25",
@@ -1355,7 +1355,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred.",
       "h03_section": "4.1",
       "h04_target_layer": "CALCULUS-SHELL",
       "h04_paper_relation": "decomposition",
@@ -1605,7 +1605,7 @@
       "target_module": "STC/Alpha/Transport.lean",
       "treatment": "REPAIR",
       "delivery_status": "planned",
-      "evidence_state": "pending",
+      "evidence_state": "aligned",
       "depends_on": [
         "D33",
         "D36",
@@ -1627,7 +1627,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL); name-neutral transport planned P6",
-      "notes": "",
+      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries; traces, episodes, steps, and alpha transport remain planned for P6 or later.",
       "h03_section": "4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -1790,8 +1790,8 @@
       "title": "Well-formed registry",
       "target_module": "STC/State/FinmapAdapter.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
       "depends_on": [
         "D43",
         "D44",
@@ -1803,7 +1803,7 @@
         "ADR-04"
       ],
       "deferred_reason": "",
-      "notes": "provisional: WellFormed territory of the ADR-03 FinmapAdapter seam (P5-T03)",
+      "notes": "P5-T03: explicit seven-part CoreWellFormed plus separate boundary predicates and proof-carrying ValidState seam; concrete registry-WF preservation remains deferred.",
       "h03_section": "4.4.1",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
