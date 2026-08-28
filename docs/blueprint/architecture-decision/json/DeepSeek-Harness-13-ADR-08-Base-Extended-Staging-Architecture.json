@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "artifact_title": "DeepSeek Harness ADR-08: Base/Extended Staging Architecture",
+    "packet_id": "ADR-08",
+    "status": "proposed-architecture-closure-compiler-pending",
+    "artifact_version": "0.1-proposed-compiler-pending",
+    "created_on": "2026-08-28",
+    "semantic_change": false,
+    "supersedes": [],
+    "namespace": "STCADR08",
+    "production_namespace": "STC",
+    "source_title": "Shi, Zhang, and Cui, A Programming Paradigm for Spatiotemporal Composability",
+    "source_sha256": "4d48478dc0b6222d9f74d7db10ee776449b1209eb112632336544d32a49db97f",
+    "frozen_dependency_graph_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+    "frozen_disposition_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db",
+    "baseline_mutated": false
+  },
+  "decision": {
+    "global_blocker": "BD-STAGING",
+    "resolution_level": "architecture-and-interface-only",
+    "authoritative_relation": "R+",
+    "base_relation_role": "Rb is a derived AtomicProfile-controlled macro/view and H04 R.base remains SUBSUMED/specialization",
+    "duplicate_base_calculus": false,
+    "direct_subrelation_rejected": true,
+    "rationale": [
+      "Extended lifecycle rules expose Reloading and Unloading intermediate states.",
+      "Base L-Reload expands to L-Begin followed by L-Finish.",
+      "Base L-Unload expands to L-Leave followed by L-Unload.",
+      "Filtering R+ by stable endpoints loses required lifecycle steps or admits unrelated paths."
+    ],
+    "non_claim": "This packet does not claim full BD-STAGING closure, concrete K proofs, guard/WF preservation, or runtime refinement."
+  },
+  "relations": {
+    "full_orchestration": "R+_orch : FullOrchLabel -> ExtendedState -> ExtendedState -> Prop",
+    "full_lifecycle": "R+_life : FullLifeLabel -> ExtendedState -> ExtendedState -> Prop",
+    "base_orchestration": "Rb_orch l b b' := AtomicProfile.orch l and Trace (fun a => R+_orch a) (embed b) (expandOrch l) (embed b')",
+    "base_lifecycle": "Rb_life l b b' := AtomicProfile.life l and Trace (fun a => R+_life a) (embed b) (expandLife l) (embed b')",
+    "optional_stuttering": "A profile may explicitly admit b = b' as a tagged no-op branch; failure and unfinished paths are never stuttering successes.",
+    "relation_classes": "Orchestration and lifecycle remain separate projections; ADR-07 may package them as a typed sum."
+  },
+  "embedding_projection": {
+    "embed": "BaseState -> ExtendedState",
+    "project": "ExtendedState -> Option BaseState",
+    "stable": "ExtendedState -> Prop",
+    "laws": [
+      "forall b, project (embed b) = some b",
+      "forall b, stable (embed b)"
+    ],
+    "converse_not_assumed": "project x = some b does not globally imply x = embed b; canonicalization is an optional concrete profile law."
+  },
+  "atomic_profile": {
+    "purpose": "Specify which finite full paths denote one atomic base action.",
+    "required_fields": [
+      "finite ordered expansion list for every base label",
+      "atomicity predicate on the expansion list",
+      "stable endpoint and embedding/projection witnesses",
+      "no interleaved external orchestration step",
+      "no unaccounted yield, raise, or asynchronous landing branch",
+      "guard and confinement premise ports"
+    ],
+    "deferred_parameters": [
+      "concrete K and iterator specialization",
+      "guard predicates",
+      "WellFormed and provider predicates",
+      "control landing policy and scheduler/refinement"
+    ],
+    "initial_lifecycle_expansions": {
+      "L-Reload": {
+        "full_labels": ["L-Begin", "L-Finish"],
+        "intermediate": "Reloading",
+        "endpoint": "stable/base image",
+        "profile_condition": "committed target, finite iterator stage, no interleaving or failure"
+      },
+      "L-Unload": {
+        "full_labels": ["L-Leave", "L-Unload"],
+        "intermediate": "Unloading",
+        "endpoint": "stable/base image",
+        "profile_condition": "retirement/withdrawal guard, finite path, no interleaving or failure"
+      }
+    },
+    "initial_orchestration_expansions": {
+      "O-Insert": ["O-Insert"],
+      "O-Retire": ["O-Retire"],
+      "O-Remove": ["O-Remove"]
+    },
+    "finite_toy_checks": [
+      "wrong stable endpoint is rejected for O-Insert",
+      "an extra/interleaved lifecycle label is rejected by toyAtomicLife",
+      "a failure label is rejected by toyAtomicLife",
+      "the fixed L-Begin/L-Finish path has an explicit atomic adequacy witness"
+    ]
+  },
+  "correspondence_contracts": {
+    "forward_simulation": {
+      "orchestration": "Rb_orch l b b' implies Trace (fun a => R+_orch a) (embed b) (expandOrch l) (embed b')",
+      "lifecycle": "Rb_life l b b' implies Trace (fun a => R+_life a) (embed b) (expandLife l) (embed b')",
+      "trace_composition": "base trace concatenation maps to full trace concatenation via Trace.append",
+      "endpoint_requirement": "The endpoint embedding and ordered labels are part of the witness; endpoint equality alone is insufficient."
+    },
+    "atomic_adequacy_stuttering_converse": {
+      "premise": "AtomicProfile-accepted full path between embedded stable endpoints, with no interleaving/failure/pending branch",
+      "conclusion": "corresponding base label plus expansion witness, or an explicitly permitted stuttering identity",
+      "scope": "Not a classifier for arbitrary full traces."
+    },
+    "quiescence_bridge": {
+      "claim": "quietFull (embed b) iff quietBase b",
+      "only_under": [
+        "stable-image closure of accepted macros",
+        "complete atomic partition for the considered full lifecycle paths",
+        "no pending in-flight or failure branch at the endpoint",
+        "matching guard, provider, and WellFormed premises"
+      ],
+      "outside_profile": "quietBase is not a shortcut for full quiescence."
+    }
+  },
+  "ownership": {
+    "R+_labels_and_control": "ADR-07/control; this packet consumes the interface",
+    "iterator_and_failure": "ADR-05/P4",
+    "state_registry_provider_WF": "ADR-03/P5",
+    "incarnation_and_alpha": "ADR-04/P6",
+    "relation_effect_observation": "ADR-01/ADR-06/P1-P3",
+    "support_confluence_runtime": "ADR-09 support packet and later phases; not a dependency of ADR-08"
+  },
+  "boundaries": {
+    "changed_files": [],
+    "forbidden_changes": [
+      "frozen H03 dependency graph",
+      "frozen H04 disposition",
+      "Blueprint, Ledger, status, Bootstrap",
+      "production STC modules",
+      "Cordis runtime declarations"
+    ],
+    "adapter": "STC.Adapter remains the one-way abstraction/refinement seam."
+  },
+  "affected_items": {
+    "directly_addressed": ["R.base", "D44", "D46", "D49", "R.full"],
+    "relation_to_h04": {
+      "R.base": "SUBSUMED/specialization via derived macro/view and simulation",
+      "R.full": "single authoritative labelled relation; no duplicate base relation"
+    },
+    "remaining_blockers": [
+      "BD-CONTROL concrete rules and landing policy",
+      "BD-SUPPORT",
+      "concrete K proofs",
+      "guard/WF/provider preservation",
+      "runtime refinement"
+    ]
+  },
+  "acceptance_checks": [
+    "R+ is the sole authoritative full relation.",
+    "Rb is defined only through an AtomicProfile-controlled finite macro/view.",
+    "embed/project round-trip and stable-image laws are explicit.",
+    "ForwardSimulation and AtomicAdequacy/stuttering-converse interfaces are explicit.",
+    "No full BD-STAGING, concrete K, guard, WF, or runtime claim is made."
+  ],
+  "validation": {
+    "spike": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean",
+    "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean",
+    "toolchain_available": false,
+    "compiler_result": "pending-toolchain",
+    "local_checks": [
+      "JSON syntax parse",
+      "no sorry/admit/project axiom/unsafe lexical markers in spike",
+      "artifact paths and namespace cross-check"
+    ],
+    "full_bd_staging_closed": false
+  },
+  "integrity": {
+    "markdown_sha256": "91dd901a23f808d32b743e6cbbe4dfd0820664b913c24660f3af84b4c5926923",
+    "json_sha256": null,
+    "lean_sha256": "8f6a30937d79f6683049521f85dba1fda8856b29e8508f8092a469c34287054e",
+    "hash_policy": "SHA-256 covers companion bytes; JSON self-hash is intentionally excluded and remains null."
+  }
+}

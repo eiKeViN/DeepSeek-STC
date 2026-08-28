@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "artifact_title": "DeepSeek Harness ADR-09: Support Well-Foundedness Architecture",
+    "packet_id": "ADR-09",
+    "global_blocker": "BD-SUPPORT",
+    "status": "proposed-architecture-compiler-pending",
+    "packet_version": "0.1-proposed",
+    "created_on": "2026-08-28",
+    "closure_scope": "architecture-and-interface-only",
+    "semantic_change": false,
+    "production_namespace": "STC",
+    "spike_namespace": "STCADR09",
+    "depends_on": [
+      "ADR-03",
+      "ADR-04",
+      "ADR-05",
+      "ADR-06",
+      "ADR-07",
+      "ADR-08"
+    ],
+    "frozen_inputs_unchanged": true,
+    "frozen_source_sha256": "4d48478dc0b6222d9f74d7db10ee776449b1209eb112632336544d32a49db97f",
+    "frozen_dependency_graph_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+    "frozen_disposition_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db"
+  },
+  "decision": {
+    "support_relation": {
+      "orientation": "a ⊲ b iff a ≺ b or parent(b)=a",
+      "precedes": "(provides(a) intersect requires(b)).Nonempty",
+      "parent_edge": "parent(b)=some(a)",
+      "edge_direction": "provider-or-parent to dependent-or-child",
+      "rank_direction": "SupportRel a b implies rank(a) < rank(b)",
+      "recursion_relation": "SupportDep(s,b,a) := SupportRel(s,a,b); rank decreases when following SupportDep"
+    },
+    "snapshot_carrier": {
+      "domain": "finite Finset IncarnationId",
+      "fields": ["dom", "retired", "parent", "requires", "provides", "birth"],
+      "identity_source": "ADR-04 IncarnationId",
+      "role": "architecture mirror for a finite registry snapshot; not the P5 production state"
+    },
+    "least_fixed_point": {
+      "operator": "SupportOperator(s,A) = nodes in dom, non-retired, parent-supported by A, and provider-supported by A",
+      "construction": "SupportSet(s) = intersection of all A with SupportOperator(s,A) subset A",
+      "properties_in_spike": ["operator monotonicity", "leastness", "prefixedness", "fixed-point equation"],
+      "negative_recursion_avoided": true,
+      "cyclic_snapshot_behavior": "total carrier remains defined; WF-dependent theorems require an explicit certificate"
+    },
+    "well_foundedness": {
+      "support_order": "rank : N -> Nat plus edge_lt on snapshot-domain SupportRel edges",
+      "rank_certificate": "abbrev RankCertificate = SupportOrder",
+      "support_wf": "Nonempty (SupportOrder s)",
+      "proved_in_spike": ["certificate packaging", "no two-edge support cycle"],
+      "production_derivation": "derive WellFounded for the restricted relation after P5 instantiation"
+    },
+    "restricted_profiles": {
+      "NoLateRegistration": {
+        "condition": "every support edge strictly increases immutable birth index",
+        "consequence": "direct conversion to SupportOrder",
+        "status": "optional strengthened theorem profile; does not rewrite current-fresh O-Insert"
+      },
+      "CommittedSnapshot": {
+        "fields": ["committed finite domain", "domain equality contract", "SupportOrder"],
+        "status": "validity timing and staging guards deferred to BD-CONTROL/BD-STAGING"
+      }
+    }
+  },
+  "frozen_cycle_adjudication": {
+    "shorthand_edges": [
+      {"edge": "r -> n", "meaning": "r ≺ n"},
+      {"edge": "r -> c", "meaning": "parent(c)=r"},
+      {"edge": "c -> n", "meaning": "parent(n)=c"}
+    ],
+    "shorthand_status": "acyclic; must not be reported as a counterexample",
+    "shorthand_rank": "rank(x)=x.val",
+    "corrected_graph_extra_edge": "n ≺ r (n -> r)",
+    "corrected_cycle": "r -> c -> n -> r",
+    "precedence_fragment_rank": "2 - x.val",
+    "corrected_graph_status": "finite graph witness only; no reachable lifecycle trace claimed",
+    "reachability_requirement": "labelled control trace for retirement, former-provider removal, and late registration"
+  },
+  "paper_mapping": [
+    {"id": "D67", "status": "architecture supplied", "contract": "SupportRel, positive SupportOperator, canonical SupportSet"},
+    {"id": "L68", "status": "conditional theorem interface supplied; K proof deferred", "contract": "quantify over SupportWF/rank certificate and control invariant"},
+    {"id": "L70", "status": "deferred", "contract": "quiescent nonfailed total-provision state plus SupportWF envelope"},
+    {"id": "L72", "status": "deferred", "contract": "deletion preservation imports repaired support and L70"},
+    {"id": "T73", "status": "deferred", "contract": "linearisation hook via SupportOrder; confluence/termination/name proofs remain"}
+  ],
+  "cross_plan_interaction": {
+    "P3": "independent partial/failure work; failure does not imply SupportWF",
+    "P4": "iterator rank is distinct from support rank",
+    "P5": "owns production STC/State representation and eventual integration module",
+    "P6": "transports SupportRel, SupportSet, and rank certificates under alpha permutations",
+    "BD-CONTROL": "supplies labelled reachability and late-registration guards",
+    "BD-STAGING": "supplies committed-snapshot validity"
+  },
+  "deferred": [
+    "literal L68 semantic proof",
+    "reachable F-L68-CYCLE trace",
+    "L70 support-equals-active proof",
+    "L72 deletion preservation proof",
+    "T73 confluence/canonical-form proof",
+    "P5 concrete provider and lifecycle predicates",
+    "BD-CONTROL and BD-STAGING invariants",
+    "full alpha/refinement transport",
+    "Cordis runtime refinement"
+  ],
+  "ownership": {
+    "allowed": [
+      "docs/blueprint/architecture-decision/md/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.md",
+      "docs/blueprint/architecture-decision/json/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json",
+      "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean"
+    ],
+    "forbidden": [
+      "STC production modules",
+      "STC/Bootstrap.lean",
+      "Cordis",
+      "docs/status",
+      "docs/blueprint/baseline",
+      "Blueprint/Ledger",
+      "historical accepted ADR artifacts"
+    ]
+  },
+  "validation": {
+    "toolchain": "Lean 4.33.0 / Lake pinned project",
+    "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean",
+    "local_status": "blocked-before-elaboration-missing-libInit_shared.so",
+    "spike_checks": [
+      "SupportOperator monotonicity",
+      "SupportSet leastness and fixed-point equation",
+      "rank certificate packaging",
+      "no-two-cycle consequence",
+      "frozen shorthand acyclicity",
+      "corrected finite cycle no-rank witness",
+      "finite #eval edge checks"
+    ],
+    "forbidden_markers": ["sorry", "admit", "unsafe", "custom project axiom"],
+    "evidence_boundary": "Compilation is interface evidence only; downstream K proofs remain deferred"
+  },
+  "integrity": {
+    "markdown_sha256": "dcc10b584fa39fcc14d66eb527fe8764820447c5e0f45b1c15e9de829d6e7bd6",
+    "lean_sha256": "a9d447009f41822aaba6820a5d58e1c2b5afa94391e05c7ac7ae3fdf1ae507f9",
+    "json_sha256": null,
+    "hash_scope": "SHA-256 over companion bytes; JSON self-hash intentionally excluded"
+  },
+  "revision_policy": {
+    "editorial": "patch version",
+    "carrier_or_orientation_change": "superseding ADR",
+    "freshness_or_trace_assumption_change": "superseding ADR",
+    "frozen_inputs": "must remain unchanged"
+  }
+}
