@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "plan_id": "DH-P0-EXEC-01",
-  "generated_on": "2026-08-27T19:55:55+08:00",
+  "plan_id": "DH-P1-EXEC-01",
+  "generated_on": "2026-08-27T22:45:41+08:00",
   "source_graph": {
     "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
     "sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8"
@@ -42,7 +42,7 @@
         "ADR-01",
         "ADR-05"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: twisted Effect composition awaits the P2 Effect kernel.",
       "notes": "",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
@@ -927,8 +927,8 @@
       "title": "Observational relation on coeffect contexts and states",
       "target_module": "STC/State/Like.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "aligned",
       "depends_on": [
         "D22",
         "D24",
@@ -942,7 +942,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "primary state-level relation in State/Like; result relators in Foundation/Result (P1-T02)",
+      "notes": "generic PullbackRel/pullbackRelSpec shell aligned in Foundation/Relation; primary state-level observation remains in State/Like with ADR-02/03 dependencies",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "faithful-explicit",
@@ -974,8 +974,8 @@
         "ADR-03-CLOSURE",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
-      "notes": "",
+      "deferred_reason": "P1 boundary: typed operation tests and indistinguishability await the P3/P5 partial-operation layers and BD-COEFFECT.",
+      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "decomposition",
@@ -1023,8 +1023,8 @@
       "title": "Equivalence-respecting and pointwise-related maps",
       "target_module": "STC/Foundation/Relation.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D2",
         "D33"
@@ -1035,7 +1035,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P1-T01/T03: canonical relation vocabulary, bridge laws, OptionRel shell, pullback shell, and equality specialization compile with checked generic proofs",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "faithful",
@@ -1050,10 +1050,10 @@
       "kind": "Definition",
       "paper_anchor": "3.3.2",
       "title": "Witnessed effects modulo observational equivalence",
-      "target_module": "STC/Foundation/Relation.lean",
+      "target_module": "STC/Foundation/Result.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "aligned",
       "depends_on": [
         "D33",
         "D36",
@@ -1065,7 +1065,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "F-L35-INVERSE: must identify the inverse actually returned by the run",
+      "notes": "P1-T02 field-preserving EffectResult/Failure/ExecResult relator shells compile; F-L35-INVERSE still requires the run-indexed inverse contract in later effect/partial layers",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "logical-repair",
@@ -1082,8 +1082,8 @@
       "title": "Transport of Section 3.1 equalities to observational equivalence",
       "target_module": "STC/Foundation/Relation.lean",
       "treatment": "SUBSUMED",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "aligned",
       "depends_on": [
         "C21",
         "D1",
@@ -1115,7 +1115,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "SUBSUMED per H04: instantiated by the relation-parametric core, not duplicated",
+      "notes": "SUBSUMED per H04: P1 relation bridges and explicit equality specialization are implemented without duplicated equality proofs; effect-level transport remains staged",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "generalization",
@@ -1146,7 +1146,7 @@
         "ADR-02",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: concrete partial-operation and coeffect independence awaits P3/P5 and BD-COEFFECT.",
       "notes": "",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
@@ -1179,7 +1179,7 @@
         "ADR-02",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: distinct-key independence awaits the ADR-02 store and P3/P5 operation layers.",
       "notes": "",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
@@ -1211,7 +1211,7 @@
         "ADR-02",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: coeffect-mediated operations await ADR-02 partiality and P3/P5 definitions.",
       "notes": "",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
@@ -1249,7 +1249,7 @@
         "ADR-02",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "P1 boundary: the mediated-effect independence theorem awaits D39/D41 and the coeffect/partiality dependencies.",
       "notes": "",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
