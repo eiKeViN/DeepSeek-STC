@@ -19,8 +19,18 @@ and recorded in [`docs/status`](docs/status/).  The 82-item ledger and its
 validator are part of the repository, and the minimal bootstrap builds under
 the pinned Lean 4.33.0 / Mathlib v4.33.0 environment.
 
-P1 is the next execution step: relation and result foundations; its execution
-plan lives in [`docs/plans/P1-Execution-Plan.md`](docs/plans/P1-Execution-Plan.md).
+P1 (relation and result foundations) and P2 (the shallow reversible effect
+kernel, its R0 interpreter seam, and finite executable fixtures) are complete
+and merged: `STC/Foundation/`, `STC/Core/`, and `STC/Examples/` now follow the
+mathlib module style recorded in [`AGENTS.md`](AGENTS.md), and `lake build` is
+green.
+
+The next steps run in parallel: the P3→P4 workstream (partial operations and
+failure, then the ranked iterator — sequential within the workstream, per
+[`docs/plans/P3-P4-Execution-Plan.md`](docs/plans/P3-P4-Execution-Plan.md)) and
+the P5 workstream (abstract state, observation, registry, and ADR-03 adapter
+interfaces, per [`docs/plans/P5-Execution-Plan.md`](docs/plans/P5-Execution-Plan.md)).
+The two tracks must not edit each other's work.
 
 A compiling file is an interface result, not automatically a semantic proof;
 the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
@@ -62,7 +72,7 @@ until P1/P2 production modules are extracted from the historical spikes.
 From the repository root, use the pinned toolchain and the focused checks:
 
 ```bash
-lake env lean STC/<changed-file>.lean
+lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/<changed-file>.lean
 lake build
 ```
 
