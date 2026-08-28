@@ -1,4 +1,6 @@
-import STC.Foundation.Relation
+module
+
+public import STC.Foundation.Relation
 
 /-!
 # Finite uniform registries
@@ -17,6 +19,8 @@ is pointwise through `RegistryObs`.
 universe u v w
 
 namespace STC
+
+@[expose] public section
 
 /-- A finite uniform registry with explicit lookup, update, and domain laws. -/
 structure RegistryLike (K V R : Type u) [DecidableEq K] where
@@ -194,5 +198,7 @@ theorem insert_erase_of_lookup_obs
     exact VRel.refl old
   · rw [api.lookup_insert_ne _ _ _ _ hkey, api.lookup_erase_ne _ _ _ hkey]
     exact (optionRelSpec VRel).refl _
+
+end
 
 end STC

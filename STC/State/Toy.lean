@@ -1,4 +1,6 @@
-import STC.State.RegistryLike
+module
+
+public import STC.State.RegistryLike
 
 /-!
 # Executable list registry
@@ -17,6 +19,8 @@ replacement, while semantic comparison remains order-insensitive.
 universe u
 
 namespace STC
+
+@[expose] public section
 
 /-- A persistent association-list registry with unique keys. -/
 structure ToyRegistry (K V : Type u) where
@@ -251,10 +255,10 @@ def toyExampleChecks : List Bool :=
    toyExampleErase ≠ none,
    toyExampleNew ≠ none]
 
-#eval toyExampleChecks
-
 /-- All finite Toy registry checks have the intended outcomes. -/
 theorem toyExampleChecks_expected : toyExampleChecks = [true, true, true, true] := by
   decide
+
+end
 
 end STC

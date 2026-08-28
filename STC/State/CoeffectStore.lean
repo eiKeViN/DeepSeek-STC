@@ -1,5 +1,7 @@
-import Mathlib.Data.Finmap
-import STC.Foundation.Relation
+module
+
+public import Mathlib.Data.Finmap
+public import STC.Foundation.Relation
 
 /-!
 # The ADR-02 dependent coeffect store
@@ -21,6 +23,8 @@ aggregation remain later work.
 universe u v
 
 namespace STC.Coeffect
+
+@[expose] public section
 
 variable {K : Type u} {Value : K → Type v}
 
@@ -113,5 +117,7 @@ def storeObsSpec [DecidableEq K] (keyObs : ∀ key, RelSpec (Value key)) :
   trans := by
     intro left middle right h₁ h₂ key
     exact (optionRelSpec (keyObs key)).trans (h₁ key) (h₂ key)
+
+end
 
 end STC.Coeffect

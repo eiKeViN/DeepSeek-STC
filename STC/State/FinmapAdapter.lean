@@ -1,6 +1,8 @@
-import STC.State.CoeffectStore
-import STC.State.Observation
-import STC.State.RegistryLike
+module
+
+public import STC.State.CoeffectStore
+public import STC.State.Observation
+public import STC.State.RegistryLike
 
 /-!
 # ADR-03 state-side Finmap adapter
@@ -24,6 +26,8 @@ namespace remains available for the later concrete-to-abstract runtime seam.
 universe u v w
 
 namespace STC.State.FinmapAdapter
+
+@[expose] public section
 
 /-- The positive ADR-03 raw carrier: ambient data plus an abstract registry carrier. -/
 structure RawState (Ambient Registry : Type u) where
@@ -109,5 +113,7 @@ structure StateAbstraction (Raw : Type u) (Abstract : Type v) (Core : Type w)
   abstractCore : Abstract → Core
   coreRel : RelSpec Core
   observes : ∀ state, coreRel.rel (abstractCore (abstract state)) (rawCore state)
+
+end
 
 end STC.State.FinmapAdapter

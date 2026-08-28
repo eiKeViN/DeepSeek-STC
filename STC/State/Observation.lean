@@ -1,4 +1,6 @@
-import STC.State.Like
+module
+
+public import STC.State.Like
 
 /-!
 # Explicit state-observation boundaries
@@ -17,6 +19,8 @@ view without equating their carriers or domains.
 universe u v w x y z
 
 namespace STC
+
+@[expose] public section
 
 variable {S : Type u} {O : Type v} {P : Type w}
 variable {Core : Type x} {Life : Type y} {Control : Type z} {Erased : Type y} {Names : Type z}
@@ -106,5 +110,7 @@ structure StoreRegistryBoundary (Registry : Type u) (Store : Type v) where
   storeObs : RelSpec Store
   activeStore : Registry → Store
   activeStore_respects : RespectsOn registryObs.rel storeObs.rel activeStore
+
+end
 
 end STC

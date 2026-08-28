@@ -1,7 +1,9 @@
-import STC.State.CoeffectStore
-import STC.State.FinmapAdapter
-import STC.State.Observation
-import STC.State.Toy
+module
+
+public import STC.State.CoeffectStore
+public import STC.State.FinmapAdapter
+public import STC.State.Observation
+public import STC.State.Toy
 
 /-!
 # Finite state, registry, and coeffect evidence
@@ -19,33 +21,35 @@ and name-aware views.
 
 namespace STC
 
-private abbrev toyApi : RegistryLike ToyKey ToyValue (ToyRegistry ToyKey ToyValue) :=
+@[expose] public section
+
+abbrev toyApi : RegistryLike ToyKey ToyValue (ToyRegistry ToyKey ToyValue) :=
   toyRegistryLike
 
-private def insertedToy : ToyRegistry ToyKey ToyValue :=
+def insertedToy : ToyRegistry ToyKey ToyValue :=
   toyApi.insert toyApi.empty .alpha .first
 
-private def overwrittenToy : ToyRegistry ToyKey ToyValue :=
+def overwrittenToy : ToyRegistry ToyKey ToyValue :=
   toyApi.insert toyExample .alpha .second
 
-private def erasedToy : Option (ToyValue × ToyRegistry ToyKey ToyValue) :=
+def erasedToy : Option (ToyValue × ToyRegistry ToyKey ToyValue) :=
   erasePresent? toyApi toyExample .beta
 
-private def freshThenErase : ToyRegistry ToyKey ToyValue :=
+def freshThenErase : ToyRegistry ToyKey ToyValue :=
   toyApi.erase (toyApi.insert toyApi.empty .alpha .first) .alpha
 
-private def capturedEraseThenInsert : ToyRegistry ToyKey ToyValue :=
+def capturedEraseThenInsert : ToyRegistry ToyKey ToyValue :=
   toyApi.insert (toyApi.erase toyExample .beta) .beta .second
 
 /-- Compare every key of the finite Toy fixture without assuming carrier equality. -/
-private def sameToyLookups (left right : ToyRegistry ToyKey ToyValue) : Bool :=
+def sameToyLookups (left right : ToyRegistry ToyKey ToyValue) : Bool :=
   decide (
     toyApi.lookup left .alpha = toyApi.lookup right .alpha ∧
       toyApi.lookup left .beta = toyApi.lookup right .beta ∧
         toyApi.lookup left .gamma = toyApi.lookup right .gamma)
 
 /-- A raw candidate insertion that violates the Toy key-uniqueness invariant. -/
-private def duplicateCandidate : List (ToyKey × ToyValue) :=
+def duplicateCandidate : List (ToyKey × ToyValue) :=
   (.alpha, .second) :: toyExample.entries
 
 /-! ## Dependent ADR-02 store fixture -/
@@ -76,43 +80,43 @@ structure ProfileState where
   name : ToyKey
   deriving DecidableEq, Repr
 
-private def profileStateLike : StateLike ProfileState Nat :=
+def profileStateLike : StateLike ProfileState Nat :=
   ⟨fun state ↦ state.core⟩
 
-private def profileCore : RelSpec ProfileState :=
+def profileCore : RelSpec ProfileState :=
   CoreStateObs profileStateLike (equality Nat)
 
-private def lifeProfile : ObservationProfile ProfileState Bool :=
+def lifeProfile : ObservationProfile ProfileState Bool :=
   ObservationProfile.exactEquality fun state ↦ state.life
 
-private def controlProfile : ObservationProfile ProfileState Bool :=
+def controlProfile : ObservationProfile ProfileState Bool :=
   ObservationProfile.exactEquality fun state ↦ state.control
 
-private def nameProfile : ObservationProfile ProfileState ToyKey :=
+def nameProfile : ObservationProfile ProfileState ToyKey :=
   ObservationProfile.exactEquality fun state ↦ state.name
 
-private def erasedProfile : ObservationProfile ProfileState (Nat × ToyKey) :=
+def erasedProfile : ObservationProfile ProfileState (Nat × ToyKey) :=
   ObservationProfile.exactEquality fun state ↦ (state.core, state.name)
 
-private def lifecycleProfile : RelSpec ProfileState :=
+def lifecycleProfile : RelSpec ProfileState :=
   LifecycleObs profileCore lifeProfile controlProfile
 
-private def eraseControlProfile : RelSpec ProfileState :=
+def eraseControlProfile : RelSpec ProfileState :=
   EraseControl erasedProfile
 
-private def nameAwareProfile : RelSpec ProfileState :=
+def nameAwareProfile : RelSpec ProfileState :=
   NameAwareObs profileCore nameProfile
 
-private def lifecycleLeft : ProfileState :=
+def lifecycleLeft : ProfileState :=
   { core := 1, life := true, control := false, name := .alpha }
 
-private def lifecycleRight : ProfileState :=
+def lifecycleRight : ProfileState :=
   { core := 1, life := true, control := false, name := .beta }
 
-private def eraseControlLeft : ProfileState :=
+def eraseControlLeft : ProfileState :=
   { core := 2, life := false, control := false, name := .alpha }
 
-private def eraseControlRight : ProfileState :=
+def eraseControlRight : ProfileState :=
   { core := 2, life := true, control := false, name := .alpha }
 
 /-- Lifecycle observation can relate states that name-aware observation separates. -/
@@ -135,10 +139,10 @@ theorem eraseControl_not_lifecycle :
 
 /-! ## Checked-update fixture -/
 
-private def sameStatic (before candidate : Nat × Bool) : Prop :=
+def sameStatic (before candidate : Nat × Bool) : Prop :=
   before.1 = candidate.1
 
-private instance : DecidableRel sameStatic := fun before candidate ↦
+instance : DecidableRel sameStatic := fun before candidate ↦
   inferInstanceAs (Decidable (before.1 = candidate.1))
 
 /-! ## Executable report -/
@@ -220,8 +224,6 @@ def stateReport : StateReport :=
       decide (
         State.FinmapAdapter.checkedUpdate sameStatic (1, false) (2, false) = none) }
 
-#eval stateReport
-
 /-- The exact expected output of `stateReport`. -/
 def expectedStateReport : StateReport :=
   { emptyLookup := none
@@ -248,5 +250,7 @@ def expectedStateReport : StateReport :=
 /-- The finite report matches all intended positive and negative outcomes. -/
 theorem stateReport_expected : stateReport = expectedStateReport := by
   decide
+
+end
 
 end STC

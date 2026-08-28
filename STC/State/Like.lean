@@ -1,4 +1,6 @@
-import STC.Foundation.Relation
+module
+
+public import STC.Foundation.Relation
 
 /-!
 # Abstract state projections
@@ -18,6 +20,8 @@ remain outside `StateLike`.
 universe u v
 
 namespace STC
+
+@[expose] public section
 
 variable {S : Type u} {O : Type v}
 
@@ -62,5 +66,7 @@ def exactEquality (project : S → O) : ObservationProfile S O :=
   exact project (equality O)
 
 end ObservationProfile
+
+end
 
 end STC
