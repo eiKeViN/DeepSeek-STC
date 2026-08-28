@@ -32,6 +32,10 @@ New files, plus two integration-owner-requested tracked edits (see below):
 - `docs/status/Definition-Ledger.json`: P6 row patch applied (see §6), plus the
   unapplied P3/P4 patches reconciled from their handoff §6 (D17, L18, D19, T20, C21,
   D23, D24, D25, D26, D34, D39, R.fail, D51, D52, T66, R.iter); validator PASS.
+  Status convention aligned on integration-owner preference: dependency-blocked
+  roadmap rows use `planned` + a filled `deferred_reason` (evidence `pending`);
+  `delivery = deferred` is reserved for disposition-level rows (D27 EXPOSITORY,
+  D74 H04-DEFER, R.base/R.withdraw/Table1 SUBSUMED).
 - `docs/status/P6-scan-raw.txt`: scan output (empty = clean). Integration-owned per
   §3; retained here for review, as in P3/P4.
 - `docs/plans/P6-Execution-Plan.md`: the plan file, committed with the unit (P0
