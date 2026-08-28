@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "plan_id": "DH-P1-EXEC-01",
-  "generated_on": "2026-08-27T22:45:41+08:00",
+  "plan_id": "DH-P2-EXEC-01",
+  "generated_on": "2026-08-28T00:00:00+08:00",
   "source_graph": {
     "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
     "sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8"
@@ -35,15 +35,15 @@
       "title": "Twisted composition of transformation pairs",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [],
       "adr_refs": [
         "ADR-01",
         "ADR-05"
       ],
-      "deferred_reason": "P1 boundary: twisted Effect composition awaits the P2 Effect kernel.",
-      "notes": "",
+      "deferred_reason": "",
+      "notes": "P2-T01: `Transformation.twisted`; finite tracked fixture exercises its forward and reverse order.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -58,15 +58,15 @@
       "title": "Effect context",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [],
       "adr_refs": [
         "ADR-01",
         "ADR-05"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T01: generic `EffectContext`/`Undo` context; finite tracked and lifted fixtures exercise it.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -81,8 +81,8 @@
       "title": "Tracking transformation",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [
         "D2"
       ],
@@ -91,7 +91,7 @@
         "ADR-05"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T01: `track`; exact projection/homomorphism theorems and finite tracked fixture are checked.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -106,15 +106,15 @@
       "title": "Projection of tracking",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D2",
         "D3"
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "notes": "P2-T03: `track_state`; exact projection theorem checked in `STC/Core/Effect.lean`.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -129,8 +129,8 @@
       "title": "Tracking is a monoid homomorphism",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D1",
         "D2",
@@ -138,7 +138,7 @@
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "notes": "P2-T03: `track_twisted`; exact tracking homomorphism theorem checked with explicit operand order.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -153,14 +153,14 @@
       "title": "Recovery transformation",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [
         "D2"
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "notes": "P2-T01: `recover`; exact state/accumulator projections and finite recovery are exercised.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -175,8 +175,8 @@
       "title": "One-step recovery invariance",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D2",
         "D3",
@@ -184,7 +184,7 @@
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: tracking-family items not individually task-mapped; part of the P2 effect kernel",
+      "notes": "P2-T03: `recover_track_rel`; explicit accumulator properness and local recovery hypotheses.",
       "h03_section": "3.1.1",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -199,8 +199,8 @@
       "title": "Effect functions and witnessed effect functions",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D2"
       ],
@@ -211,7 +211,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "F-D8-WITNESS repair: let-bound/output-indexed witness, not the displayed vacuous pair",
+      "notes": "P2-T02: raw `Effect` plus run-indexed `IsLawfulEffect`; `lawful_equality_iff` proves the non-vacuous D8 repair.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "logical-repair",
@@ -228,8 +228,8 @@
       "title": "Effect composition",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [
         "D2",
         "D8"
@@ -240,7 +240,7 @@
         "ADR-05"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T01: `seqRun` with explicit first-then-second execution and outer-after-inner undo composition.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -255,8 +255,8 @@
       "title": "Monoid of effects and embedding of uniform pairs",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D1",
         "D8",
@@ -269,7 +269,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: exact identity/associativity and `seqRun_uniformEffect` embedding equations are checked.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -284,8 +284,8 @@
       "title": "Witnessing survives composition",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D8",
         "D9",
@@ -298,7 +298,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: `uniformEffect_lawful` and `seqRun_lawful` provide checked closure under the three explicit law fields.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -315,8 +315,8 @@
       "title": "Lift of an effect to the effect context",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "tested",
       "depends_on": [
         "D2",
         "D3",
@@ -329,7 +329,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T01: `liftEffect` records the selected undo in the accumulator and returns the planned tracked disposer.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -344,8 +344,8 @@
       "title": "The effect lift preserves composition",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D8",
@@ -357,7 +357,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: `liftEffect_seqRun` proves exact lift/composition compatibility.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -372,8 +372,8 @@
       "title": "Projection compatibility across effect levels",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D2",
@@ -385,7 +385,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: `liftEffect_state_projection` and `liftEffect_undo_projection` preserve both lifted fields.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -400,8 +400,8 @@
       "title": "Exact behavior of the lifted inverse",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D2",
@@ -415,7 +415,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: `liftEffect_undo_apply`, state recovery, recovery-target preservation, and the quantified equality criterion; hypotheses remain explicit.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "logical-repair",
@@ -432,8 +432,8 @@
       "title": "LIFO recovery for witnessed effects",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D2",
@@ -448,7 +448,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P2-T03: `seqRun_recovers`, `runSequence_lawful`, and `runSequence_recovers` establish generic finite LIFO recovery modulo `R`.",
       "h03_section": "3.1.2",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -1050,10 +1050,10 @@
       "kind": "Definition",
       "paper_anchor": "3.3.2",
       "title": "Witnessed effects modulo observational equivalence",
-      "target_module": "STC/Foundation/Result.lean",
+      "target_module": "STC/Core/Effect.lean",
       "treatment": "REPAIR",
-      "delivery_status": "in_progress",
-      "evidence_state": "aligned",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D33",
         "D36",
@@ -1065,7 +1065,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "P1-T02 field-preserving EffectResult/Failure/ExecResult relator shells compile; F-L35-INVERSE still requires the run-indexed inverse contract in later effect/partial layers",
+      "notes": "P2-T02/T03: `IsLawfulEffect` supplies run-indexed selected-inverse coherence, undo properness, local recovery, and sequential closure; no concrete P5 observation is claimed.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "logical-repair",
@@ -1083,7 +1083,7 @@
       "target_module": "STC/Foundation/Relation.lean",
       "treatment": "SUBSUMED",
       "delivery_status": "in_progress",
-      "evidence_state": "aligned",
+      "evidence_state": "proved",
       "depends_on": [
         "C21",
         "D1",
@@ -1115,7 +1115,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "SUBSUMED per H04: P1 relation bridges and explicit equality specialization are implemented without duplicated equality proofs; effect-level transport remains staged",
+      "notes": "P2 generic theorem manifest and Eq specialization are checked for the delivered D8/T7/T11/T15/T16 subset; D17-C21 and concrete observational transport remain staged.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "generalization",
