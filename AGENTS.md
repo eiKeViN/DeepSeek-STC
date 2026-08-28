@@ -52,6 +52,42 @@ STC/Adapter
 The current accepted architecture includes relation-parametric laws, explicit partiality and failure results, the positive finite state/registry shell, lifetime-safe `IncarnationId` with explicit alpha actions, ranked iterators, and the ADR-06 equivalence/transport contracts.  Do not reopen these decisions implicitly.
 
 
+## Lean file format conventions (mathlib style)
+
+Formatting authority: the pinned mathlib sources in `.lake/packages/mathlib/` are the reference; these rules summarize them for `STC/` production modules.  Frozen spike files under `docs/blueprint/architecture-decision/lean-spike/` are exempt (read-only).
+
+### File skeleton
+
+Every production `.lean` file, top to bottom:
+
+1. Optional file header comment (provenance/status note), then
+2. `module` — Lean 4.33 module declaration; the module name defaults to the file path, so write it bare.
+3. Imports, one per line, sorted alphabetically:
+   - umbrella files (`STC.lean`, `STC/Bootstrap.lean`, future per-family roots) contain **only** imports plus a module docstring, all as `public import`;
+   - leaf files also use `public import` (mathlib makes all imports public — they re-export transitively).  Plain `import` is for genuinely internal dependencies only.
+4. `/-!` module docstring immediately after the imports:
+   - `# Title` on the first line;
+   - prose summary;
+   - optional `## Main declarations` bullet list naming the file's API surface (`* `Finset.card`: ...` style).
+5. `universe`, `variable`, `open`/`open scoped` statements after the module docstring.
+
+### Documentation
+
+- `/-- ... -/` docstrings on every important declaration (`def`, `structure`, `class`, `theorem`): one-line summary first, details after a blank line; mathlib sentence style, backticks around code.
+- `/-! ... -/` block headers mark sections and declaration groups — never individual declarations.
+- `## Main declarations` is required in umbrella files, encouraged in leaf files.
+
+### Scoping
+
+- One named `section Name … end Name` per concept; a concept's definitions and its theorems stay together inside it.
+- Section-scoped `variable` replaces repeated per-declaration binders (`{α : Type u}`, `[DecidableEq α]`, explicit parameters exactly as mathlib writes them).  Type-family declarations (`Store (V)`, `PartialMap (α) (β)`, …) keep their explicit parameters.
+- Section variables are auto-included only when used; where Lean over-includes an unused instance, drop it with `omit [Foo] in` (linter `unusedSectionVars`).
+- Notations needed by several sections stay outside sections (precedent: ADR-03 closure spike).
+
+### Verification
+
+Before committing, every touched file must pass `lake env lean -DautoImplicit=false -Dpp.unicode.fun=true <file>` with zero errors and zero linter warnings.
+
 ## Working loop
 
 Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs:
