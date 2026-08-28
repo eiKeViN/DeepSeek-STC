@@ -35,7 +35,7 @@
       "title": "Twisted composition of transformation pairs",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "in_progress",
+      "delivery_status": "completed",
       "evidence_state": "tested",
       "depends_on": [],
       "adr_refs": [
@@ -602,7 +602,7 @@
       "title": "Finite dependent partial-map coeffect context",
       "target_module": "STC/State/CoeffectStore.lean",
       "treatment": "DIRECT",
-      "delivery_status": "completed",
+      "delivery_status": "in_progress",
       "evidence_state": "proved",
       "depends_on": [],
       "adr_refs": [
