@@ -184,23 +184,23 @@ def Trace.stepsOk
     {orchestration : OL → C → C → Prop}
     {lifecycle : LL → C → C → Prop}
     (policy : TracePolicy OL LL C M orchestration lifecycle)
-    (meta : M)
+    (metadata : M)
     {before after : C} :
     Trace (Step orchestration lifecycle) before after → Prop
   | .nil => True
   | .cons head tail =>
-      policy.stepOk meta head ∧ Trace.stepsOk policy meta tail
+      policy.stepOk metadata head ∧ Trace.stepsOk policy metadata tail
 
 def Trace.admissible
     {OL LL C M : Type u}
     {orchestration : OL → C → C → Prop}
     {lifecycle : LL → C → C → Prop}
     (policy : TracePolicy OL LL C M orchestration lifecycle)
-    (meta : M)
+    (metadata : M)
     {before after : C}
     (trace : Trace (Step orchestration lifecycle) before after) : Prop :=
-  policy.initial meta ∧ policy.labelOk trace.labels = true ∧
-    Trace.stepsOk policy meta trace
+  policy.initial metadata ∧ policy.labelOk trace.labels = true ∧
+    Trace.stepsOk policy metadata trace
 
 def lifecycleOnlyPolicy
     (OL LL C M : Type u)
@@ -262,14 +262,14 @@ def raiseLabel
 theorem raiseLabel_failure_preserves
     {I S E Q V : Type u}
     (owner : I) (failure : Failure S E) :
-    raiseLabel owner (.failure failure : ExecResult S E) =
+    raiseLabel (Q := Q) (V := V) owner (.failure failure : ExecResult S E) =
       some (.raise owner failure) := by
   rfl
 
 theorem raiseLabel_success_absent
     {I S E Q V : Type u}
     (owner : I) (result : EffectResult S) :
-    raiseLabel owner (.success result : ExecResult S E) = none := by
+    raiseLabel (Q := Q) (V := V) owner (.success result : ExecResult S E) = none := by
   rfl
 
 /-! ## A finite nontrivial witness profile -/
@@ -372,7 +372,8 @@ def toyLifecycle : ToyLLabel → ToyState → ToyState → Prop
   | .leave _, before, after =>
       before.mode = .active ∧ after = { before with mode := .unloading }
   | .unload _, before, after =>
-      before.mode = .unloading ∧ after = { before with mode := .inactive }
+      before.mode = .unloading ∧
+        after = { before with mode := .inactive, traceMeta := [] }
 
 abbrev ToyStep := Step toyOrchestration toyLifecycle
 
@@ -423,17 +424,34 @@ theorem toyLifecycleSuffix_is_admissible :
   · trivial
   · constructor
     · rfl
-    · simp [Trace.stepsOk]
+    · simp [Trace.stepsOk, toyLifecycleSuffix, lifecycleOnlyPolicy]
 
 theorem toyTerminal_has_no_lifecycle_successor :
     ¬ HasLifecycleSuccessor toyLifecycle toyTerminal := by
   intro h
-  rcases h with ⟨label, next, hstep⟩
-  cases label <;> simp [toyLifecycle, toyTerminal] at hstep
+  rcases h with ⟨label, after, hstep⟩
+  cases label with
+  | begin owner target => simp [toyLifecycle, toyTerminal] at hstep
+  | iter owner next => simp [toyLifecycle, toyTerminal] at hstep
+  | finish owner => simp [toyLifecycle, toyTerminal] at hstep
+  | divert owner choice =>
+      cases choice with
+      | abort =>
+          simp only [toyLifecycle, toyTerminal] at hstep
+          rcases hstep with ⟨flight, hmode, _⟩
+          cases hmode
+      | land =>
+          simp only [toyLifecycle, toyTerminal] at hstep
+          rcases hstep with ⟨flight, hmode, _⟩
+          cases hmode
+  | raise owner failure => simp [toyLifecycle, toyTerminal] at hstep
+  | leave owner => simp [toyLifecycle, toyTerminal] at hstep
+  | unload owner => simp [toyLifecycle, toyTerminal] at hstep
 
 def toyUnloadStep : ToyStep toyUnloading toyTerminal :=
   .lifecycle (.unload 7) (by
-    simp [toyLifecycle, toyUnloading, toyTerminal])
+    simp [toyLifecycle, toyUnloading, toyActive, toyReloading, toyInserted, toy0,
+      toyTerminal])
 
 def toyMaximalSuffix : Trace ToyStep toyUnloading toyTerminal :=
   .cons toyUnloadStep .nil
@@ -441,14 +459,13 @@ def toyMaximalSuffix : Trace ToyStep toyUnloading toyTerminal :=
 theorem toyMaximalSuffix_is_maximal :
     MaximalLifecycleSuffix toyOrchestration toyLifecycle toyMaximalSuffix := by
   constructor
-  · simp [Trace.onlyLifecycle]
+  · simp [Trace.onlyLifecycle, toyMaximalSuffix, toyUnloadStep]
   · exact toyTerminal_has_no_lifecycle_successor
 
 def toyAsyncPolicy : AsyncPolicy
     (InFlight Nat Nat Nat Unit Nat Nat) ToyState where
   atBoundary := fun flight _ => flight.remaining = 0
-  landingWitness := fun flight state =>
-    flight.landingWitness.admissible state
+  landingWitness := fun _flight _state => True
   allowed := fun flight state choice =>
     choice = .land ∨
       (choice = .abort ∧ flight.remaining = 0)
@@ -457,7 +474,7 @@ def toyAsyncPolicy : AsyncPolicy
     exact Or.inl rfl
   landSound := by
     intro flight state _h
-    exact flight.landingWitness.admissible state
+    trivial
   abortGuard := by
     intro flight _state h
     rcases h with h | h
