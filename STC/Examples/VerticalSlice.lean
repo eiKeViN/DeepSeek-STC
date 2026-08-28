@@ -19,9 +19,13 @@ computation.
 
 * `Control`, `counterRun`, `counterRank`, `counterIterator`: the success machine;
 * `failingRun`, `failingIterator`: the failing machine;
+* `TwoCounterControl`, `twoCounterIterator`, `TwoCounterFailureControl`,
+  `twoCounterFailureIterator`: the additive P7 paths;
 * `counterStageWitness`: the instance-level stage witness (`K`);
 * `execCount0`–`execCount3`, `counterExec_eq`, `failingExec_eq`, `stageCount_eq`:
   the computed traces;
+* `twoCounterSuccessExec_eq`, `twoCounterFailureExec_eq`, and their stage-count equations:
+  the P7 equation-pinned traces;
 * `stageMixed_not_rel`, `execSuccess_refl`: the relation checks (`K`);
 * `SliceReport`, `sliceReport`: the pinned executable report (`E`).
 -/
@@ -144,6 +148,131 @@ theorem counterStageWitness : StageWitness (equality CounterState) counterIterat
 
 end Machine
 
+/-! ### The P7 two-counter paths -/
+
+section TwoCounterPaths
+
+/-- Control codes for the additive two-counter success path. -/
+inductive TwoCounterControl where
+  | start
+  | afterInc1
+  | afterInc2
+deriving DecidableEq, Repr
+
+/-- The success path applies `inc1`, then `inc2`, and finally halts with identity. -/
+def twoCounterRun : TwoCounterControl → CounterState →
+    StageResult CounterState Unit TwoCounterControl
+  | .start, state => .yield (inc1 state) .afterInc1
+  | .afterInc1, state => .yield (inc2 state) .afterInc2
+  | .afterInc2, state => .halt (identityEffect state)
+
+/-- The rank certificate for the P7 success path. -/
+def twoCounterRank : TwoCounterControl → Nat
+  | .start => 3
+  | .afterInc1 => 2
+  | .afterInc2 => 0
+
+/-- Every yielded P7 success continuation strictly decreases `twoCounterRank`. -/
+theorem twoCounterNextLt : ∀ {q state result next},
+    twoCounterRun q state = .yield result next → twoCounterRank next < twoCounterRank q := by
+  intro q state result next h
+  cases q with
+  | start =>
+      simp only [twoCounterRun, twoCounterRank] at h ⊢
+      cases h
+      decide
+  | afterInc1 =>
+      simp only [twoCounterRun, twoCounterRank] at h ⊢
+      cases h
+      decide
+  | afterInc2 => simp [twoCounterRun] at h
+
+/-- The ranked P7 success iterator. -/
+def twoCounterIterator : RankedIterator CounterState Unit TwoCounterControl where
+  root := .start
+  rank := twoCounterRank
+  run := twoCounterRun
+  next_lt := twoCounterNextLt
+
+/-- The failure-path control codes: increment once, then run `failIfZero`. -/
+inductive TwoCounterFailureControl where
+  | start
+  | check
+deriving DecidableEq, Repr
+
+/-- The P7 failure path applies `inc1` and then exposes `failIfZero` at the boundary. -/
+def twoCounterFailureRun : TwoCounterFailureControl → CounterState →
+    StageResult CounterState Unit TwoCounterFailureControl
+  | .start, state => .yield (inc1 state) .check
+  | .check, state =>
+      match failIfZero state with
+      | none => .raise ()
+      | some result => .halt { state := result.state, undo := result.undo }
+
+/-- The rank certificate for the P7 failure path. -/
+def twoCounterFailureRank : TwoCounterFailureControl → Nat
+  | .start => 2
+  | .check => 0
+
+/-- Every yielded P7 failure continuation strictly decreases its rank. -/
+theorem twoCounterFailureNextLt : ∀ {q state result next},
+    twoCounterFailureRun q state = .yield result next →
+      twoCounterFailureRank next < twoCounterFailureRank q := by
+  intro q state result next h
+  cases q with
+  | start =>
+      simp only [twoCounterFailureRun, twoCounterFailureRank] at h ⊢
+      cases h
+      decide
+  | check =>
+      cases hrun : failIfZero state with
+      | none => simp [twoCounterFailureRun, hrun] at h
+      | some result => simp [twoCounterFailureRun, hrun] at h
+
+/-- The ranked P7 failure iterator. -/
+def twoCounterFailureIterator :
+    RankedIterator CounterState Unit TwoCounterFailureControl where
+  root := .start
+  rank := twoCounterFailureRank
+  run := twoCounterFailureRun
+  next_lt := twoCounterFailureNextLt
+
+/-- Every successful stage of the P7 success iterator recovers locally. -/
+theorem twoCounterStageWitness :
+    StageWitness (equality CounterState) twoCounterIterator := by
+  constructor
+  intro q input
+  cases q with
+  | start =>
+      simp only [twoCounterIterator, twoCounterRun]
+      exact ⟨inc1_lawful.recovers input, inc1_lawful.undo_respects input⟩
+  | afterInc1 =>
+      simp only [twoCounterIterator, twoCounterRun]
+      exact ⟨inc2_lawful.recovers input, inc2_lawful.undo_respects input⟩
+  | afterInc2 =>
+      simp only [twoCounterIterator, twoCounterRun]
+      exact ⟨(identityEffect_lawful (equality CounterState)).recovers input,
+        (identityEffect_lawful (equality CounterState)).undo_respects input⟩
+
+/-- Every successful stage of the P7 failure iterator recovers locally; the `raise` branch
+is intentionally discharged by `True`, as required by the failure carrier. -/
+theorem twoCounterFailureStageWitness :
+    StageWitness (equality CounterState) twoCounterFailureIterator := by
+  constructor
+  intro q input
+  cases q with
+  | start =>
+      simp only [twoCounterFailureIterator, twoCounterFailureRun]
+      exact ⟨inc1_lawful.recovers input, inc1_lawful.undo_respects input⟩
+  | check =>
+      by_cases hz : input.2 = 0
+      · simp [twoCounterFailureIterator, twoCounterFailureRun, failIfZero, hz]
+      · simp [twoCounterFailureIterator, twoCounterFailureRun, failIfZero, hz]
+        exact ⟨(identityEffect_lawful (equality CounterState)).recovers input,
+          (identityEffect_lawful (equality CounterState)).undo_respects input⟩
+
+end TwoCounterPaths
+
 /-! ### The computed execution traces -/
 
 section Traces
@@ -243,6 +372,99 @@ theorem stageCount_eq : stageCountFrom counterIterator .start (0, 7) = 5 := by
   simp only []
 
 end Traces
+
+/-! ### P7 two-counter equations -/
+
+section TwoCounterTraces
+
+/-- The canonical P7 success input and the two intermediate states. -/
+def twoCounterS0 : CounterState := (0, 0)
+def twoCounterS1 : CounterState := (inc1 twoCounterS0).state
+def twoCounterS2 : CounterState := (inc2 twoCounterS1).state
+
+/-- The final halt stage of the P7 success path. -/
+theorem twoCounterExec_afterInc2 :
+    execFrom twoCounterIterator .afterInc2 twoCounterS2 =
+      .success (identityEffect twoCounterS2) := by
+  rw [execFrom_halt (it := twoCounterIterator)
+    (h := (show twoCounterIterator.run .afterInc2 twoCounterS2 =
+      .halt (identityEffect twoCounterS2) from rfl))]
+
+/-- The second success stage yields into the final halt stage. -/
+theorem twoCounterExec_afterInc1 :
+    execFrom twoCounterIterator .afterInc1 twoCounterS1 =
+      .success { state := twoCounterS2, undo := (inc2 twoCounterS1).undo } := by
+  rw [execFrom_yield_success (it := twoCounterIterator)
+    (hyield := (show twoCounterIterator.run .afterInc1 twoCounterS1 =
+      .yield (inc2 twoCounterS1) .afterInc2 from rfl))
+    (hinner := twoCounterExec_afterInc2)]
+  rfl
+
+/-- The complete P7 success path reaches `(1, 1)` with both selected inverses. -/
+theorem twoCounterSuccessExec_eq :
+    execFrom twoCounterIterator .start twoCounterS0 =
+      .success { state := (1, 1), undo := fun value => (value.1 - 1, value.2 - 1) } := by
+  rw [execFrom_yield_success (it := twoCounterIterator)
+    (hyield := (show twoCounterIterator.run .start twoCounterS0 =
+      .yield (inc1 twoCounterS0) .afterInc1 from rfl))
+    (hinner := twoCounterExec_afterInc1)]
+  apply congrArg (ExecResult.success : EffectResult CounterState → ExecResult CounterState Unit)
+  apply effectResult_ext
+  · rfl
+  · funext value
+    ext <;> simp [twoCounterS0, twoCounterS1, inc1, inc2,
+      Function.comp_apply] <;> omega
+
+/-- The `failIfZero` stage raises at the canonical `(1, 0)` boundary. -/
+theorem twoCounterFailureCheckExec_eq :
+    execFrom twoCounterFailureIterator .check (1, 0) =
+      .failure { error := (), boundary := (1, 0), prefixUndo := id } := by
+  rw [execFrom_raise (it := twoCounterFailureIterator)
+    (h := (show twoCounterFailureIterator.run .check (1, 0) = .raise () by
+      simp [twoCounterFailureIterator, twoCounterFailureRun, failIfZero]))]
+
+/-- The complete P7 failure path preserves the successful `inc1` prefix inverse. -/
+theorem twoCounterFailureExec_eq :
+    execFrom twoCounterFailureIterator .start twoCounterS0 =
+      .failure { error := (), boundary := (1, 0), prefixUndo := (inc1 twoCounterS0).undo } := by
+  rw [execFrom_yield_failure (it := twoCounterFailureIterator)
+    (hyield := (show twoCounterFailureIterator.run .start twoCounterS0 =
+      .yield (inc1 twoCounterS0) .check from rfl))
+    (hinner := twoCounterFailureCheckExec_eq)]
+  rfl
+
+/-- The success path uses three ranked stages. -/
+theorem twoCounterSuccessStageCount_eq :
+    stageCountFrom twoCounterIterator .start twoCounterS0 = 3 := by
+  unfold stageCountFrom
+  rw [show twoCounterIterator.run .start twoCounterS0 =
+      .yield (inc1 twoCounterS0) .afterInc1 from rfl]
+  simp only []
+  change 1 + stageCountFrom twoCounterIterator .afterInc1 twoCounterS1 = 3
+  unfold stageCountFrom
+  rw [show twoCounterIterator.run .afterInc1 twoCounterS1 =
+      .yield (inc2 twoCounterS1) .afterInc2 from rfl]
+  simp only []
+  change 1 + (1 + stageCountFrom twoCounterIterator .afterInc2 twoCounterS2) = 3
+  unfold stageCountFrom
+  rw [show twoCounterIterator.run .afterInc2 twoCounterS2 =
+      .halt (identityEffect twoCounterS2) from rfl]
+  simp only []
+
+/-- The failure path uses one successful stage and one raising stage. -/
+theorem twoCounterFailureStageCount_eq :
+    stageCountFrom twoCounterFailureIterator .start twoCounterS0 = 2 := by
+  unfold stageCountFrom
+  rw [show twoCounterFailureIterator.run .start twoCounterS0 =
+      .yield (inc1 twoCounterS0) .check from rfl]
+  simp only []
+  change 1 + stageCountFrom twoCounterFailureIterator .check (1, 0) = 2
+  unfold stageCountFrom
+  rw [show twoCounterFailureIterator.run .check (1, 0) = .raise () by
+      simp [twoCounterFailureIterator, twoCounterFailureRun, failIfZero]]
+  simp only []
+
+end TwoCounterTraces
 
 /-! ### The executable slice report -/
 
