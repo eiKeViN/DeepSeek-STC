@@ -9,8 +9,8 @@
 | Plan integration commit | `2a5214950852ebe6d459b4c1bf39d21520698426` |
 | Branch-alignment merge | `c20ca6a` |
 | Latest main sync | `0971772`; merged as `bcd65a2` |
-| Branch | `codex/p5-state-registry` |
-| Final implementation commit | `bcd65a2` |
+| Branch | `codex/p5-state-registry-reviewed` |
+| Final implementation commit | `9375355` |
 | Handoff commit | The commit containing this report |
 | PR target | `main` |
 | Namespace | `STC`; P5 state seam under `STC.State.FinmapAdapter` |
@@ -60,6 +60,10 @@ store projection; it does not equate registry and coeffect domains.
 - checked `insertFresh?` and `erasePresent?` policy wrappers;
 - observational recovery after fresh insert/erase and captured erase/reinsert.
 
+The key, value, and carrier types use independent universe parameters. The Toy
+association-list carrier likewise permits its key and value types to inhabit
+different universes.
+
 `STC/State/Toy.lean` implements the interface with an executable
 association-list plus `Nodup` representation. It exercises three keys, two
 values, raw overwrite, fresh acceptance, duplicate rejection, erasure, and a
@@ -73,8 +77,9 @@ deliberately duplicate candidate that cannot satisfy the carrier invariant.
 - seven separately visible `CoreWFSpec` obligations;
 - separate root/declaration `BoundaryWFSpec` obligations;
 - `CoreWellFormed`, `WellFormed`, and proof-carrying `ValidState`;
-- sound, complete, and unique `ProviderProvenance` fields;
-- the static-only `checkedUpdate` gate and exact success/failure equations;
+- well-formed-relative sound, complete, and unique `ProviderProvenance` fields;
+- an explicit `StaticProjection`, the projection-equality-only `checkedUpdate`
+  gate, and exact success/failure equations;
 - one-way `StateAbstraction` observation evidence.
 
 These are interfaces and admission obligations. No concrete provider adequacy,
@@ -109,8 +114,9 @@ was fabricated.
   instance proof fields; `toyExampleChecks_expected` pins the finite result.
 - Coeffect store: empty lookup, key-membership/definedness, insert/erase same-key
   and frame laws, `storeObs_lookup`, and `coeffectStoreObs_same_keys`.
-- ADR-03 seam: `checkedUpdate_eq_some_iff` and
-  `checkedUpdate_eq_none_iff`; neither theorem claims WF preservation.
+- ADR-03 seam: `ProviderProvenance.provider_iff`,
+  `checkedUpdate_eq_some_iff`, and `checkedUpdate_eq_none_iff`; no theorem
+  claims WF preservation.
 - Finite examples: `lifecycle_not_nameAware`,
   `eraseControl_not_lifecycle`, and `stateReport_expected`.
 
@@ -201,6 +207,8 @@ The earlier `FORMAT-DEVIATION-P5-01` was resolved by main commit `133b7da`,
 which migrated the Foundation/P2 import closure to Lean 4.33 modules. Merge
 `bcd65a2` adopted that lead-owned migration and converted every P5 production
 file to `module`, sorted `public import`s, and `@[expose] public section`.
+Post-sync review commit `9375355` also placed each P5 concept in a named section
+as required by the repository format contract.
 
 Main also prohibited top-level `#eval` in exposed library modules. P5 now pins
 all finite results with `example`/theorem proofs using `by decide`; no library
@@ -246,9 +254,13 @@ $ git diff --check origin/main..HEAD
 exit 0
 
 $ git status --short --branch
-## codex/p5-state-registry
+## codex/p5-state-registry-reviewed...origin/codex/p5-state-registry-reviewed
 exit 0
 ```
+
+An additional compiler smoke test instantiated `RegistryLike`, `ToyRegistry`,
+`RawState`, and `ProviderProvenance` with independent universe variables. It
+completed with exit `0`; Lean reported `RawState Ambient Registry : Type (max u v)`.
 
 The exact scanner stdout/stderr is preserved as the zero-byte
 `docs/status/P5-scan-raw.txt` artifact.
@@ -272,10 +284,22 @@ Toy correctness, store/registry separation, honest R0 claim strength, P3/P4
 independence, P6 compatibility, standard proof axioms only, and all validation
 gates. Their final pre-sync verdict was `PASS`.
 
-Post-main-sync fresh re-review verdict: **PENDING**.
+The post-main-sync merge review returned `PASS_WITH_FIXES`. It found no false
+theorem or proof-integrity issue, but requested four interface/conformance
+corrections: tie checked updates to an explicit static projection, scope
+provider choice soundness to well-formed states, remove public universe
+coupling, and add the required named concept sections.
+
+Commit `9375355` addresses all four findings. The static gate now checks only
+projection equality; provider choice has a well-formed-relative `iff` theorem;
+the public registry, Toy, raw-state, and provider carriers accept independent
+universes; and every P5 concept is placed in a named section. Focused checks,
+the full build, Ledger validation, scanner, diff check, and the independent-
+universe smoke test all passed after these changes.
+
+Post-main-sync final review verdict: **PASS**.
 
 ## 11. PR handoff
 
-PR #5 targets `main` from `codex/p5-state-registry`. After the post-main-sync
-fresh review returns `PASS`, push the conflict-resolution merge and updated
-handoff. Stop before merge; no merge is automatic.
+PR #5 was closed without merge and superseded by PR #6. PR #6 targets `main`
+from `codex/p5-state-registry-reviewed`; no automatic merge was performed.
