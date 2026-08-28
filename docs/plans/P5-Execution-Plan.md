@@ -144,8 +144,9 @@ def inducedRel (p : ObservationProfile S O) : RelSpec S :=
   pullbackRelSpec p.project p.obsRel
 ```
 
-Reuse P1's `RelSpec`, `RespectsOn`, and generic `PullbackRel` rather than
-creating a second relation vocabulary. Keep these observation boundaries as
+Reuse P1's `RelSpec`, `RespectsOn`, `PullbackRel`, `PiRel`, and
+`optionRel_isSome_iff` rather than creating a second relation vocabulary or
+duplicating definedness case splits. Keep these observation boundaries as
 distinct named profiles:
 
 - core state/coeffect observation;
@@ -157,10 +158,12 @@ Do not identify them merely because they share an underlying carrier. Do not
 put the freshness ledger into the default core observation; ADR-04 places that
 at the orchestration/trace boundary.
 
-`PullbackRel project obsRel` is the explicitly induced relation. A profile may
-also carry a supplied/coarser `stateRel`; if it claims that the two coincide,
-provide an explicit equality/refinement field rather than relying on the shared
-carrier or projection. Required generic evidence:
+`PullbackRel project obsRel` is the explicitly induced relation. A supplied
+`stateRel` is accepted only with an explicit refinement direction: the current
+`project_respects` field establishes `stateRel ⊆ inducedRel`. If the two
+relations are claimed to coincide, provide both directions (or an explicit
+equality/refinement field) rather than relying on the shared carrier or
+projection. Required generic evidence:
 
 - pullback of an observation relation is an explicit relation value;
 - the profile's projection respects its supplied relation;

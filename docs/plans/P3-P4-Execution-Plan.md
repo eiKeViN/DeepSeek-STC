@@ -129,9 +129,13 @@ P2-owned `Effect.lean` by default; if a declaration genuinely must be added
 there, obtain integration-owner review and preserve every existing declaration
 and theorem statement.
 
-If this completion would require a new semantic decision or become large, leave
-D17/L18 explicitly deferred and implement only the relation-level independence
-contracts. The handoff must state which case occurred; never mark T20/C21
+The non-vacuity shell is mandatory before an independence contract is accepted:
+provide `TransformationMonoidProfile` identity/composition closure and a
+`GeneratedEffectProfile` recording the effect forward map and every returned
+undo as members. If the completion would require a new semantic decision or
+become large, leave only the paper's least-generated-monoid equality (D17/L18)
+deferred and implement the relation-level contracts against the explicit
+profiles. The handoff must state which case occurred; never mark T20/C21
 proved on an unimplemented generated-closure assumption.
 
 Before adding `OpResult`, also check the partiality boundary against ADR-02 and
@@ -208,10 +212,12 @@ do not replace it with P2's total `EffectResultRel` unless the operation has
 first been explicitly embedded into the total fragment.
 
 Keep related-input coherence (P2's `run_respects`) distinct from D19 foreign
-stability. If D17/L18 was completed, prove at least one nontrivial generic
-closure/commutation theorem and one finite counterexample. Otherwise provide a
-precise deferred contract, not an empty or vacuous proof. Concrete coeffect
-independence remains dependent on P5/ADR-02.
+stability. Prove at least one nontrivial generic closure/commutation theorem
+against the non-vacuous generated profiles and one finite counterexample. The
+least-generated-monoid identification may remain deferred, but the contract
+must not be detached from its generators. Concrete coeffect independence is
+still deferred beyond the P5 dependent-store façade until the ADR-02 operation
+layer is implemented.
 
 ### P3-T03 — failure bridge
 
@@ -311,14 +317,17 @@ does not smuggle in a second boundary/undo carrier. If a partial operation is
 used as a stage, its `Option.none` branch must be handled by an explicit
 diagnostic policy before it becomes a `raise`.
 
-### P4-T03 — relation and witness interfaces
+### P4-T03 — relation, witness, and transport interfaces
 
 Add relation-parametric `StageRelC`, `IteratorSimulation`, `IteratorBisim`,
 `StageWitness`, and `IteratorWitness` interfaces (or documented equivalent
 names) using P1's explicit relation vocabulary. Keep directional simulation
 and converse/bisimulation statements separate. These interfaces must not
 install a global `Setoid` or identify the distinct paper relations `≃`, `≈`,
-support order, and control erasure.
+support order, and control erasure. The same task must expose the
+`IteratorInverseProper`/`StageInverseProper` hypotheses consumed by recovery,
+plus an `execFrom_rel`-style directional execution-transport theorem using a
+sum-of-ranks induction measure; equal ranks must not be assumed.
 
 ### P4-T04 — nested and failure transport tests
 
@@ -342,6 +351,9 @@ compile, execution is structurally well founded, canonical failure fields are
 returned, LIFO/prefix recovery has checked theorem proofs (`K`), and finite
 success/failure traces are evaluated (`E`). Do not claim `BD-CONTROL`,
 `BD-STAGING`, `BD-SUPPORT`, or full lifecycle theorems.
+The gate also requires the explicit inverse-properness and recovery witness
+theorems, execution transport under directional simulation, and a T66 rank
+bound such as `stageCountFrom_le`; these are not optional interface evidence.
 
 ## 6. Validation and evidence
 

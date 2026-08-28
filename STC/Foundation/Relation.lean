@@ -133,6 +133,33 @@ theorem compose_pointwiseRel
   intro x
   exact R.trans (hf (hhk x)) (hfg (k x))
 
+/-! ### Relation liftings -/
+
+/-- A dependent pointwise relation on functions with a shared index type. -/
+def PiRel {ι : Type u} {β : ι → Type v}
+    (R : ∀ i, β i → β i → Prop)
+    (f g : ∀ i, β i) : Prop :=
+  ∀ i, R i (f i) (g i)
+
+/-- Pointwise equivalence lifts to dependent function spaces. -/
+def piRelSpec {ι : Type u} {β : ι → Type v}
+    (R : ∀ i, RelSpec (β i)) : RelSpec (∀ i, β i) where
+  rel := PiRel fun i => (R i).rel
+  refl := fun f i => (R i).refl (f i)
+  symm := fun h i => (R i).symm (h i)
+  trans := fun h₁ h₂ i => (R i).trans (h₁ i) (h₂ i)
+
+/-- Same-input relation on endomorphisms as an explicit equivalence value. -/
+def pointwiseRelSpec (R : RelSpec α) : RelSpec (α → α) :=
+  piRelSpec fun _ => R
+
+/-- Conjunction of two explicit equivalence specifications on one carrier. -/
+def RelSpec.conj (R T : RelSpec α) : RelSpec α where
+  rel x y := R.rel x y ∧ T.rel x y
+  refl x := ⟨R.refl x, T.refl x⟩
+  symm h := ⟨R.symm h.1, T.symm h.2⟩
+  trans h₁ h₂ := ⟨R.trans h₁.1 h₂.1, T.trans h₁.2 h₂.2⟩
+
 end Relations
 
 /-! ### Optional results -/
@@ -145,6 +172,12 @@ def OptionRel (R : α → α → Prop) : Option α → Option α → Prop
   | none, none => True
   | some x, some y => R x y
   | _, _ => False
+
+/-- Related optional values have the same definedness tag. -/
+theorem optionRel_isSome_iff {R : α → α → Prop}
+    {left right : Option α} (h : OptionRel R left right) :
+    left.isSome ↔ right.isSome := by
+  cases left <;> cases right <;> simp [OptionRel] at h ⊢
 
 /-- The optional-result relation lifts a `RelSpec` to `RelSpec (Option α)`. -/
 def optionRelSpec {α : Type u} (R : RelSpec α) : RelSpec (Option α) where

@@ -127,7 +127,7 @@ section Effects
 abbrev Effect (S : Type u) := S → EffectResult S
 
 /-- Effect results are equal componentwise. -/
-theorem effectResult_ext {x y : EffectResult S}
+@[ext] theorem effectResult_ext {x y : EffectResult S}
     (hstate : x.state = y.state) (hundo : x.undo = y.undo) : x = y := by
   cases x
   cases y
@@ -173,28 +173,19 @@ theorem seqRun_undo (first second : Effect S) (input : S) :
 theorem seqRun_identity_left (e : Effect S) :
     seqRun identityEffect e = e := by
   funext input
-  apply effectResult_ext
-  · rfl
-  · funext x
-    rfl
+  ext <;> rfl
 
 /-- `identityEffect` is a right unit for `seqRun`. -/
 theorem seqRun_identity_right (e : Effect S) :
     seqRun e identityEffect = e := by
   funext input
-  apply effectResult_ext
-  · rfl
-  · funext x
-    rfl
+  ext <;> rfl
 
 /-- `seqRun` is associative. -/
 theorem seqRun_assoc (a b c : Effect S) :
     seqRun (seqRun a b) c = seqRun a (seqRun b c) := by
   funext input
-  apply effectResult_ext
-  · rfl
-  · funext x
-    rfl
+  ext <;> rfl
 
 /-- Sequencing uniform effects agrees with the uniform effect of their `twisted`
 composition. -/
@@ -202,10 +193,7 @@ theorem seqRun_uniformEffect (later earlier : Transformation S) :
     seqRun (uniformEffect earlier) (uniformEffect later) =
       uniformEffect (Transformation.twisted later earlier) := by
   funext input
-  apply effectResult_ext
-  · rfl
-  · funext x
-    rfl
+  ext <;> rfl
 
 end Effects
 
@@ -373,13 +361,7 @@ theorem liftEffect_seqRun (first second : Effect S) :
     liftEffect (seqRun first second) =
       seqRun (liftEffect first) (liftEffect second) := by
   funext ctx
-  apply effectResult_ext
-  · rfl
-  · funext x
-    apply Prod.ext
-    · rfl
-    · funext z
-      rfl
+  ext <;> rfl
 
 /-- The lifted recovery target is the tracked pair of the underlying recovery. -/
 theorem liftEffect_undo_apply (e : Effect S) (ctx : EffectContext S) :
