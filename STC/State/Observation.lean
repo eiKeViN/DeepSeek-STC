@@ -27,13 +27,6 @@ section ObservationRelations
 variable {S : Type u} {O : Type v} {P : Type w}
 variable {Core : Type x} {Life : Type y} {Control : Type z} {Erased : Type y} {Names : Type z}
 
-/-- Conjoin two explicit equivalence specifications on the same carrier. -/
-def RelSpec.conj (R T : RelSpec S) : RelSpec S where
-  rel left right := R.rel left right ∧ T.rel left right
-  refl state := ⟨R.refl state, T.refl state⟩
-  symm h := ⟨R.symm h.1, T.symm h.2⟩
-  trans h₁ h₂ := ⟨R.trans h₁.1 h₂.1, T.trans h₁.2 h₂.2⟩
-
 /-- Observe only the explicitly selected core projection. -/
 def CoreStateObs (state : StateLike S Core) (coreRel : RelSpec Core) : RelSpec S :=
   pullbackRelSpec state.project coreRel

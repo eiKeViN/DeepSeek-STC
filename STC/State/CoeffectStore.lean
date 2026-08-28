@@ -92,11 +92,6 @@ theorem storeObs_lookup [DecidableEq K]
     OptionRel (keyObs key).rel (lookup key left) (lookup key right) :=
   h key
 
-private theorem optionRel_isSome_iff {α : Type*} (R : α → α → Prop)
-    {left right : Option α} (h : OptionRel R left right) :
-    left.isSome ↔ right.isSome := by
-  cases left <;> cases right <;> simp [OptionRel] at h ⊢
-
 theorem coeffectStoreObs_same_keys [DecidableEq K]
     {keyObs : ∀ key, RelSpec (Value key)}
     {left right : Store Value} (h : StoreObs keyObs left right) :
@@ -104,7 +99,7 @@ theorem coeffectStoreObs_same_keys [DecidableEq K]
   apply Finset.ext
   intro key
   rw [coeffect_mem_keys_iff, coeffect_mem_keys_iff]
-  exact optionRel_isSome_iff ((keyObs key).rel) (h key)
+  exact optionRel_isSome_iff (h := h key)
 
 /-- The pointwise dependent store relation is an explicit equivalence value. -/
 def storeObsSpec [DecidableEq K] (keyObs : ∀ key, RelSpec (Value key)) :
