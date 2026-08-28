@@ -16,6 +16,8 @@ Authority is question-relative, not one total ordering:
 
 When sources conflict, preserve the literal source claim, classify the issue, record the approved repair in an ADR, and implement only the ADR-approved target. Never silently rewrite a frozen baseline or treat a successful build as proof of semantic alignment.
 
+**ADR status rule.** File location alone does not imply acceptance.  In particular, `docs/blueprint/architecture-decision/json/` may contain accepted, proposed, incomplete, or superseded packets.  Normative production status comes from the artifact's explicit status/acceptance record.  A proposed or incomplete packet is review/provenance evidence only, and compiler success would establish interface evidence rather than acceptance.
+
 **Provenance ruling (2026-08-27).** Repository bytes are canonical for ADR-01, ADR-02, and the ADR-06 spike: they intentionally differ from the hashes recorded in the Blueprint companion manifest. The full hash record and the lead ruling live in `docs/status/P0-baseline.json`; a Blueprint hash revision is a pending lead follow-up. Do not "fix" these files or re-report the mismatch.
 
 
@@ -44,12 +46,26 @@ STC/Conformance
 STC/Adapter
 ```
 
+The following post-kernel families are reserved but acceptance-gated: `STC/Control/**`, `STC/Staging/**`, `STC/State/Support.lean`, and `STC/Scoped/**`.  Do not create them until the corresponding ADR has an explicit accepted record and an execution plan assigns ownership and dependencies.
+
 - `STC.Adapter` is the reserved abstract R0 abstraction/simulation seam.  Do not put concrete Cordis implementation declarations into the metatheory namespace; the `Cordis` name and its namespaces are reserved for a future runtime-side integration/refinement project.
-- Frozen inputs (read-only): `docs/blueprint/baseline/` (H03 graph, H04 disposition, Formal Reference) and `docs/blueprint/architecture-decision/json/` (accepted ADRs).
+- Frozen inputs (read-only): `docs/blueprint/baseline/` (H03 graph, H04 disposition, Formal Reference) and every explicitly accepted ADR artifact.  Proposed ADR packets in the same directory remain non-normative and may be edited only by a dedicated ADR repair/promotion task.
 - `docs/blueprint/architecture-decision/lean-spike/` is historical and read-only: never import it from production modules and never edit it.
 - Derived status records live in `docs/status/` (`P0-baseline.json` provenance; `Definition-Ledger.json` traceability).  They are reports generated from frozen inputs, never sources of truth.  Execution plans live in `docs/plans/`.
 
 The current accepted architecture includes relation-parametric laws, explicit partiality and failure results, the positive finite state/registry shell, lifetime-safe `IncarnationId` with explicit alpha actions, ranked iterators, and the ADR-06 equivalence/transport contracts.  Do not reopen these decisions implicitly.
+
+
+## Pending decision packets
+
+As of 2026-08-28, ADR-07, ADR-08, and ADR-09 are proposed/compiler-pending packets whose standalone spikes fail the pinned compiler checks.  ADR-10 is incomplete: only its failing Lean spike exists, with no companion Markdown or JSON status packet.  Therefore `BD-CONTROL`, `BD-STAGING`, `BD-SUPPORT`, and `BD-SCOPED` are not resolved by the current repository layout.  Do not subtract these blockers, create their production modules, or mark theorem rows complete.  Do not silently invent a competing architecture either; route promotion, repair, or divergence through lead review and the ADR process.
+
+If ADR-07..10 are later explicitly accepted without a superseding semantic change, downstream integrations must preserve these reviewed boundaries:
+
+- Control: orchestration and lifecycle are distinct relation classes combined by a typed labelled `Step`; the abstract semantics has no scheduler; `InFlight`, landing/abort boundaries, complete failure payloads, and freshness metadata boundaries remain explicit.
+- Staging: `R+` is authoritative; `Rb` is an `AtomicProfile`-controlled finite macro/view with embed/project/stable-image, forward-simulation, and profile-relative adequacy contracts, never an independently maintained calculus.
+- Support: `SupportOperator` is positive and its canonical support is a least fixed point; `SupportRel` points from provider/parent to dependent, induction names its converse, and `SupportWF`/`SupportOrder` or a rank certificate is explicit.  Support rank is not iterator rank and is never hidden inside `WellFormed`.
+- Scoped coeffects: only an accepted, complete ADR-10 packet may make typed `RealmRef`, semantic/executable resolver separation, finite overrides, persistent isolate/intercept contexts, metadata precedence, physical distinctness, and one-way flat embedding normative.
 
 
 ## Lean file format conventions (mathlib style)

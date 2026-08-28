@@ -14,23 +14,30 @@ successful package build.
 
 ## Current status
 
-P0 (baseline, provenance, Definition Ledger, and bootstrap hygiene) is complete
-and recorded in [`docs/status`](docs/status/).  The 82-item ledger and its
-validator are part of the repository, and the minimal bootstrap builds under
-the pinned Lean 4.33.0 / Mathlib v4.33.0 environment.
+P0 through P2 are complete and merged: the repository contains the frozen
+provenance record, 82-item Definition Ledger and validator, relation/result
+foundations, shallow reversible effect kernel, R0 interpreter seam, and finite
+fixtures under the pinned Lean 4.33.0 / Mathlib v4.33.0 environment.
 
-P1 (relation and result foundations) and P2 (the shallow reversible effect
-kernel, its R0 interpreter seam, and finite executable fixtures) are complete
-and merged: `STC/Foundation/`, `STC/Core/`, and `STC/Examples/` now follow the
-mathlib module style recorded in [`AGENTS.md`](AGENTS.md), and `lake build` is
-green.
+P3 and P4 (partial operations/failure and the ranked iterator) are complete and
+merged through PR #7; P5 (abstract state, observation, registry, dependent
+coeffect facade, and ADR-03 state seam) is complete and merged through PR #6.
+Their detailed evidence is recorded in the
+[`P3`](docs/status/P3-handoff-report.md),
+[`P4`](docs/status/P4-handoff-report.md), and
+[`P5`](docs/status/P5-handoff-report.md) handoffs.  The central Definition
+Ledger is still the P5-derived snapshot, so the exact P3/P4 row patches remain
+an integration follow-up even though their code is merged.
 
-The next steps run in parallel: the P3→P4 workstream (partial operations and
-failure, then the ranked iterator — sequential within the workstream, per
-[`docs/plans/P3-P4-Execution-Plan.md`](docs/plans/P3-P4-Execution-Plan.md)) and
-the P5 workstream (abstract state, observation, registry, and ADR-03 adapter
-interfaces, per [`docs/plans/P5-Execution-Plan.md`](docs/plans/P5-Execution-Plan.md)).
-The two tracks must not edit each other's work.
+The next first-kernel wave is P6 alpha transport, followed by the P7 integrated
+vertical slice and P8 conformance/R0 work.  P0-P5 execution plans remain
+historical records and are not renumbered.
+
+ADR-07 (control), ADR-08 (staging), and ADR-09 (support) currently have
+proposed/compiler-pending packets, but their standalone spikes fail the pinned
+compiler checks.  ADR-10 (scoped coeffects) has only a failing spike and lacks
+its companion Markdown/JSON packet.  None is an accepted normative input yet;
+production integration and Section-4 `K` theorems remain pending.
 
 A compiling file is an interface result, not automatically a semantic proof;
 the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
@@ -40,8 +47,9 @@ the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
 Execution plans live under [`docs/plans`](docs/plans/) and the paper/architecture
 baseline under [`docs/blueprint`](docs/blueprint/).
 
-The formalization inputs are the paper, the Formal Reference, H03/H04, and the
-accepted ADRs.  
+The formalization inputs are the paper, the Formal Reference, H03/H04, and ADRs
+with an explicit accepted status.  Directory location alone does not establish
+acceptance; see [`AGENTS.md`](AGENTS.md) and the Blueprint's ADR status register.
 
 ## Namespace and planned modules
 
@@ -62,10 +70,21 @@ STC/Adapter.lean
 not identify the STC metatheory kernel.  Concrete runtime verification requires
 an explicit source audit and an R1+ simulation/refinement theorem.
 
-The first substantive slice is intended to contain two disjoint counters,
-reversible effects, an explicit failure path, a ranked iterator, and an alpha
-transport test.  The current `STC/Bootstrap.lean` remains intentionally small
-until P1/P2 production modules are extracted from the historical spikes.
+The merged fixtures already contain two disjoint counters, reversible effects,
+an explicit failure path, and a ranked iterator.  P6/P7 still own the genuine
+name-bearing alpha transport and integrated vertical-slice evidence.
+
+After P8, these module families are reserved only for explicitly accepted ADRs:
+
+```text
+STC/Control/**
+STC/Staging/**
+STC/State/Support.lean
+STC/Scoped/**
+```
+
+They do not exist yet and must not be created from the current proposed or
+incomplete packets.
 
 ## Validation
 
