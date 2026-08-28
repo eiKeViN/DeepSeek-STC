@@ -16,18 +16,20 @@ replacement, while semantic comparison remains order-insensitive.
 * `toyExampleChecks`: finite positive and negative evidence.
 -/
 
-universe u
+universe u v
 
 namespace STC
 
 @[expose] public section
 
+section ToyRegistryImplementation
+
 /-- A persistent association-list registry with unique keys. -/
-structure ToyRegistry (K V : Type u) where
+structure ToyRegistry (K : Type u) (V : Type v) where
   entries : List (K × V)
   key_nodup : (entries.map Prod.fst).Nodup
 
-variable {K V : Type u} [DecidableEq K]
+variable {K : Type u} {V : Type v} [DecidableEq K]
 
 /-- Look up the first binding for a key. -/
 def toyLookup : List (K × V) → K → Option V
@@ -217,7 +219,11 @@ def toyRegistryLike : RegistryLike K V (ToyRegistry K V) where
     intro registry key
     exact (toyLookup_some_iff_mem registry.entries key).symm
 
+end ToyRegistryImplementation
+
 /-! A finite fixture with three distinct keys and two values. -/
+
+section ToyFixture
 
 inductive ToyKey : Type
   | alpha
@@ -258,6 +264,8 @@ def toyExampleChecks : List Bool :=
 /-- All finite Toy registry checks have the intended outcomes. -/
 theorem toyExampleChecks_expected : toyExampleChecks = [true, true, true, true] := by
   decide
+
+end ToyFixture
 
 end
 

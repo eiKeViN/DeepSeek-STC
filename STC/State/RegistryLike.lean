@@ -22,8 +22,10 @@ namespace STC
 
 @[expose] public section
 
+section RegistryInterface
+
 /-- A finite uniform registry with explicit lookup, update, and domain laws. -/
-structure RegistryLike (K V R : Type u) [DecidableEq K] where
+structure RegistryLike (K : Type u) (V : Type v) (R : Type w) [DecidableEq K] where
   empty : R
   lookup : R → K → Option V
   insert : R → K → V → R
@@ -39,7 +41,11 @@ structure RegistryLike (K V R : Type u) [DecidableEq K] where
     lookup (erase r k) k' = lookup r k'
   mem_domain_iff : ∀ r k, k ∈ domain r ↔ (lookup r k).isSome
 
-variable {K V R : Type u} [DecidableEq K]
+end RegistryInterface
+
+section RegistryOperations
+
+variable {K : Type u} {V : Type v} {R : Type w} [DecidableEq K]
 
 /-- Pointwise, tag-strict observation of two registry carriers. -/
 def RegistryObs (api : RegistryLike K V R) (VRel : RelSpec V)
@@ -198,6 +204,8 @@ theorem insert_erase_of_lookup_obs
     exact VRel.refl old
   · rw [api.lookup_insert_ne _ _ _ _ hkey, api.lookup_erase_ne _ _ _ hkey]
     exact (optionRelSpec VRel).refl _
+
+end RegistryOperations
 
 end
 

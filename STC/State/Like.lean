@@ -23,6 +23,8 @@ namespace STC
 
 @[expose] public section
 
+section StateObservations
+
 variable {S : Type u} {O : Type v}
 
 /-- A state carrier equipped with one explicit observation projection. -/
@@ -66,6 +68,8 @@ def exactEquality (project : S → O) : ObservationProfile S O :=
   exact project (equality O)
 
 end ObservationProfile
+
+end StateObservations
 
 end
 

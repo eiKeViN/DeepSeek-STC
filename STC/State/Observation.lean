@@ -22,6 +22,8 @@ namespace STC
 
 @[expose] public section
 
+section ObservationRelations
+
 variable {S : Type u} {O : Type v} {P : Type w}
 variable {Core : Type x} {Life : Type y} {Control : Type z} {Erased : Type y} {Names : Type z}
 
@@ -98,7 +100,11 @@ theorem nameAwareObs_implies_names (core : RelSpec S) (names : ObservationProfil
     names.stateRel.rel left right :=
   h.2
 
+end ObservationRelations
+
 /-! ## Store/registry boundary -/
+
+section StoreRegistryBoundary
 
 /--
 An explicit one-way projection from a fiber registry to its derived coeffect
@@ -110,6 +116,8 @@ structure StoreRegistryBoundary (Registry : Type u) (Store : Type v) where
   storeObs : RelSpec Store
   activeStore : Registry → Store
   activeStore_respects : RespectsOn registryObs.rel storeObs.rel activeStore
+
+end StoreRegistryBoundary
 
 end
 
