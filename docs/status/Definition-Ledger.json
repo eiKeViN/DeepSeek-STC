@@ -465,14 +465,14 @@
       "title": "Transformation monoid of an effect",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
       "depends_on": [
         "D8"
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -487,8 +487,8 @@
       "title": "Generator commutation and composition closure",
       "target_module": "STC/Core/Effect.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
       "depends_on": [
         "D17",
         "D8",
@@ -496,7 +496,7 @@
       ],
       "adr_refs": [],
       "deferred_reason": "",
-      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "decomposition",
@@ -511,8 +511,8 @@
       "title": "Independence of effect functions",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D8"
@@ -523,7 +523,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T02: EffectIndependence, OperationIndependenceContract, OperationForeignStability delivered; inc12_independent (K) positive law; fstProjectOp_not_foreignStable (K) countermodel.",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -553,7 +553,7 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
       "notes": "",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -584,7 +584,7 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
       "notes": "",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -627,7 +627,7 @@
       "title": "Basic get and revertible set",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22"
@@ -639,7 +639,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "type-repair",
@@ -657,7 +657,7 @@
       "title": "Coeffect interface at a key and its context lift",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22",
@@ -670,7 +670,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "type-repair",
@@ -688,7 +688,7 @@
       "title": "Coeffect specifications",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22"
@@ -699,7 +699,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
       "h03_section": "3.2.2",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "computability-repair",
@@ -716,7 +716,7 @@
       "title": "Reactive transition classifier notify",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22",
@@ -729,7 +729,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
       "h03_section": "3.2.2",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "computability-repair",
@@ -961,7 +961,7 @@
       "title": "Tests and operation-induced indistinguishability",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D17",
@@ -975,7 +975,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "P1 boundary: typed operation tests and indistinguishability await the P3/P5 partial-operation layers and BD-COEFFECT.",
-      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row.",
+      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row. P3-T01: outcome carriers and relators delivered; typed test AST remains P5.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "decomposition",
@@ -1132,8 +1132,8 @@
       "title": "Operation independence and commutative keys",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D19",
@@ -1147,7 +1147,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "P1 boundary: concrete partial-operation and coeffect independence awaits P3/P5 and BD-COEFFECT.",
-      "notes": "",
+      "notes": "P3-T02: DefinednessStable/OutcomeStable/SelectedInverseCoherent/OperationIndependenceContract delivered with instance proofs; key commutativity remains P5/ADR-02.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "type-repair",
@@ -1540,8 +1540,8 @@
       "title": "Witnessed effect iterators",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D33",
         "D36",
@@ -1554,7 +1554,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P4-T01/T03: RankedIterator carrier with strict-successor certificate, StageWitness/IteratorWitness, StageRelC/IteratorSimulation/IteratorBisim delivered.",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "type-repair",
@@ -1572,8 +1572,8 @@
       "title": "Effect-iterator transformation",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D2",
@@ -1586,7 +1586,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P4-T02: execFrom by well-founded rank recursion, LIFO inverse composition, success and failure prefix-recovery theorems, execution equations.",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "type-repair",
@@ -2075,7 +2075,7 @@
       "title": "Progress and lifecycle termination",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D43",
@@ -2100,7 +2100,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "global lifecycle-termination suffix deferred (BD-CONTROL); rank termination planned P4",
-      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces",
+      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces P4: rank termination bound proved (stageCountFrom_le); global lifecycle suffix theorem remains deferred (BD-CONTROL, F-T66-ORIGIN).",
       "h03_section": "4.4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "logical-repair",
@@ -2509,8 +2509,8 @@
       "title": "Iteration lifecycle rules",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "SUBSUMED",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D44",
         "D46",
@@ -2523,7 +2523,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "L-Begin/L-Iter/L-Finish rule constructors deferred (BD-CONTROL); execution slice planned P4",
-      "notes": "",
+      "notes": "P4: iterator execution slice (execFrom, equations, nested success/failure traces) delivered; L-Begin/L-Iter/L-Finish constructors remain deferred (BD-CONTROL).",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "decomposition",
@@ -2567,8 +2567,8 @@
       "title": "Failing iterator refinement and L-Raise",
       "target_module": "STC/Foundation/Result.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D49",
         "D51",
@@ -2581,7 +2581,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "L-Raise rule constructor deferred (BD-CONTROL); failure outcome/prefix undo planned P3-P4",
-      "notes": "",
+      "notes": "P3-T03/T04: failure outcome, bridge (effectResultToExec, partialOpToExec), boundary and prefix-undo evidence delivered; L-Raise constructors remain deferred (BD-CONTROL).",
       "h03_section": "4.3.4",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "decomposition",

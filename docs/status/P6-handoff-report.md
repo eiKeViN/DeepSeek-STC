@@ -25,10 +25,13 @@ New files, plus two integration-owner-requested tracked edits (see below):
 - `STC/Alpha/Transport.lean`: the iterator/execution transport; imports and re-exports
   `STC.Alpha.Trace`.
 - `STC/Examples/Alpha.lean`: the finite `Fin 2` swap fixture.
-- `STC/Bootstrap.lean`: cumulative imports (`STC.Alpha.Transport`,
-  `STC.Examples.Alpha`) added on integration-owner request (2026-08-28); docstring
-  extended.
-- `docs/status/Definition-Ledger.json`: P6 row patch applied (see §6).
+- `STC/Bootstrap.lean`: cumulative imports added on integration-owner request
+  (2026-08-28): `STC.Alpha.Transport`, `STC.Examples.Alpha` (P6), plus the previously
+  unapplied P3/P4 modules `STC.Core.Partial`, `STC.Core.Iterator`,
+  `STC.Examples.TwoCounter`, `STC.Examples.VerticalSlice`; docstring extended.
+- `docs/status/Definition-Ledger.json`: P6 row patch applied (see §6), plus the
+  unapplied P3/P4 patches reconciled from their handoff §6 (D17, L18, D19, T20, C21,
+  D23, D24, D25, D26, D34, D39, R.fail, D51, D52, T66, R.iter); validator PASS.
 - `docs/status/P6-scan-raw.txt`: scan output (empty = clean). Integration-owned per
   §3; retained here for review, as in P3/P4.
 - `docs/plans/P6-Execution-Plan.md`: the plan file, committed with the unit (P0
@@ -211,7 +214,7 @@ jobs exit 0, scan exit 1.
 
 ## Unresolved Questions
 
-1. The P3/P4/P5 ledger patches beyond §6 (D51, D52, T66, R.iter, ...) and the
-   P3/P4 cumulative imports (`STC/Core/Partial`, `STC/Core/Iterator`,
-   `STC/Examples/TwoCounter`, `STC/Examples/VerticalSlice`) are still not applied
-   to `STC/Bootstrap.lean`/`Definition-Ledger.json` — apply them next?
+1. (Resolved 2026-08-28.) The P3/P4 ledger patches and cumulative imports were
+   reconciled and applied on integration-owner request; P5's own ledger edits were
+   already present. Post-reconciliation gate: Bootstrap exit 0, `lake build` 756
+   jobs, ledger PASS, scan exit 1.

@@ -3,10 +3,14 @@ module
 public import STC.Alpha.Transport
 public import STC.Core.Effect
 public import STC.Core.EffectCode
+public import STC.Core.Iterator
+public import STC.Core.Partial
 public import STC.Examples.Alpha
 public import STC.Examples.Effect
 public import STC.Examples.RelationResult
 public import STC.Examples.State
+public import STC.Examples.TwoCounter
+public import STC.Examples.VerticalSlice
 public import STC.Foundation.Relation
 public import STC.Foundation.Result
 public import STC.State.CoeffectStore
@@ -34,6 +38,9 @@ Rules that must hold as production modules appear:
 * `STC.RelSpec`, `STC.RespectsOn`, `STC.PointwiseRel`: the relation foundation;
 * `STC.EffectResult`, `STC.ExecResult`, `STC.Effect`, `STC.seqRun`: the effect kernel;
 * `STC.IsLawfulEffect`: the effect-law record;
+* `STC.OpResult`, `STC.PartialOp`, `STC.OperationIndependenceContract`: the partial
+  operations, independence, and failure bridges;
+* `STC.RankedIterator`, `STC.execFrom`: the ranked continuation machine;
 * `STC.StateLike`, `STC.ObservationProfile`: abstract state observations;
 * `STC.RegistryLike`, `STC.ToyRegistry`: finite registry interfaces;
 * `STC.Coeffect.Store`: the dependent coeffect façade;
@@ -41,5 +48,7 @@ Rules that must hold as production modules appear:
 * `STC.AlphaAction`, `STC.renameIterator`, `STC.execFrom_rename_transport`: the name-neutral
   alpha transport layer (Core/Trace/Transport);
 * `STC.NameLedger`, `STC.NameTrace`, `STC.AlphaBoundary`: the trace/freshness boundary;
+* `STC.Examples.TwoCounter`, `STC.Examples.VerticalSlice`: the P3/P4 failure and iterator
+  fixtures;
 * `STC.Examples.Alpha.alphaReport`: the finite swap fixture report.
 -/
