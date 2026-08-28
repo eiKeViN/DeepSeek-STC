@@ -9,7 +9,7 @@
 | Plan integration commit | `2a5214950852ebe6d459b4c1bf39d21520698426` |
 | Branch-alignment merge | `c20ca6a` |
 | Branch | `codex/p5-state-registry` |
-| Final implementation commit | `4d4eb3e` |
+| Final implementation commit | `2bf1ae0` |
 | Handoff commit | The commit containing this report |
 | PR target | `main` |
 | Namespace | `STC`; P5 state seam under `STC.State.FinmapAdapter` |
@@ -259,16 +259,21 @@ The exact scanner stdout/stderr is preserved as the zero-byte
 The first fresh GPT-5.6 Sol review returned `PASS_WITH_FIXES`. It found no
 semantic or proof-integrity blocker. Its sole substantive finding was that D22
 had been marked completed even though the full ADR-02 theorem surface is
-deferred. Commit `4d4eb3e` corrected D22 to `in_progress`/`proved` and made the
-missing surface explicit. The same commit tightened `RawState` documentation
-so the generic registry parameter is not described as intrinsically finite.
+deferred. Commit `4d4eb3e` made the missing surface explicit and tightened
+`RawState` documentation so the generic registry parameter is not described as
+intrinsically finite.
+
+A second fresh review caught a mechanical Ledger edit error: that first fix had
+changed D1 instead of D22. Commit `2bf1ae0` restored D1 to
+`completed`/`tested` and set D22 to `in_progress`/`proved`. The validator,
+build, scanner, and diff checks all passed again after the exact correction.
 
 The reviewer independently confirmed observer non-vacuity, registry laws,
 Toy correctness, store/registry separation, honest R0 claim strength, P3/P4
 independence, P6 compatibility, standard proof axioms only, and all validation
 gates. The module-format mismatch was classified as real but non-semantic.
 
-Fresh re-review verdict: **PENDING**.
+Final fresh re-review verdict: **PENDING**.
 
 ## 11. PR handoff
 
