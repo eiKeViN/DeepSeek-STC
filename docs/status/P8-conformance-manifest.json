@@ -1,0 +1,2456 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "P8-conformance-manifest",
+  "plan_id": "DH-P7-P8-EXEC-01",
+  "repository": {
+    "commit": "cae0b6cd6b4a993dcf06842957c55c7e0b928a8d",
+    "branch": "codex/adr07-10-reconcile-p7-p8",
+    "working_tree": "dirty"
+  },
+  "sources": {
+    "h03": {
+      "id": "H03",
+      "path": "docs/blueprint/baseline/DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
+      "sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8"
+    },
+    "h04": {
+      "id": "H04",
+      "path": "docs/blueprint/baseline/DeepSeek-Harness-04-Formalization-Disposition-Specification.json",
+      "sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db"
+    },
+    "ledger": {
+      "id": "Definition-Ledger",
+      "path": "docs/status/Definition-Ledger.json",
+      "sha256": "dd5ba711b4bef4e29a235d6fdc86df39ff5f15d84e648ce18606bf4124dc9633"
+    },
+    "p0_provenance": {
+      "id": "P0-baseline",
+      "path": "docs/status/P0-baseline.json",
+      "sha256": "49eb30de864eb785509d9e8565bdb180e0dc376ea441305f56baab01ddd68d23"
+    }
+  },
+  "coverage": {
+    "numbered_items": 74,
+    "auxiliary_items": 8,
+    "total_items": 82
+  },
+  "status_vocabulary": {
+    "delivery": [
+      "planned",
+      "in_progress",
+      "completed",
+      "blocked",
+      "deferred"
+    ],
+    "evidence": [
+      "pending",
+      "aligned",
+      "passed",
+      "proved",
+      "tested",
+      "seam_only",
+      "deferred",
+      "not_applicable"
+    ],
+    "typed_evidence": [
+      "A",
+      "I",
+      "K",
+      "E",
+      "R0",
+      "R1+"
+    ]
+  },
+  "accepted_adr_artifacts": [
+    {
+      "id": "ADR-01",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-05-ADR-01-Equivalence-Architecture.json",
+      "record_status": "accepted",
+      "canonical_sha256": "489a7e4d3d43e1bd12db99f185fe3931e1e4ee55dcade35238b0e1f69429c3fe",
+      "blueprint_manifest_sha256": "1963c468ebaca2cd86635e88881ecda373b8278d0895c3805c52717e0a056dd5",
+      "matches_blueprint_manifest": false
+    },
+    {
+      "id": "ADR-02",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-06-ADR-02-Coeffect-Store-and-Partiality-Architecture.json",
+      "record_status": "accepted",
+      "canonical_sha256": "7d83bd3380f082c5340c52b2b495f603ae1385567c6038a5b576d29276954a9a",
+      "blueprint_manifest_sha256": "f1b8e298edb7405a4a67fa10869d621a2bfeab80d5e5cf6a86feb752878699e5",
+      "matches_blueprint_manifest": false
+    },
+    {
+      "id": "ADR-03",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-07-ADR-03-Unified-State-and-Registry-Architecture.json",
+      "record_status": "accepted",
+      "canonical_sha256": "0c6861367cf3061358366e90b2e2848649d96f5ad792185ed5f2e186d0520d48",
+      "blueprint_manifest_sha256": "0c6861367cf3061358366e90b2e2848649d96f5ad792185ed5f2e186d0520d48",
+      "matches_blueprint_manifest": true
+    },
+    {
+      "id": "ADR-03-CLOSURE",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-07-ADR-03-BD-STATE-Closure-Packet.json",
+      "record_status": "accepted",
+      "canonical_sha256": "2ef858c0a4d99bdf792e98e779d4c452884690f1a3d68addcefec6d827469a35",
+      "blueprint_manifest_sha256": "2ef858c0a4d99bdf792e98e779d4c452884690f1a3d68addcefec6d827469a35",
+      "matches_blueprint_manifest": true
+    },
+    {
+      "id": "ADR-04",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-08-ADR-04-Incarnation-Identity-and-Alpha-Equivariance-Architecture.json",
+      "record_status": "accepted",
+      "canonical_sha256": "80beaaf2c29930527fee17419ae74718ea26140058fda67bb834d8cc435e36cc",
+      "blueprint_manifest_sha256": "80beaaf2c29930527fee17419ae74718ea26140058fda67bb834d8cc435e36cc",
+      "matches_blueprint_manifest": true
+    },
+    {
+      "id": "ADR-05",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-09-ADR-05-Iterator-and-Failure-Architecture.json",
+      "record_status": "accepted",
+      "canonical_sha256": "86c555027a0a49bb40c95f1d612c12fcb6962d9801c5ed953ba9b1a7d1df04e9",
+      "blueprint_manifest_sha256": "86c555027a0a49bb40c95f1d612c12fcb6962d9801c5ed953ba9b1a7d1df04e9",
+      "matches_blueprint_manifest": true
+    },
+    {
+      "id": "ADR-06-CLOSURE",
+      "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure.json",
+      "record_status": "accepted",
+      "canonical_sha256": "e1baf7b96b2df72d1289e6148be3d801dc2477aa7c9230201f113ee91f118fea",
+      "blueprint_manifest_sha256": "e1baf7b96b2df72d1289e6148be3d801dc2477aa7c9230201f113ee91f118fea",
+      "matches_blueprint_manifest": true
+    },
+    {
+      "id": "ADR-06-SPIKE",
+      "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure-Spike.lean",
+      "record_status": "accepted",
+      "canonical_sha256": "7726a13f40dec56f2f6a57058d657808fe3da059577c36c5935c08b5b5c86a90",
+      "blueprint_manifest_sha256": "91239ee5aece9a485453aefd805bfbc37fec11a9c6e4e46841234462d63b4de4",
+      "matches_blueprint_manifest": false
+    }
+  ],
+  "candidate_adr_packets": [
+    {
+      "id": "ADR-07",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-compiler-validated",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "passed-pinned-toolchain-2026-08-28",
+      "compiler_exit_code": 0,
+      "compiler_warning_count": 0,
+      "artifacts": {
+        "markdown": {
+          "path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-12-ADR-07-Control-Architecture.md",
+          "sha256": "75bab7d6425be9daa3127844d25db1fe45a382930d512d88c75bb78f7190aeaa"
+        },
+        "json": {
+          "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-12-ADR-07-Control-Architecture.json",
+          "sha256": "3232b49cca3161542b07eb8682b335e75c1297805c8595114bc1f75094a9e8da"
+        },
+        "lean_spike": {
+          "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-12-ADR-07-Control-Architecture.lean",
+          "sha256": "28d4a90934d9248d229813ae7336f946025e077df2ad68bd308eafa73b8d45ee"
+        }
+      }
+    },
+    {
+      "id": "ADR-08",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-closure-compiler-validated",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "passed-pinned-toolchain-2026-08-28",
+      "compiler_exit_code": 0,
+      "compiler_warning_count": 0,
+      "artifacts": {
+        "markdown": {
+          "path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.md",
+          "sha256": "dfa9a69f0e92919cea33edd1f736e6846bb04212e933419927939a24206a0b55"
+        },
+        "json": {
+          "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.json",
+          "sha256": "6cd62aec94d0dc2e59418093b6e49bbde098bb97ec892d39c55c5ed24fe501db"
+        },
+        "lean_spike": {
+          "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean",
+          "sha256": "63aaf2e76bb9a64f5ea2e18c8293a5f0f5580da60df9c21e5237fcb266948c8f"
+        }
+      }
+    },
+    {
+      "id": "ADR-09",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-compiler-validated",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "passed-pinned-toolchain-2026-08-28",
+      "compiler_exit_code": 0,
+      "compiler_warning_count": 0,
+      "artifacts": {
+        "markdown": {
+          "path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.md",
+          "sha256": "e65e36e4538cfc838fd4bb8a825d518db040eabd61020a077397c7f0c93b738b"
+        },
+        "json": {
+          "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json",
+          "sha256": "4cacf55bedc496309ff9c88baab969ec47f6e1dd4526426571cabc066a6cee61"
+        },
+        "lean_spike": {
+          "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean",
+          "sha256": "4c7c9c51a5366bc34f215e6279c0e9365ffe1c3b033c51484b4d4d96f4ddd243"
+        }
+      }
+    },
+    {
+      "id": "ADR-10",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-compiler-validated",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "passed-pinned-toolchain-2026-08-28",
+      "compiler_exit_code": 0,
+      "compiler_warning_count": 0,
+      "artifacts": {
+        "markdown": {
+          "path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.md",
+          "sha256": "377ddbd5cc433fd9047206d22a22b3f55241ee934f114c10249803d818591bff"
+        },
+        "json": {
+          "path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.json",
+          "sha256": "eb483253fbab9ace7a92610bb4136b3499da68d72ba37888d0b3e8a7797daab8"
+        },
+        "lean_spike": {
+          "path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean",
+          "sha256": "9088bf7c1e0e5c6c35dbf2fec1ac8ff270e88c9afa6d433079881eea7eb1dc4c"
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "D1",
+      "kind": "Definition",
+      "number": 1,
+      "section": "3.1.1",
+      "title": "Twisted composition of transformation pairs",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "Transformation.twisted"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: `Transformation.twisted`; finite tracked fixture exercises its forward and reverse order.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "D2",
+      "kind": "Definition",
+      "number": 2,
+      "section": "3.1.1",
+      "title": "Effect context",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "EffectContext",
+        "Undo"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: generic `EffectContext`/`Undo` context; finite tracked and lifted fixtures exercise it.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "D3",
+      "kind": "Definition",
+      "number": 3,
+      "section": "3.1.1",
+      "title": "Tracking transformation",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "track"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: `track`; exact projection/homomorphism theorems and finite tracked fixture are checked.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T4",
+      "kind": "Theorem",
+      "number": 4,
+      "section": "3.1.1",
+      "title": "Projection of tracking",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "track_state"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: `track_state`; exact projection theorem checked in `STC/Core/Effect.lean`.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T5",
+      "kind": "Theorem",
+      "number": 5,
+      "section": "3.1.1",
+      "title": "Tracking is a monoid homomorphism",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "track_twisted"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: `track_twisted`; exact tracking homomorphism theorem checked with explicit operand order.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "D6",
+      "kind": "Definition",
+      "number": 6,
+      "section": "3.1.1",
+      "title": "Recovery transformation",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "recover"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: `recover`; exact state/accumulator projections and finite recovery are exercised.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T7",
+      "kind": "Theorem",
+      "number": 7,
+      "section": "3.1.1",
+      "title": "One-step recovery invariance",
+      "paper_anchor": "3.1.1",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "recover_track_rel"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: `recover_track_rel`; explicit accumulator properness and local recovery hypotheses.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "D8",
+      "kind": "Definition",
+      "number": 8,
+      "section": "3.1.2",
+      "title": "Effect functions and witnessed effect functions",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "Effect",
+        "IsLawfulEffect",
+        "lawful_equality_iff"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2-T02: raw `Effect` plus run-indexed `IsLawfulEffect`; `lawful_equality_iff` proves the non-vacuous D8 repair.",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D9",
+      "kind": "Definition",
+      "number": 9,
+      "section": "3.1.2",
+      "title": "Effect composition",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "seqRun"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: `seqRun` with explicit first-then-second execution and outer-after-inner undo composition.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T10",
+      "kind": "Theorem",
+      "number": 10,
+      "section": "3.1.2",
+      "title": "Monoid of effects and embedding of uniform pairs",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "seqRun_uniformEffect"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: exact identity/associativity and `seqRun_uniformEffect` embedding equations are checked.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T11",
+      "kind": "Theorem",
+      "number": 11,
+      "section": "3.1.2",
+      "title": "Witnessing survives composition",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "uniformEffect_lawful",
+        "seqRun_lawful"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2-T03: `uniformEffect_lawful` and `seqRun_lawful` provide checked closure under the three explicit law fields.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D12",
+      "kind": "Definition",
+      "number": 12,
+      "section": "3.1.2",
+      "title": "Lift of an effect to the effect context",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "liftEffect"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "tested",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T01: `liftEffect` records the selected undo in the accumulator and returns the planned tracked disposer.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T13",
+      "kind": "Theorem",
+      "number": 13,
+      "section": "3.1.2",
+      "title": "The effect lift preserves composition",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "liftEffect_seqRun"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: `liftEffect_seqRun` proves exact lift/composition compatibility.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T14",
+      "kind": "Theorem",
+      "number": 14,
+      "section": "3.1.2",
+      "title": "Projection compatibility across effect levels",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "liftEffect_state_projection",
+        "liftEffect_undo_projection"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [],
+      "deferred_reason": "",
+      "notes": "P2-T03: `liftEffect_state_projection` and `liftEffect_undo_projection` preserve both lifted fields.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "T15",
+      "kind": "Theorem",
+      "number": 15,
+      "section": "3.1.2",
+      "title": "Exact behavior of the lifted inverse",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "liftEffect_undo_apply"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2-T03: `liftEffect_undo_apply`, state recovery, recovery-target preservation, and the quantified equality criterion; hypotheses remain explicit.",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T16",
+      "kind": "Theorem",
+      "number": 16,
+      "section": "3.1.2",
+      "title": "LIFO recovery for witnessed effects",
+      "paper_anchor": "3.1.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "seqRun_recovers",
+        "runSequence_lawful",
+        "runSequence_recovers",
+        "R"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2-T03: `seqRun_recovers`, `runSequence_lawful`, and `runSequence_recovers` establish generic finite LIFO recovery modulo `R`.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D17",
+      "kind": "Definition",
+      "number": 17,
+      "section": "3.1.3",
+      "title": "Transformation monoid of an effect",
+      "paper_anchor": "3.1.3",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "ready"
+    },
+    {
+      "id": "L18",
+      "kind": "Lemma",
+      "number": 18,
+      "section": "3.1.3",
+      "title": "Generator commutation and composition closure",
+      "paper_anchor": "3.1.3",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [],
+      "blocking_decisions": [],
+      "deferred_reason": "P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
+      "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
+      "treatment": "DIRECT",
+      "paper_relation": "decomposition",
+      "readiness": "ready"
+    },
+    {
+      "id": "D19",
+      "kind": "Definition",
+      "number": 19,
+      "section": "3.1.3",
+      "title": "Independence of effect functions",
+      "paper_anchor": "3.1.3",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P3-T02: EffectIndependence, OperationIndependenceContract, OperationForeignStability delivered; inc12_independent (K) positive law; fstProjectOp_not_foreignStable (K) countermodel.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T20",
+      "kind": "Theorem",
+      "number": 20,
+      "section": "3.1.3",
+      "title": "Selective removal across later independent effects",
+      "paper_anchor": "3.1.3",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "C21",
+      "kind": "Corollary",
+      "number": 21,
+      "section": "3.1.3",
+      "title": "Arbitrary-order recovery",
+      "paper_anchor": "3.1.3",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D22",
+      "kind": "Definition",
+      "number": 22,
+      "section": "3.2.1",
+      "title": "Finite dependent partial-map coeffect context",
+      "paper_anchor": "3.2.1",
+      "target_module": "STC/State/CoeffectStore.lean",
+      "references": [
+        "STC/State/CoeffectStore.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T04: authoritative dependent Finmap facade with lookup/domain/update laws, pointwise StoreObs, and a finite Nat/Bool dependent fixture. Extract/union/extensionality, support-update/recovery, distinct-key algebra, and disjoint-union theorems remain deferred.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D23",
+      "kind": "Definition",
+      "number": 23,
+      "section": "3.2.1",
+      "title": "Basic get and revertible set",
+      "paper_anchor": "3.2.1",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D24",
+      "kind": "Definition",
+      "number": 24,
+      "section": "3.2.1",
+      "title": "Coeffect interface at a key and its context lift",
+      "paper_anchor": "3.2.1",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D25",
+      "kind": "Definition",
+      "number": 25,
+      "section": "3.2.2",
+      "title": "Coeffect specifications",
+      "paper_anchor": "3.2.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
+      "treatment": "REPAIR",
+      "paper_relation": "computability-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D26",
+      "kind": "Definition",
+      "number": 26,
+      "section": "3.2.2",
+      "title": "Reactive transition classifier notify",
+      "paper_anchor": "3.2.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
+      "treatment": "REPAIR",
+      "paper_relation": "computability-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D27",
+      "kind": "Definition",
+      "number": 27,
+      "section": "3.2.3",
+      "title": "In-place and derived realizations",
+      "paper_anchor": "3.2.3",
+      "target_module": "STC/State/Observation.lean",
+      "references": [
+        "STC/State/Observation.lean"
+      ],
+      "delivery_status": "deferred",
+      "evidence_state": "not_applicable",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "blocking_decisions": [
+        "BD-SCOPED"
+      ],
+      "deferred_reason": "EXPOSITORY per H04: realization/refinement concern; no core theorem declaration",
+      "notes": "in-place vs derived realization note lives with the P5-T04 store/registry boundary doc",
+      "treatment": "EXPOSITORY",
+      "paper_relation": "refinement-only",
+      "readiness": "non-core"
+    },
+    {
+      "id": "D28",
+      "kind": "Definition",
+      "number": 28,
+      "section": "3.2.3",
+      "title": "Isolation context",
+      "paper_anchor": "3.2.3",
+      "target_module": "STC/State/Observation.lean",
+      "references": [
+        "STC/State/Observation.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D29",
+      "kind": "Definition",
+      "number": 29,
+      "section": "3.2.3",
+      "title": "Isolation-aware get, set, and isolate",
+      "paper_anchor": "3.2.3",
+      "target_module": "STC/State/Observation.lean",
+      "references": [
+        "STC/State/Observation.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D30",
+      "kind": "Definition",
+      "number": 30,
+      "section": "3.2.3",
+      "title": "Interception context and specification",
+      "paper_anchor": "3.2.3",
+      "target_module": "STC/State/Observation.lean",
+      "references": [
+        "STC/State/Observation.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D31",
+      "kind": "Definition",
+      "number": 31,
+      "section": "3.2.3",
+      "title": "Interception-aware get, set, and intercept",
+      "paper_anchor": "3.2.3",
+      "target_module": "STC/State/Observation.lean",
+      "references": [
+        "STC/State/Observation.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-SCOPED",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "BD-SCOPED deferred: typed realms/interception outside the first slice",
+      "notes": "P5-T04 keeps only the store/registry boundary note while BD-SCOPED is deferred",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D32",
+      "kind": "Definition",
+      "number": 32,
+      "section": "3.3.1",
+      "title": "Recursive unified context",
+      "paper_anchor": "3.3.1",
+      "target_module": "STC/State/Like.lean; STC/State/FinmapAdapter.lean",
+      "references": [
+        "STC/State/Like.lean",
+        "STC/State/FinmapAdapter.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T01/T03: abstract StateLike plus RawState/ValidState, explicit WF components, checked-update, and one-way abstraction seams; no full unified calculus or runtime refinement.",
+      "treatment": "REPAIR",
+      "paper_relation": "replacement",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D33",
+      "kind": "Definition",
+      "number": 33,
+      "section": "3.3.2",
+      "title": "Observational relation on coeffect contexts and states",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/State/Observation.lean; STC/State/CoeffectStore.lean",
+      "references": [
+        "STC/State/Observation.lean",
+        "STC/State/CoeffectStore.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T01/T04: explicit core, lifecycle, control-erased, name-aware, registry, and dependent-store observations with checked pullback/boundary laws; complete operation-induced equivalence remains deferred.",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D34",
+      "kind": "Definition",
+      "number": 34,
+      "section": "3.3.2",
+      "title": "Tests and operation-induced indistinguishability",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "P1 boundary: typed operation tests and indistinguishability await the P3/P5 partial-operation layers and BD-COEFFECT.",
+      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row. P3-T01: outcome carriers and relators delivered; typed test AST remains P5.",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L35",
+      "kind": "Lemma",
+      "number": 35,
+      "section": "3.3.2",
+      "title": "Indistinguishability is the coarsest operation-respecting relation",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "F-L35-INVERSE repair: corrected universal property plus countermodel for the rejected combination",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D36",
+      "kind": "Definition",
+      "number": 36,
+      "section": "3.3.2",
+      "title": "Equivalence-respecting and pointwise-related maps",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Foundation/Relation.lean",
+      "references": [
+        "STC/Foundation/Relation.lean"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P1-T01/T03: canonical relation vocabulary, bridge laws, OptionRel shell, pullback shell, and equality specialization compile with checked generic proofs",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D37",
+      "kind": "Definition",
+      "number": 37,
+      "section": "3.3.2",
+      "title": "Witnessed effects modulo observational equivalence",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Effect.lean",
+      "references": [
+        "STC/Core/Effect.lean",
+        "IsLawfulEffect"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2-T02/T03: `IsLawfulEffect` supplies run-indexed selected-inverse coherence, undo properness, local recovery, and sequential closure; no concrete P5 observation is claimed.",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L38",
+      "kind": "Lemma",
+      "number": 38,
+      "section": "3.3.2",
+      "title": "Transport of Section 3.1 equalities to observational equivalence",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Foundation/Relation.lean",
+      "references": [
+        "STC/Foundation/Relation.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P2 generic theorem manifest and Eq specialization are checked for the delivered D8/T7/T11/T15/T16 subset; D17-C21 and concrete observational transport remain staged.",
+      "treatment": "SUBSUMED",
+      "paper_relation": "generalization",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D39",
+      "kind": "Definition",
+      "number": 39,
+      "section": "3.3.2",
+      "title": "Operation independence and commutative keys",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "P1 boundary: concrete partial-operation and coeffect independence awaits P3/P5 and BD-COEFFECT.",
+      "notes": "P3-T02: DefinednessStable/OutcomeStable/SelectedInverseCoherent/OperationIndependenceContract delivered with instance proofs; key commutativity remains P5/ADR-02.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T40",
+      "kind": "Theorem",
+      "number": 40,
+      "section": "3.3.2",
+      "title": "Operations at distinct keys are independent",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "P1 boundary: distinct-key independence awaits the ADR-02 store and P3/P5 operation layers.",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D41",
+      "kind": "Definition",
+      "number": 41,
+      "section": "3.3.2",
+      "title": "Coeffect-mediated effect functions",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "P1 boundary: coeffect-mediated operations await ADR-02 partiality and P3/P5 definitions.",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T42",
+      "kind": "Theorem",
+      "number": 42,
+      "section": "3.3.2",
+      "title": "Independence of coeffect-mediated effect functions",
+      "paper_anchor": "3.3.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-02",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "P1 boundary: the mediated-effect independence theorem awaits D39/D41 and the coeffect/partiality dependencies.",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D43",
+      "kind": "Definition",
+      "number": 43,
+      "section": "4.1",
+      "title": "Components",
+      "paper_anchor": "4.1",
+      "target_module": "STC/State/FinmapAdapter.lean",
+      "references": [
+        "STC/State/FinmapAdapter.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-COEFFECT",
+        "BD-ITER"
+      ],
+      "deferred_reason": "",
+      "notes": "provisional: no dedicated task; ADR-03 closure/FinmapAdapter territory",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D44",
+      "kind": "Definition",
+      "number": 44,
+      "section": "4.1",
+      "title": "Fibers and the base lifecycle state",
+      "paper_anchor": "4.1",
+      "target_module": "STC/State/RegistryLike.lean; STC/State/Toy.lean",
+      "references": [
+        "STC/State/RegistryLike.lean",
+        "STC/State/Toy.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "aligned",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04",
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T02: finite uniform registry shell and nondegenerate List+Nodup Toy instance; concrete FiberCell payload and lifecycle state remain deferred.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D45",
+      "kind": "Definition",
+      "number": 45,
+      "section": "4.1",
+      "title": "Registry, derived coeffect context, and providers",
+      "paper_anchor": "4.1",
+      "target_module": "STC/State/RegistryLike.lean; STC/State/FinmapAdapter.lean",
+      "references": [
+        "STC/State/RegistryLike.lean",
+        "STC/State/FinmapAdapter.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-COEFFECT",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred. P6: explicit freshness-boundary product (AlphaBoundary) delivered; provider adequacy and active-store semantics remain deferred.",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D46",
+      "kind": "Definition",
+      "number": 46,
+      "section": "4.2",
+      "title": "Target view and base quiescence",
+      "paper_anchor": "4.2",
+      "target_module": "STC/State/RegistryLike.lean",
+      "references": [
+        "STC/State/RegistryLike.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-STAGING"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D47",
+      "kind": "Definition",
+      "number": 47,
+      "section": "4.2",
+      "title": "Nested registration primitive",
+      "paper_anchor": "4.2",
+      "target_module": "STC/State/RegistryLike.lean",
+      "references": [
+        "STC/State/RegistryLike.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-03",
+        "ADR-03-CLOSURE",
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D48",
+      "kind": "Definition",
+      "number": 48,
+      "section": "4.2",
+      "title": "Confinement",
+      "paper_anchor": "4.2",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-ITER"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; confinement predicate unassigned (BD-STATE/BD-EQUIV/BD-ITER resolved)",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D49",
+      "kind": "Definition",
+      "number": 49,
+      "section": "4.3",
+      "title": "Extended lifecycle, installed/failed predicates, and quiescence",
+      "paper_anchor": "4.3",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-03",
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-STAGING and BD-CONTROL deferred; extended lifecycle forward-refers to iterator/failure machinery",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D50",
+      "kind": "Definition",
+      "number": 50,
+      "section": "4.3.1",
+      "title": "Relied-upon relation",
+      "paper_anchor": "4.3.1",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-03"
+      ],
+      "blocking_decisions": [
+        "BD-STATE"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; provisional (BD-STATE resolved via ADR-03)",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D51",
+      "kind": "Definition",
+      "number": 51,
+      "section": "4.3.2",
+      "title": "Witnessed effect iterators",
+      "paper_anchor": "4.3.2",
+      "target_module": "STC/Core/Iterator.lean",
+      "references": [
+        "STC/Core/Iterator.lean"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P4-T01/T03: RankedIterator carrier with strict-successor certificate, StageWitness/IteratorWitness, StageRelC/IteratorSimulation/IteratorBisim delivered.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D52",
+      "kind": "Definition",
+      "number": 52,
+      "section": "4.3.2",
+      "title": "Effect-iterator transformation",
+      "paper_anchor": "4.3.2",
+      "target_module": "STC/Core/Iterator.lean",
+      "references": [
+        "STC/Core/Iterator.lean"
+      ],
+      "delivery_status": "completed",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV"
+      ],
+      "deferred_reason": "",
+      "notes": "P4-T02: execFrom by well-founded rank recursion, LIFO inverse composition, success and failure prefix-recovery theorems, execution equations.",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D53",
+      "kind": "Definition",
+      "number": 53,
+      "section": "4.4",
+      "title": "Indexed traces, episodes, step factorization, and state relations",
+      "paper_anchor": "4.4",
+      "target_module": "STC/Alpha/Transport.lean",
+      "references": [
+        "STC/Alpha/Transport.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL)",
+      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries. P6: NameLedger/NameTrace/TraceSupport/TraceNoReuse shell delivered; lifecycle/control trace decomposition remains BD-CONTROL.",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L54",
+      "kind": "Lemma",
+      "number": 54,
+      "section": "4.4",
+      "title": "Structural write facts",
+      "paper_anchor": "4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred: labelled lifecycle semantics not in the first slice",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L55",
+      "kind": "Lemma",
+      "number": 55,
+      "section": "4.4",
+      "title": "Observational-equivalence invariance",
+      "paper_anchor": "4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-03",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L56",
+      "kind": "Lemma",
+      "number": 56,
+      "section": "4.4",
+      "title": "Equivariance under fiber-name renaming",
+      "paper_anchor": "4.4",
+      "target_module": "STC/Alpha/Transport.lean",
+      "references": [
+        "STC/Alpha/Transport.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-NAMES",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "name-bearing control-payload variant deferred (BD-CONTROL)",
+      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness. P6: name-neutral execFrom/exec transport checked (ExecTransportContract); named Q/Xi/payload variant remains deferred.",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L57",
+      "kind": "Lemma",
+      "number": 57,
+      "section": "4.4",
+      "title": "Vestigial entries",
+      "paper_anchor": "4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D58",
+      "kind": "Definition",
+      "number": 58,
+      "section": "4.4.1",
+      "title": "Well-formed registry",
+      "paper_anchor": "4.4.1",
+      "target_module": "STC/State/FinmapAdapter.lean",
+      "references": [
+        "STC/State/FinmapAdapter.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
+      "adr_refs": [
+        "ADR-03",
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "",
+      "notes": "P5-T03: explicit seven-part CoreWellFormed plus separate boundary predicates and proof-carrying ValidState seam; concrete registry-WF preservation remains deferred.",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T59",
+      "kind": "Theorem",
+      "number": 59,
+      "section": "4.4.1",
+      "title": "Preservation of registry well-formedness",
+      "paper_anchor": "4.4.1",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "BD-CONTROL deferred: trace-level preservation not in the first slice",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D60",
+      "kind": "Definition",
+      "number": 60,
+      "section": "4.4.2",
+      "title": "Iterator reach, length, transformation monoid, and independence",
+      "paper_anchor": "4.4.2",
+      "target_module": "STC/Core/Iterator.lean",
+      "references": [
+        "STC/Core/Iterator.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL)",
+      "notes": "P4: stageCountFrom/stageCountFrom_le delivered; P6: iterator simulation/bisimulation, inverse-properness, and witness transports delivered; reach-closed lifecycle monoid remains BD-CONTROL.",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T61",
+      "kind": "Theorem",
+      "number": 61,
+      "section": "4.4.2",
+      "title": "Recovery exactness",
+      "paper_anchor": "4.4.2",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "C62",
+      "kind": "Corollary",
+      "number": 62,
+      "section": "4.4.2",
+      "title": "Terminal recovery",
+      "paper_anchor": "4.4.2",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T63",
+      "kind": "Theorem",
+      "number": 63,
+      "section": "4.4.3",
+      "title": "Provider-consumer ordering",
+      "paper_anchor": "4.4.3",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T64",
+      "kind": "Theorem",
+      "number": 64,
+      "section": "4.4.3",
+      "title": "Resolution coherence",
+      "paper_anchor": "4.4.3",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D65",
+      "kind": "Definition",
+      "number": 65,
+      "section": "4.4.4",
+      "title": "Precedence relation",
+      "paper_anchor": "4.4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-NAMES"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; BD-NAMES resolved via ADR-04. P6: no completion claim from P6 alone.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T66",
+      "kind": "Theorem",
+      "number": 66,
+      "section": "4.4.4",
+      "title": "Progress and lifecycle termination",
+      "paper_anchor": "4.4.4",
+      "target_module": "STC/Core/Iterator.lean",
+      "references": [
+        "STC/Core/Iterator.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "global lifecycle-termination suffix deferred (BD-CONTROL); rank termination planned P4",
+      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces P4: rank termination bound proved (stageCountFrom_le); global lifecycle suffix theorem remains deferred (BD-CONTROL, F-T66-ORIGIN).",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D67",
+      "kind": "Definition",
+      "number": 67,
+      "section": "4.4.5",
+      "title": "Support relation and support set",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "BD-SUPPORT deferred: support recursion/well-foundedness needs a separate treatment",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "type-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L68",
+      "kind": "Lemma",
+      "number": 68,
+      "section": "4.4.5",
+      "title": "Support is well founded",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "BD-SUPPORT deferred; F-L68-CYCLE counterexample to mechanize first",
+      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first. P6: no completion claim from P6 alone.",
+      "treatment": "REPAIR",
+      "paper_relation": "logical-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D69",
+      "kind": "Definition",
+      "number": 69,
+      "section": "4.4.5",
+      "title": "Totality on declared provision",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02",
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "no dedicated task; BD-ITER/BD-COEFFECT resolved",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L70",
+      "kind": "Lemma",
+      "number": 70,
+      "section": "4.4.5",
+      "title": "Support at quiescence",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L71",
+      "kind": "Lemma",
+      "number": 71,
+      "section": "4.4.5",
+      "title": "Transposition of adjacent independent steps",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "BD-CONTROL deferred",
+      "notes": "P6: no completion claim from P6 alone.",
+      "treatment": "DIRECT",
+      "paper_relation": "faithful",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "L72",
+      "kind": "Lemma",
+      "number": 72,
+      "section": "4.4.5",
+      "title": "Deletion of a closed episode",
+      "paper_anchor": "4.4.5",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-EQUIV",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
+      "notes": "P6: no completion claim from P6 alone.",
+      "treatment": "REPAIR",
+      "paper_relation": "faithful-explicit",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "T73",
+      "kind": "Theorem",
+      "number": 73,
+      "section": "4.4.5",
+      "title": "Canonical form and confluence",
+      "paper_anchor": "4.4.5",
+      "target_module": "STC/Alpha/Transport.lean",
+      "references": [
+        "STC/Alpha/Transport.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-04",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-SUPPORT",
+        "BD-EQUIV",
+        "BD-ITER",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL)",
+      "notes": "P6: alpha-support and no-reuse transport evidence only; support/confluence remains BD-SUPPORT + BD-CONTROL.",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "D74",
+      "kind": "Definition",
+      "number": 74,
+      "section": "5.2.1",
+      "title": "Declarative configuration entry",
+      "paper_anchor": "5.2.1",
+      "target_module": "STC/Adapter.lean",
+      "references": [
+        "STC/Adapter.lean"
+      ],
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "adr_refs": [
+        "ADR-04"
+      ],
+      "blocking_decisions": [
+        "BD-SCOPED",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "H04 DEFER: implementation-refinement phase; only the P8 R0 seam is planned",
+      "notes": "P8-T02 R0 adapter seam only; R1+ refinement deferred",
+      "treatment": "DEFER",
+      "paper_relation": "refinement-only",
+      "readiness": "later-phase"
+    },
+    {
+      "id": "SAT",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "3.2.2",
+      "title": "Satisfaction predicate (Equation 24)",
+      "paper_anchor": "3.2.2",
+      "target_module": "STC/Core/Partial.lean",
+      "references": [
+        "STC/Core/Partial.lean"
+      ],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-02"
+      ],
+      "blocking_decisions": [
+        "BD-COEFFECT"
+      ],
+      "deferred_reason": "",
+      "notes": "provisional: expected with the D25/D26 specification family; F-D26-DECIDE repair",
+      "treatment": "REPAIR",
+      "paper_relation": "computability-repair",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "R.base",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.2",
+      "title": "Base operational rules",
+      "paper_anchor": "4.2",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-STAGING",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "SUBSUMED derived base view; BD-STAGING and BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "SUBSUMED",
+      "paper_relation": "specialization",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "R.withdraw",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.3.1",
+      "title": "Withdrawal rules",
+      "paper_anchor": "4.3.1",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "SUBSUMED rule subfamily of R.full; BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "SUBSUMED",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "R.iter",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.3.2",
+      "title": "Iteration lifecycle rules",
+      "paper_anchor": "4.3.2",
+      "target_module": "STC/Core/Iterator.lean",
+      "references": [
+        "STC/Core/Iterator.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "L-Begin/L-Iter/L-Finish rule constructors deferred (BD-CONTROL); execution slice planned P4",
+      "notes": "P4: iterator execution slice (execFrom, equations, nested success/failure traces) delivered; L-Begin/L-Iter/L-Finish constructors remain deferred (BD-CONTROL).",
+      "treatment": "SUBSUMED",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "A.async",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.3.3",
+      "title": "Asynchronous inertia restriction",
+      "paper_anchor": "4.3.3",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "BD-CONTROL deferred; needs an in-flight semantic carrier (H04 replacement repair)",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "replacement",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "R.fail",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.3.4",
+      "title": "Failing iterator refinement and L-Raise",
+      "paper_anchor": "4.3.4",
+      "target_module": "STC/Foundation/Result.lean",
+      "references": [
+        "STC/Foundation/Result.lean"
+      ],
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
+      "adr_refs": [
+        "ADR-01",
+        "ADR-05",
+        "ADR-06-CLOSURE"
+      ],
+      "blocking_decisions": [
+        "BD-ITER",
+        "BD-EQUIV",
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "L-Raise rule constructor deferred (BD-CONTROL); failure outcome/prefix undo planned P3-P4",
+      "notes": "P3-T03/T04: failure outcome, bridge (effectResultToExec, partialOpToExec), boundary and prefix-undo evidence delivered; L-Raise constructors remain deferred (BD-CONTROL).",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "R.full",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.3-4.4",
+      "title": "Full ten-rule calculus",
+      "paper_anchor": "4.3-4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "planned",
+      "evidence_state": "pending",
+      "adr_refs": [
+        "ADR-03",
+        "ADR-04",
+        "ADR-05"
+      ],
+      "blocking_decisions": [
+        "BD-STATE",
+        "BD-ITER",
+        "BD-STAGING",
+        "BD-CONTROL",
+        "BD-NAMES"
+      ],
+      "deferred_reason": "Authoritative labelled semantics; BD-CONTROL/BD-STAGING deferred",
+      "notes": "",
+      "treatment": "REPAIR",
+      "paper_relation": "decomposition",
+      "readiness": "decision-blocked"
+    },
+    {
+      "id": "Table1",
+      "kind": "auxiliary",
+      "number": null,
+      "section": "4.4",
+      "title": "Rule decomposition into state maps and control edits",
+      "paper_anchor": "4.4",
+      "target_module": "",
+      "references": [],
+      "delivery_status": "deferred",
+      "evidence_state": "deferred",
+      "adr_refs": [],
+      "blocking_decisions": [
+        "BD-CONTROL"
+      ],
+      "deferred_reason": "SUBSUMED as derived per-constructor facts; BD-CONTROL deferred",
+      "notes": "",
+      "treatment": "SUBSUMED",
+      "paper_relation": "derived",
+      "readiness": "decision-blocked"
+    }
+  ],
+  "deferred_obligations": [
+    {
+      "id": "BD-CONTROL",
+      "reason": "ADR-07 remains proposed despite a compiler-validated spike; lifecycle/control production and theorem evidence are pending.",
+      "evidence_boundary": "A/I candidate evidence only; no production/K claim"
+    },
+    {
+      "id": "BD-STAGING",
+      "reason": "ADR-08 remains proposed and its base/extended staging contracts are not production-integrated.",
+      "evidence_boundary": "A/I candidate evidence only; no simulation/adequacy K claim"
+    },
+    {
+      "id": "BD-SUPPORT",
+      "reason": "ADR-09 remains proposed; support well-foundedness and confluence are not established.",
+      "evidence_boundary": "A/I candidate evidence only; no support/K claim"
+    },
+    {
+      "id": "BD-SCOPED",
+      "reason": "ADR-10 remains proposed; scoped realm/coeffect semantics are acceptance-gated.",
+      "evidence_boundary": "A/I candidate evidence only; no production/K claim"
+    },
+    {
+      "id": "BD-COEFFECT",
+      "reason": "Finite coeffect store interfaces exist, but the complete satisfaction/specification calculus remains pending.",
+      "evidence_boundary": "P5 interface/seam evidence; no complete Section 3.2 theorem claim"
+    },
+    {
+      "id": "RUNTIME-REFINEMENT",
+      "reason": "No concrete Cordis carrier or executable refinement theorem is present in the metatheory package.",
+      "evidence_boundary": "R0 seam only; R1+ is deferred"
+    }
+  ]
+}
