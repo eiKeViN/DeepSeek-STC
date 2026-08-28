@@ -48,6 +48,11 @@ inductive ExecResult (S : Type u) (E : Type v) where
   | success (result : EffectResult S)
   | failure (failure : Failure S E)
 
+/-- The explicit success-only bridge from `EffectResult` to `ExecResult`: a
+successful effect application embeds without inventing error or boundary data. -/
+def effectResultToExec (result : EffectResult S) : ExecResult S E :=
+  .success result
+
 end Results
 
 /-! ### Relation liftings -/

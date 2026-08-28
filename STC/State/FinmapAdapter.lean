@@ -18,8 +18,8 @@ namespace remains available for the later concrete-to-abstract runtime seam.
 ## Main declarations
 
 * `RawState`, `CoreWFSpec`, `BoundaryWFSpec`, and `ValidState`.
-* `ProviderProvenance`: sound, complete, and unique provider selection.
-* `checkedUpdate`: an explicit static-field gate.
+* `ProviderProvenance`: well-formed-relative sound, complete, and unique provider selection.
+* `StaticProjection` and `checkedUpdate`: an explicit static-field gate.
 * `StateAbstraction`: one-way observation evidence for valid raw states.
 -/
 
@@ -29,10 +29,16 @@ namespace STC.State.FinmapAdapter
 
 @[expose] public section
 
+section RawState
+
 /-- The positive ADR-03 raw carrier: ambient data plus an abstract registry carrier. -/
-structure RawState (Ambient Registry : Type u) where
+structure RawState (Ambient : Type u) (Registry : Type v) where
   ambient : Ambient
   registry : Registry
+
+end RawState
+
+section WellFormedness
 
 /-- The seven state-local obligations fixed by the ADR-03 closure packet. -/
 structure CoreWFSpec (Raw : Type u) where
@@ -67,38 +73,70 @@ def WellFormed {Raw : Type u} (core : CoreWFSpec Raw) (boundary : BoundaryWFSpec
 abbrev ValidState {Raw : Type u} (core : CoreWFSpec Raw) (boundary : BoundaryWFSpec Raw) :=
   { state : Raw // WellFormed core boundary state }
 
+end WellFormedness
+
+section Providers
+
 /--
 Provider provenance as an explicit R0 contract.
 
-The fields expose soundness, well-formed completeness, and uniqueness rather
-than deriving a provider by hidden classical choice.
+The fields expose well-formed-relative soundness, completeness, and uniqueness
+rather than deriving a provider by hidden classical choice. No behavior is
+prescribed for malformed raw states.
 -/
-structure ProviderProvenance (Raw Key Provider : Type u) (coreWF : Raw → Prop) where
+structure ProviderProvenance (Raw : Type u) (Key : Type v) (Provider : Type w)
+    (coreWF : Raw → Prop) where
   providesNow : Raw → Provider → Key → Prop
   providerOf : Raw → Key → Option Provider
   provider_sound : ∀ {state key provider},
-    providerOf state key = some provider → providesNow state provider key
+    coreWF state → providerOf state key = some provider → providesNow state provider key
   provider_complete : ∀ {state key provider},
     coreWF state → providesNow state provider key → providerOf state key = some provider
   provider_unique : ∀ {state key left right},
     coreWF state → providesNow state left key → providesNow state right key → left = right
 
-/-- Accept a candidate update exactly when its declared static relation holds. -/
-def checkedUpdate {Raw : Type u} (sameStatic : Raw → Raw → Prop)
-    [DecidableRel sameStatic] (before candidate : Raw) : Option Raw :=
-  if sameStatic before candidate then some candidate else none
+/-- Provider choice agrees exactly with the provider relation on well-formed states. -/
+theorem ProviderProvenance.provider_iff
+    {Raw : Type u} {Key : Type v} {Provider : Type w} {coreWF : Raw → Prop}
+    (provenance : ProviderProvenance Raw Key Provider coreWF)
+    {state : Raw} {key : Key} {provider : Provider} (hWF : coreWF state) :
+    provenance.providerOf state key = some provider ↔
+      provenance.providesNow state provider key :=
+  ⟨provenance.provider_sound hWF, provenance.provider_complete hWF⟩
 
-/-- A checked update succeeds exactly when the static relation holds. -/
-theorem checkedUpdate_eq_some_iff {Raw : Type u} (sameStatic : Raw → Raw → Prop)
-    [DecidableRel sameStatic] (before candidate : Raw) :
-    checkedUpdate sameStatic before candidate = some candidate ↔ sameStatic before candidate := by
+end Providers
+
+section StaticUpdates
+
+/-- The declared projection of a raw state onto fields that updates must preserve. -/
+structure StaticProjection (Raw : Type u) (Static : Type v) where
+  project : Raw → Static
+
+/-- Accept a candidate update exactly when its declared static projection is unchanged. -/
+def checkedUpdate {Raw : Type u} {Static : Type v}
+    (projection : StaticProjection Raw Static) [DecidableEq Static]
+    (before candidate : Raw) : Option Raw :=
+  if projection.project before = projection.project candidate then some candidate else none
+
+/-- A checked update succeeds exactly when the static projection is unchanged. -/
+theorem checkedUpdate_eq_some_iff {Raw : Type u} {Static : Type v}
+    (projection : StaticProjection Raw Static) [DecidableEq Static]
+    (before candidate : Raw) :
+    checkedUpdate projection before candidate = some candidate ↔
+      projection.project before = projection.project candidate := by
   simp [checkedUpdate]
 
-/-- A checked update fails exactly when the static relation does not hold. -/
-theorem checkedUpdate_eq_none_iff {Raw : Type u} (sameStatic : Raw → Raw → Prop)
-    [DecidableRel sameStatic] (before candidate : Raw) :
-    checkedUpdate sameStatic before candidate = none ↔ ¬ sameStatic before candidate := by
+/-- A checked update fails exactly when the static projection changes. -/
+theorem checkedUpdate_eq_none_iff {Raw : Type u} {Static : Type v}
+    (projection : StaticProjection Raw Static) [DecidableEq Static]
+    (before candidate : Raw) :
+    checkedUpdate projection before candidate = none ↔
+      projection.project before ≠ projection.project candidate := by
   simp [checkedUpdate]
+
+end StaticUpdates
+
+section Abstraction
 
 /--
 One-way R0 abstraction into an abstract state relation.
@@ -113,6 +151,8 @@ structure StateAbstraction (Raw : Type u) (Abstract : Type v) (Core : Type w)
   abstractCore : Abstract → Core
   coreRel : RelSpec Core
   observes : ∀ state, coreRel.rel (abstractCore (abstract state)) (rawCore state)
+
+end Abstraction
 
 end
 

@@ -23,6 +23,8 @@ namespace STC
 
 @[expose] public section
 
+section ToyRegistryEvidence
+
 abbrev toyApi : RegistryLike ToyKey ToyValue (ToyRegistry ToyKey ToyValue) :=
   toyRegistryLike
 
@@ -52,7 +54,11 @@ def sameToyLookups (left right : ToyRegistry ToyKey ToyValue) : Bool :=
 def duplicateCandidate : List (ToyKey × ToyValue) :=
   (.alpha, .second) :: toyExample.entries
 
+end ToyRegistryEvidence
+
 /-! ## Dependent ADR-02 store fixture -/
+
+section DependentCoeffectFixture
 
 /-- Two coeffect keys whose associated value types differ. -/
 inductive DepKey : Type
@@ -70,7 +76,11 @@ def depStore : Coeffect.Store DepValue :=
   Coeffect.insert .natKey 7
     (Coeffect.insert .boolKey true (∅ : Coeffect.Store DepValue))
 
+end DependentCoeffectFixture
+
 /-! ## Distinct observation profiles -/
+
+section ObservationFixtures
 
 /-- A finite carrier with core, lifecycle, control, and name components. -/
 structure ProfileState where
@@ -137,15 +147,21 @@ theorem eraseControl_not_lifecycle :
       ¬ (2 = 2 ∧ false = true ∧ false = false)
   decide
 
+end ObservationFixtures
+
 /-! ## Checked-update fixture -/
 
-def sameStatic (before candidate : Nat × Bool) : Prop :=
-  before.1 = candidate.1
+section StaticUpdateFixture
 
-instance : DecidableRel sameStatic := fun before candidate ↦
-  inferInstanceAs (Decidable (before.1 = candidate.1))
+/-- Treat the first component as static and the second as dynamically updateable. -/
+def staticProjection : State.FinmapAdapter.StaticProjection (Nat × Bool) Nat :=
+  ⟨Prod.fst⟩
+
+end StaticUpdateFixture
 
 /-! ## Executable report -/
+
+section ExecutableReport
 
 /-- Exact finite outputs for the P5 state, registry, store, and adapter seams. -/
 structure StateReport where
@@ -218,11 +234,11 @@ def stateReport : StateReport :=
     dependentCoeffectBoolLookup := Coeffect.lookup .boolKey depStore
     checkedUpdateAccepted :=
       decide (
-        State.FinmapAdapter.checkedUpdate sameStatic (1, false) (1, true) =
+        State.FinmapAdapter.checkedUpdate staticProjection (1, false) (1, true) =
           some (1, true))
     checkedUpdateRejected :=
       decide (
-        State.FinmapAdapter.checkedUpdate sameStatic (1, false) (2, false) = none) }
+        State.FinmapAdapter.checkedUpdate staticProjection (1, false) (2, false) = none) }
 
 /-- The exact expected output of `stateReport`. -/
 def expectedStateReport : StateReport :=
@@ -250,6 +266,8 @@ def expectedStateReport : StateReport :=
 /-- The finite report matches all intended positive and negative outcomes. -/
 theorem stateReport_expected : stateReport = expectedStateReport := by
   decide
+
+end ExecutableReport
 
 end
 

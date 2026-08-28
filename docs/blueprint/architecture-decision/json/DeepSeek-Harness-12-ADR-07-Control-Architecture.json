@@ -1,0 +1,116 @@
+{
+  "metadata": {
+    "artifact_title": "DeepSeek Harness ADR-07: Control, Nondeterminism, Asynchrony, and Failure",
+    "packet_id": "ADR-07",
+    "global_blocker": "BD-CONTROL",
+    "status": "proposed-architecture-compiler-pending",
+    "packet_version": "0.1.1-proposed",
+    "created_on": "2026-08-28",
+    "resolves": ["BD-CONTROL"],
+    "closure_scope": "architecture-and-interface-only",
+    "semantic_change": false,
+    "namespace": "STC",
+    "production_namespace": "STC",
+    "spike_namespace": "STCADR07",
+    "depends_on": ["ADR-03-CLOSURE", "ADR-04", "ADR-05", "ADR-06-CLOSURE"],
+    "frozen_inputs_unchanged": true,
+    "source_sha256": "4d48478dc0b6222d9f74d7db10ee776449b1209eb112632336544d32a49db97f",
+    "frozen_dependency_graph_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+    "frozen_disposition_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db"
+  },
+  "decision": {
+    "step_classes": {
+      "orchestration": "External input relation chosen by an orchestrator",
+      "lifecycle": "Internal relation enabled by the current control state",
+      "combined": "Typed sum of the two relations; no scheduler is encoded"
+    },
+    "control_state": {
+      "fields": ["raw", "traceMeta", "mode", "inFlight", "outcome"],
+      "mode_values": ["inactive", "reloading", "active", "unloading"],
+      "raw_role": "ADR-03 RawState/ValidState boundary",
+      "trace_meta_role": "ADR-04 freshness ledger and allocation history",
+      "in_flight_fields": ["owner", "launch", "committed", "remaining", "prefixUndo", "landingWitness"],
+      "landing_witness_fields": ["future", "admissible"],
+      "registry_rule": "No unrestricted State -> State closure in an ADR-03 registry cell"
+    },
+    "labels": {
+      "orchestration": ["O-Insert", "O-Retire", "O-Remove"],
+      "lifecycle": ["L-Begin", "L-Iter", "L-Finish", "L-Divert", "L-Raise", "L-Leave", "L-Unload"],
+      "witness_policy": "Every labelled constructor carries its local rule witness; L-Raise carries complete Failure"
+    },
+    "trace": {
+      "carrier": "Finite indexed list of typed Step witnesses",
+      "policy": ["initial metadata", "freshness monotonicity", "landing/inertia admissibility", "reachability envelope"],
+      "policy_fields": ["initial", "labelOk", "stepOk"],
+      "step_ok_scope": "State- and metadata-dependent hook checked for every typed Step; concrete guards remain deferred",
+      "lifecycle_only_suffix": "Finite trace with only lifecycle labels",
+      "maximality": "Endpoint has no LifecycleStep successor"
+    },
+    "asynchrony": {
+      "carrier": "Explicit InFlight snapshot",
+      "policy_fields": ["allowed", "landingWitness", "mustLand", "landSound", "abortGuard"],
+      "meaning": "Landing remains admissible after target change and is tied to InFlight.landingWitness.future; abort is permitted only at an explicit boundary",
+      "scheduler": "Not part of abstract semantics"
+    },
+    "failure": {
+      "carrier": "P4-shaped ExecResult/Failure",
+      "raise_bridge": "Only failure results produce L-Raise labels",
+      "preserved_fields": ["error", "boundary", "prefixUndo"],
+      "forbidden_erasure": ["Option.none", "identity transition", "invented boundary"]
+    },
+    "freshness_boundary": {
+      "allocation_observation": "(RawState, TraceMeta)",
+      "lifecycle_observation": "RawState may suffice when freshness is not inspected",
+      "unified_step_rule": "If allocation is included, Step and its observation include TraceMeta"
+    }
+  },
+  "paper_mapping": [
+    {"id": "D47", "boundary": "fresh insertion/retirement labels", "status": "architecture supplied; concrete registration pending"},
+    {"id": "D49", "boundary": "mode/in-flight/outcome slots", "status": "architecture supplied; staging guards pending"},
+    {"id": "D53", "boundary": "indexed trace and separate step classes", "status": "architecture supplied; concrete episodes pending"},
+    {"id": "L54", "boundary": "label-exposed write/read cases", "status": "proof pending"},
+    {"id": "L55", "boundary": "same-label transport premise", "status": "proof pending"},
+    {"id": "L57", "boundary": "control-payload erasure hook", "status": "proof pending"},
+    {"id": "D60", "boundary": "continuation and lifecycle relation hook", "status": "reach-closed specialization pending"},
+    {"id": "T61", "boundary": "episode/unload endpoint shape", "status": "recovery proof pending"},
+    {"id": "C62", "boundary": "terminal unload corollary shape", "status": "proof pending"},
+    {"id": "T63", "boundary": "reliance guard step home", "status": "provider ordering proof pending"},
+    {"id": "T64", "boundary": "committed snapshot and landing outcome", "status": "resolution proof pending"},
+    {"id": "T66", "boundary": "maximal lifecycle-only suffix", "status": "progress proof pending"},
+    {"id": "L71", "boundary": "adjacent typed labels", "status": "diamond proof pending"},
+    {"id": "R.fail", "boundary": "L-Raise and complete failure payload", "status": "P4 lifecycle integration pending"},
+    {"id": "R.full", "boundary": "single authoritative labelled relation", "status": "control/staging implementation pending"},
+    {"id": "Table1", "boundary": "derived per-constructor writes", "status": "case analysis pending"}
+  ],
+  "deferred": [
+    "Concrete provider/target/WellFormed predicates",
+    "BD-STAGING base-versus-extended correspondence",
+    "BD-SUPPORT recursion and confluence",
+    "Name-bearing payload actions and runtime atom refinement",
+    "Concrete Section 4 guards and preservation/progress proofs",
+    "Cordis runtime refinement (R1+)"
+  ],
+  "ownership": {
+    "allowed": ["docs/blueprint/architecture-decision/md/DeepSeek-Harness-12-ADR-07-Control-Architecture.md", "docs/blueprint/architecture-decision/json/DeepSeek-Harness-12-ADR-07-Control-Architecture.json", "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-12-ADR-07-Control-Architecture.lean"],
+    "forbidden": ["STC", "STC.lean", "STC/Bootstrap.lean", "docs/status", "docs/blueprint/baseline", "accepted ADR JSON", "historical spikes"]
+  },
+  "validation": {
+    "toolchain": "Lean 4.33.0 / Lake pinned project",
+    "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-12-ADR-07-Control-Architecture.lean",
+    "local_status": "pending-toolchain",
+    "required": ["no errors", "no sorry/admit/custom axiom/unsafe", "positive finite trace", "negative class/abort check", "failure-field preservation check", "landing-witness linkage", "stepOk hook present"],
+    "evidence_boundary": "Compilation demonstrates interface evidence; semantic closure requires downstream concrete proofs"
+  },
+  "integrity": {
+    "markdown_sha256": "9ea1360d97a364cbf6142daeae8bb423f4b6f4f241484fcd376997919947159f",
+    "lean_sha256": "8b43b302e7a785a2d8590085eeb535a6a5413429d22a9f610d27a2b031c26465",
+    "json_sha256": null,
+    "hash_policy": "Hashes are populated after final byte-stable validation; JSON self-hash is excluded."
+  },
+  "revision_policy": {
+    "editorial": "patch version",
+    "new_rule_carrier_or_step_class": "superseding ADR",
+    "freshness_placement_change": "superseding ADR",
+    "frozen_inputs": "must remain unchanged"
+  }
+}

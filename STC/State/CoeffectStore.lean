@@ -26,6 +26,8 @@ namespace STC.Coeffect
 
 @[expose] public section
 
+section Store
+
 variable {K : Type u} {Value : K → Type v}
 
 /-- The finite dependent coeffect store selected by ADR-02. -/
@@ -112,6 +114,8 @@ def storeObsSpec [DecidableEq K] (keyObs : ∀ key, RelSpec (Value key)) :
   trans := by
     intro left middle right h₁ h₂ key
     exact (optionRelSpec (keyObs key)).trans (h₁ key) (h₂ key)
+
+end Store
 
 end
 

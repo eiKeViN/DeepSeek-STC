@@ -1,0 +1,250 @@
+{
+  "metadata": {
+    "artifact_title": "DeepSeek Harness ADR-10: Scoped Coeffect and Realm Architecture",
+    "packet_id": "ADR-10",
+    "status": "proposed-architecture-compiler-pending",
+    "packet_version": "0.1-proposed",
+    "created_on": "2026-08-28",
+    "resolves": ["BD-SCOPED"],
+    "closure_scope": "architecture-and-interface-only",
+    "semantic_change": false,
+    "production_namespace": "STC",
+    "spike_namespace": "STCADR10",
+    "depends_on": [
+      "ADR-02",
+      "ADR-03-CLOSURE",
+      "ADR-04",
+      "ADR-06-CLOSURE",
+      "P5 state-side interfaces"
+    ],
+    "frozen_inputs_unchanged": true
+  },
+  "source_and_baselines": {
+    "source_title": "Shi, Zhang, and Cui, A Programming Paradigm for Spatiotemporal Composability",
+    "source_sha256": "4d48478dc0b6222d9f74d7db10ee776449b1209eb112632336544d32a49db97f",
+    "dependency_graph": {
+      "artifact": "DeepSeek-Harness-03-Definition-Theorem-Dependency-Graph.json",
+      "version": "1.0-frozen",
+      "sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
+      "mutated": false
+    },
+    "disposition": {
+      "artifact": "DeepSeek-Harness-04-Formalization-Disposition-Specification.json",
+      "version": "1.0-baseline",
+      "sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db",
+      "mutated": false
+    }
+  },
+  "decision": {
+    "summary": "Use a typed two-layer resolver, a persistent derived scoped context, explicit metadata precedence, and a one-way flat embedding.",
+    "resolver_layers": {
+      "semantic": {
+        "shape": "ResolverSpec M := forall k, RealmRef M k -> Prop",
+        "meaning": "Admissibility relation; may be abstract or nondeterministic.",
+        "refinement_obligation": "An executable choice must be shown to satisfy the supplied relation."
+      },
+      "executable": {
+        "shape": "total resolve : (k : K) -> RealmRef M k plus finite override support",
+        "meaning": "One selected physical realm for every logical key.",
+        "type_safety": "RealmRef carries keyOf token = logical key, so dependent values are transported only with a visible witness.",
+        "freshness_default": "Keys outside overrideKeys resolve to the model default realm."
+      }
+    },
+    "typed_realm_model": {
+      "fields": ["Realm", "keyOf", "default", "default_key"],
+      "reference_fields": ["token", "key_eq"],
+      "transport": "Eq.mp/Eq.mpr along key_eq; no unchecked cast or heterogeneous V_r to V_k coercion"
+    },
+    "resolver_update": {
+      "interface_laws": [
+        "same-key replacement",
+        "other-key preservation",
+        "finite override-support growth"
+      ],
+      "implementation_status": "abstract interface; concrete update belongs to P5/ADR-02 integration"
+    },
+    "realm_store": {
+      "interface": "RealmStoreOps",
+      "operations": ["empty", "lookup", "insert", "erase"],
+      "laws": [
+        "empty lookup",
+        "same-token insert lookup",
+        "other-token insert frame",
+        "same-token erase absence",
+        "other-token erase frame"
+      ],
+      "authoritative_implementation": "ADR-02 dependent Finmap remains authoritative",
+      "duplicate_store_forbidden": true
+    },
+    "scoped_operations": {
+      "lookup": "resolve k, lookup physical token, then transport the value through key_eq",
+      "insert": "resolve k, transport V k back to the selected physical value type, insert at captured token",
+      "erase": "erase the selected physical token",
+      "inverse_boundary": "A write inverse captures the token selected at forward application; it never recomputes a later resolver.",
+      "frame_premise": "PhysicalDistinct rho k j is required; logical-key inequality alone is insufficient under aliasing."
+    },
+    "metadata": {
+      "algebra": "Per-key MetaAlgebra with empty, merge, left identity, right identity, and associativity.",
+      "provider_order": "merge declared metadata with context metadata: declared(k) then contextMeta(k); right operand has precedence.",
+      "intercept_order": "merge inherited metadata with new metadata: inherited(k) then new(k); new operand has precedence.",
+      "presence": "InterceptionSpec stores Option (Meta k) separately from finite support; presence is not conflated with a metadata value.",
+      "priority_law": "MetadataPrecedence.right_wins is explicit; monoid laws alone do not imply right bias."
+    },
+    "persistent_context": {
+      "shape": ["resolver", "realms", "contextMeta"],
+      "derive_isolate": "Returns a child with changed resolver and definitionally unchanged realms/contextMeta.",
+      "derive_intercept": "Returns a child with changed contextMeta and definitionally unchanged resolver/realms.",
+      "realization_boundary": "Persistent/derived semantics is core; object identity and in-place mutation are refinement concerns."
+    },
+    "flat_embedding": {
+      "direction": "flat store to scoped store",
+      "conditions": [
+        "identity resolver",
+        "no physical aliasing",
+        "neutral interception metadata"
+      ],
+      "commuting_diagrams": [
+        "lookup (embed s) = flatLookup s",
+        "scopedInsert (embed s,k,v) = embed (flatInsert s,k,v)",
+        "scopedErase (embed s,k) = embed (flatErase s,k)"
+      ],
+      "non_claim": "Arbitrary realm configurations are not asserted to flatten faithfully."
+    }
+  },
+  "paper_mapping": [
+    {
+      "id": "D27",
+      "boundary": "In-place versus derived realization",
+      "status": "persistent derived context fixed; aliasing/refinement deferred"
+    },
+    {
+      "id": "D28",
+      "boundary": "Isolation context",
+      "status": "total typed resolver and finite override support fixed"
+    },
+    {
+      "id": "D29",
+      "boundary": "Isolation-aware get/set/isolate",
+      "status": "captured-token operations and update interface fixed; concrete store integration deferred"
+    },
+    {
+      "id": "D30",
+      "boundary": "Interception context and specification",
+      "status": "per-key metadata algebra, finite support, and presence separation fixed"
+    },
+    {
+      "id": "D31",
+      "boundary": "Interception-aware operations",
+      "status": "merge order and explicit right-priority contract fixed; provider/runtime laws deferred"
+    }
+  ],
+  "spike_api": {
+    "artifact": "DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean",
+    "namespace": "STCADR10",
+    "representative_declarations": [
+      "RealmModel",
+      "RealmRef",
+      "ResolverSpec",
+      "Resolver",
+      "ResolverTypePreserving",
+      "ResolverSatisfies",
+      "ResolverUpdate",
+      "RealmStoreOps",
+      "scopedLookup",
+      "scopedInsert",
+      "scopedErase",
+      "PhysicalDistinct",
+      "MetaAlgebra",
+      "MetadataPrecedence",
+      "InterceptionSpec",
+      "ScopedContext",
+      "deriveIsolate",
+      "deriveIntercept",
+      "ProviderAdapter",
+      "FlatEmbedding",
+      "toyModel",
+      "toyResolver",
+      "toyStoreOps",
+      "toyMetaAlg",
+      "toyFlatEmbedding"
+    ],
+    "finite_toy": {
+      "key": "Bool",
+      "value_family": "fun _ => Nat",
+      "realm": "Bool",
+      "store": "Bool -> Option Nat",
+      "checks": [
+        "identity resolver type preservation",
+        "lookup after insertion",
+        "absence after erasure",
+        "lookup/insert/erase flat embedding diagrams",
+        "present metadata right precedence",
+        "untouched-field persistence"
+      ]
+    }
+  },
+  "scope": {
+    "included": [
+      "D28 total type-preserving resolver contract",
+      "D29 captured physical token and persistent isolation boundary",
+      "D30 typed metadata algebra and finite interception specification",
+      "D31 explicit merge precedence and right-priority law",
+      "abstract realm-store operation interface",
+      "one-way flat embedding and finite Toy witnesses"
+    ],
+    "deferred": [
+      "concrete ADR-02 Finmap instantiation",
+      "P5 STC/State implementation",
+      "provider uniqueness and active-store fold",
+      "lifecycle visibility and WellFormed preservation",
+      "D24 operation codes and operation-test AST",
+      "realm-aware Section 4 control, staging, support, confluence, and recovery",
+      "runtime/refinement artifacts and name-bearing payload actions"
+    ]
+  },
+  "ownership": {
+    "allowed": [
+      "docs/blueprint/architecture-decision/md/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.md",
+      "docs/blueprint/architecture-decision/json/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.json",
+      "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean"
+    ],
+    "forbidden": [
+      "STC production modules",
+      "P5 State modules",
+      "STC.lean",
+      "STC/Bootstrap.lean",
+      "docs/blueprint/baseline",
+      "docs/status",
+      "docs/plans",
+      "accepted ADR artifacts",
+      "historical spikes"
+    ]
+  },
+  "validation": {
+    "toolchain": "Lean 4.33.0 / Lake pinned project",
+    "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean",
+    "local_status": "pending-toolchain",
+    "required": [
+      "zero errors",
+      "zero linter warnings",
+      "no sorry",
+      "no admit",
+      "no custom unchecked axiom",
+      "no unsafe",
+      "finite Toy checks execute"
+    ],
+    "evidence_boundary": "Elaboration/compilation demonstrates interface evidence only; semantic/provider/lifecycle/refinement theorems remain downstream."
+  },
+  "integrity": {
+    "markdown_sha256": "28c22f905ffab5a88bf1e73ab7d25585a55d6b583a125668de53fb1da74ff8f6",
+    "lean_sha256": "a631cf160e8c798e0e361a7c7854c7c51b29edf7e9cf6b5b6173654cf48e1e53",
+    "json_sha256": null,
+    "hash_scope": "SHA-256 over companion bytes; JSON self-hash intentionally excluded"
+  },
+  "revision_policy": {
+    "editorial_or_hash_update": "patch version",
+    "new_resolver_or_context_carrier": "superseding ADR",
+    "merge_precedence_change": "superseding ADR",
+    "frozen_inputs": "must remain unchanged"
+  }
+}

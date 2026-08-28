@@ -471,7 +471,7 @@
         "D8"
       ],
       "adr_refs": [],
-      "deferred_reason": "",
+      "deferred_reason": "P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
       "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -495,7 +495,7 @@
         "D9"
       ],
       "adr_refs": [],
-      "deferred_reason": "",
+      "deferred_reason": "P3-PREP: generated transformation closure deferred; relation-level independence contracts implemented without it.",
       "notes": "provisional module: no dedicated task row; part of the P2 effect kernel",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -511,8 +511,8 @@
       "title": "Independence of effect functions",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D8"
@@ -523,7 +523,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T02: EffectIndependence, OperationIndependenceContract, OperationForeignStability delivered; inc12_independent (K) positive law; fstProjectOp_not_foreignStable (K) countermodel.",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
       "h04_paper_relation": "faithful",
@@ -553,7 +553,7 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
       "notes": "",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -584,7 +584,7 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "",
+      "deferred_reason": "depends on deferred D17/L18 generated closure (P3-PREP); not proved",
       "notes": "",
       "h03_section": "3.1.3",
       "h04_target_layer": "EFFECT-CORE",
@@ -627,7 +627,7 @@
       "title": "Basic get and revertible set",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22"
@@ -639,7 +639,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "type-repair",
@@ -657,7 +657,7 @@
       "title": "Coeffect interface at a key and its context lift",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22",
@@ -670,7 +670,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: OpResult/PartialOp carrier delivered; concrete coeffect get/set transitions remain P5/ADR-02.",
       "h03_section": "3.2.1",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "type-repair",
@@ -688,7 +688,7 @@
       "title": "Coeffect specifications",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22"
@@ -699,7 +699,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
       "h03_section": "3.2.2",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "computability-repair",
@@ -716,7 +716,7 @@
       "title": "Reactive transition classifier notify",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D22",
@@ -729,7 +729,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P3-T01: outcome payload delivered; semantic/executable specs remain ADR-02/P5.",
       "h03_section": "3.2.2",
       "h04_target_layer": "COEFFECT-FLAT",
       "h04_paper_relation": "computability-repair",
@@ -773,8 +773,8 @@
       "title": "Isolation context",
       "target_module": "STC/State/Observation.lean",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D22"
       ],
@@ -801,8 +801,8 @@
       "title": "Isolation-aware get, set, and isolate",
       "target_module": "STC/State/Observation.lean",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D23",
         "D27",
@@ -834,8 +834,8 @@
       "title": "Interception context and specification",
       "target_module": "STC/State/Observation.lean",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D22",
         "D25"
@@ -863,8 +863,8 @@
       "title": "Interception-aware get, set, and intercept",
       "target_module": "STC/State/Observation.lean",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D23",
         "D27",
@@ -961,7 +961,7 @@
       "title": "Tests and operation-induced indistinguishability",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D17",
@@ -975,7 +975,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "P1 boundary: typed operation tests and indistinguishability await the P3/P5 partial-operation layers and BD-COEFFECT.",
-      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row.",
+      "notes": "Generic relation and finite relator tests do not discharge the typed operation-induced indistinguishability row. P3-T01: outcome carriers and relators delivered; typed test AST remains P5.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "decomposition",
@@ -1132,8 +1132,8 @@
       "title": "Operation independence and commutative keys",
       "target_module": "STC/Core/Partial.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D19",
@@ -1147,7 +1147,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "P1 boundary: concrete partial-operation and coeffect independence awaits P3/P5 and BD-COEFFECT.",
-      "notes": "",
+      "notes": "P3-T02: DefinednessStable/OutcomeStable/SelectedInverseCoherent/OperationIndependenceContract delivered with instance proofs; key commutativity remains P5/ADR-02.",
       "h03_section": "3.3.2",
       "h04_target_layer": "OBSERVATIONAL",
       "h04_paper_relation": "type-repair",
@@ -1355,7 +1355,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred.",
+      "notes": "P5-T02/T03: finite registry laws, pointwise RegistryObs, and provider-provenance contract; derived active-store implementation and provider adequacy remain deferred. P6: explicit freshness-boundary product (AlphaBoundary) delivered; provider adequacy and active-store semantics remain deferred.",
       "h03_section": "4.1",
       "h04_target_layer": "CALCULUS-SHELL",
       "h04_paper_relation": "decomposition",
@@ -1478,8 +1478,8 @@
       "title": "Extended lifecycle, installed/failed predicates, and quiescence",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D44",
         "D45",
@@ -1540,8 +1540,8 @@
       "title": "Witnessed effect iterators",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D33",
         "D36",
@@ -1554,7 +1554,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P4-T01/T03: RankedIterator carrier with strict-successor certificate, StageWitness/IteratorWitness, StageRelC/IteratorSimulation/IteratorBisim delivered.",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "type-repair",
@@ -1572,8 +1572,8 @@
       "title": "Effect-iterator transformation",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "completed",
+      "evidence_state": "proved",
       "depends_on": [
         "D12",
         "D2",
@@ -1586,7 +1586,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "",
-      "notes": "",
+      "notes": "P4-T02: execFrom by well-founded rank recursion, LIFO inverse composition, success and failure prefix-recovery theorems, execution equations.",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "type-repair",
@@ -1604,8 +1604,8 @@
       "title": "Indexed traces, episodes, step factorization, and state relations",
       "target_module": "STC/Alpha/Transport.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "aligned",
+      "delivery_status": "in_progress",
+      "evidence_state": "seam_only",
       "depends_on": [
         "D33",
         "D36",
@@ -1626,8 +1626,8 @@
         "ADR-04",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL); name-neutral transport planned P6",
-      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries; traces, episodes, steps, and alpha transport remain planned for P6 or later.",
+      "deferred_reason": "lifecycle/control trace decomposition deferred (BD-CONTROL)",
+      "notes": "P5-T01 supplies distinct lifecycle, control-erased, and name-aware observation boundaries. P6: NameLedger/NameTrace/TraceSupport/TraceNoReuse shell delivered; lifecycle/control trace decomposition remains BD-CONTROL.",
       "h03_section": "4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -1647,8 +1647,8 @@
       "title": "Structural write facts",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D44",
         "D47",
@@ -1677,8 +1677,8 @@
       "title": "Observational-equivalence invariance",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D33",
         "D36",
@@ -1717,8 +1717,8 @@
       "title": "Equivariance under fiber-name renaming",
       "target_module": "STC/Alpha/Transport.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D44",
         "D45",
@@ -1734,8 +1734,8 @@
         "ADR-04",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "name-bearing control-payload variant deferred (P6-T03, BD-CONTROL)",
-      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness",
+      "deferred_reason": "name-bearing control-payload variant deferred (BD-CONTROL)",
+      "notes": "F-NAME-REUSE: equivariance over incarnations or trace-global freshness. P6: name-neutral execFrom/exec transport checked (ExecTransportContract); named Q/Xi/payload variant remains deferred.",
       "h03_section": "4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -1753,8 +1753,8 @@
       "title": "Vestigial entries",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D44",
         "D45",
@@ -1821,8 +1821,8 @@
       "title": "Preservation of registry well-formedness",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D43",
         "D44",
@@ -1858,8 +1858,8 @@
       "title": "Iterator reach, length, transformation monoid, and independence",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D17",
         "D19",
@@ -1876,8 +1876,8 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL); iteration reach/length planned P4",
-      "notes": "",
+      "deferred_reason": "lifecycle-level independence deferred (BD-CONTROL)",
+      "notes": "P4: stageCountFrom/stageCountFrom_le delivered; P6: iterator simulation/bisimulation, inverse-properness, and witness transports delivered; reach-closed lifecycle monoid remains BD-CONTROL.",
       "h03_section": "4.4.2",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -1897,8 +1897,8 @@
       "title": "Recovery exactness",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D36",
         "D37",
@@ -1939,8 +1939,8 @@
       "title": "Terminal recovery",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D49",
         "D53",
@@ -1973,8 +1973,8 @@
       "title": "Provider-consumer ordering",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D43",
         "D44",
@@ -2007,8 +2007,8 @@
       "title": "Resolution coherence",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "A.async",
         "C62",
@@ -2058,7 +2058,7 @@
         "ADR-04"
       ],
       "deferred_reason": "",
-      "notes": "no dedicated task; BD-NAMES resolved via ADR-04",
+      "notes": "no dedicated task; BD-NAMES resolved via ADR-04. P6: no completion claim from P6 alone.",
       "h03_section": "4.4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -2075,7 +2075,7 @@
       "title": "Progress and lifecycle termination",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
+      "delivery_status": "in_progress",
       "evidence_state": "pending",
       "depends_on": [
         "D43",
@@ -2100,7 +2100,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "global lifecycle-termination suffix deferred (BD-CONTROL); rank termination planned P4",
-      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces",
+      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces P4: rank termination bound proved (stageCountFrom_le); global lifecycle suffix theorem remains deferred (BD-CONTROL, F-T66-ORIGIN).",
       "h03_section": "4.4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "logical-repair",
@@ -2119,8 +2119,8 @@
       "title": "Support relation and support set",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D43",
         "D44",
@@ -2150,8 +2150,8 @@
       "title": "Support is well founded",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D43",
         "D45",
@@ -2168,7 +2168,7 @@
         "ADR-04"
       ],
       "deferred_reason": "BD-SUPPORT deferred; F-L68-CYCLE counterexample to mechanize first",
-      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first",
+      "notes": "F-L68-CYCLE counterexample (late registration after provider removal) to mechanize first. P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "logical-repair",
@@ -2219,8 +2219,8 @@
       "title": "Support at quiescence",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D44",
         "D45",
@@ -2253,8 +2253,8 @@
       "title": "Transposition of adjacent independent steps",
       "target_module": "",
       "treatment": "DIRECT",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D33",
         "D36",
@@ -2277,7 +2277,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "BD-CONTROL deferred",
-      "notes": "",
+      "notes": "P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful",
@@ -2296,8 +2296,8 @@
       "title": "Deletion of a closed episode",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "C62",
         "D46",
@@ -2322,7 +2322,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "BD-SUPPORT and BD-CONTROL deferred",
-      "notes": "",
+      "notes": "P6: no completion claim from P6 alone.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -2371,8 +2371,8 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL); name-neutral equivariance planned P6",
-      "notes": "",
+      "deferred_reason": "support-order/confluence component deferred (BD-SUPPORT, BD-CONTROL)",
+      "notes": "P6: alpha-support and no-reuse transport evidence only; support/confluence remains BD-SUPPORT + BD-CONTROL.",
       "h03_section": "4.4.5",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "decomposition",
@@ -2509,8 +2509,8 @@
       "title": "Iteration lifecycle rules",
       "target_module": "STC/Core/Iterator.lean",
       "treatment": "SUBSUMED",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D44",
         "D46",
@@ -2523,7 +2523,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "L-Begin/L-Iter/L-Finish rule constructors deferred (BD-CONTROL); execution slice planned P4",
-      "notes": "",
+      "notes": "P4: iterator execution slice (execFrom, equations, nested success/failure traces) delivered; L-Begin/L-Iter/L-Finish constructors remain deferred (BD-CONTROL).",
       "h03_section": "4.3.2",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "decomposition",
@@ -2540,8 +2540,8 @@
       "title": "Asynchronous inertia restriction",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "D49",
         "R.iter"
@@ -2567,8 +2567,8 @@
       "title": "Failing iterator refinement and L-Raise",
       "target_module": "STC/Foundation/Result.lean",
       "treatment": "REPAIR",
-      "delivery_status": "planned",
-      "evidence_state": "pending",
+      "delivery_status": "in_progress",
+      "evidence_state": "proved",
       "depends_on": [
         "D49",
         "D51",
@@ -2581,7 +2581,7 @@
         "ADR-06-CLOSURE"
       ],
       "deferred_reason": "L-Raise rule constructor deferred (BD-CONTROL); failure outcome/prefix undo planned P3-P4",
-      "notes": "",
+      "notes": "P3-T03/T04: failure outcome, bridge (effectResultToExec, partialOpToExec), boundary and prefix-undo evidence delivered; L-Raise constructors remain deferred (BD-CONTROL).",
       "h03_section": "4.3.4",
       "h04_target_layer": "CALCULUS-EXTENDED",
       "h04_paper_relation": "decomposition",
@@ -2599,8 +2599,8 @@
       "title": "Full ten-rule calculus",
       "target_module": "",
       "treatment": "REPAIR",
-      "delivery_status": "deferred",
-      "evidence_state": "deferred",
+      "delivery_status": "planned",
+      "evidence_state": "pending",
       "depends_on": [
         "A.async",
         "D47",

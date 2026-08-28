@@ -2,21 +2,24 @@
   "metadata": {
     "blueprint_id": "DH-FORMAL-BP-01",
     "title": "DeepSeek Harness Executable Formalization Blueprint",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "created_on": "2026-08-27",
+    "updated_on": "2026-08-28",
     "status": "proposed-executable-revisable",
     "semantic_change": false,
     "supersedes": [],
-    "bootstrap_validation": "not_run_in_current_workspace_no_lean_or_lake",
-    "revision_note": "Lean namespace boundary renamed to STC; formalization inputs remain narrowed.",
+    "bootstrap_validation": "passed-current-workspace-2026-08-28-738-jobs",
+    "adr_candidate_validation": "ADR-07 through ADR-10 focused spikes failed under pinned Lean 4.33.0 / Mathlib v4.33.0 on 2026-08-28",
+    "revision_note": "Adds explicit ADR status governance, audits ADR-07..10, and reserves acceptance-gated post-kernel integration waves.",
     "lean_namespace": "STC",
     "adapter_namespace": "STC.Adapter",
     "purpose": "Turn accepted ADR contracts into a standalone Lean metatheory kernel and a finite executable vertical slice.",
-    "scope": "Relation, reversible effects, partial operations, ranked iterators, abstract state/registry, alpha transport, and a two-counter example.",
+    "scope": "Relation, reversible effects, partial operations, ranked iterators, abstract state/registry, alpha transport, a two-counter example, and acceptance-gated post-kernel planning.",
     "non_goals": [
       "End-to-end verification of the TypeScript Cordis runtime",
       "A complete Section 4 lifecycle/control proof in the first pass",
-      "Reopening ADR-01 through ADR-06 or mutating H03/H04 baselines"
+      "Reopening ADR-01 through ADR-06 or mutating H03/H04 baselines",
+      "Treating proposed or incomplete ADR-07 through ADR-10 artifacts as accepted production inputs"
     ]
   },
   "decision_profile": {
@@ -33,9 +36,86 @@
       "no global Setoid and no quotient execution carrier",
       "positive finite ADR-03 state shell; no State -> State closure in FiberCell",
       "lifetime-safe IncarnationId and explicit alpha action",
-      "ranked continuation machine with explicit failure result"
+      "ranked continuation machine with explicit failure result",
+      "ADR-06 equivalence, relator, iterator-transport, and alpha-transport contracts"
     ]
   },
+  "decision_status_model": {
+    "authority_rule": "File location alone does not imply acceptance. Normative production status requires an explicit accepted ADR status/acceptance record.",
+    "directory_status_conflict": "Proposed ADR-07 through ADR-09 JSON packets are stored in a directory that existing guidance and packet ownership text describe as accepted/frozen ADRs.",
+    "dimensions": {
+      "record_status": ["accepted", "proposed", "incomplete", "superseded"],
+      "architecture_status": ["closed", "acceptance_pending", "open", "superseded"],
+      "production_status": "Use the delivery vocabulary independently of ADR status.",
+      "kernel_status": "Use declaration-specific K evidence independently of ADR and production status.",
+      "runtime_status": "R1+ requires a concrete simulation/refinement theorem."
+    },
+    "promotion_rule": "Compiler success is interface evidence only; blocker subtraction requires explicit ADR acceptance, and theorem rows require their own production/K evidence."
+  },
+  "decision_register": [
+    {
+      "id": "ADR-07",
+      "harness_number": 12,
+      "blocker": "BD-CONTROL",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-compiler-pending",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "failed-pinned-toolchain-2026-08-28",
+      "compiler_summary": "parser errors, unresolved implicit Q/V parameters, and Toy proof/type failures",
+      "production_status": "not_started_acceptance_gated",
+      "kernel_status": "pending",
+      "candidate_profile": ["distinct orchestration and lifecycle relation classes", "typed labelled Step sum", "no abstract scheduler", "explicit InFlight and async boundary", "complete failure payload", "freshness metadata boundary"]
+    },
+    {
+      "id": "ADR-08",
+      "harness_number": 13,
+      "blocker": "BD-STAGING",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-closure-compiler-pending",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "failed-pinned-toolchain-2026-08-28",
+      "compiler_summary": "Prop/Bool negation errors, unresolved proof cases, and ambiguous constructors",
+      "dependency_status_note": "The candidate consumes ADR-07 control interfaces when instantiated; ADR-07 is also proposed.",
+      "production_status": "not_started_acceptance_gated",
+      "kernel_status": "pending",
+      "candidate_profile": ["R+ is authoritative", "Rb is an AtomicProfile finite macro/view", "embed/project/stable-image contracts", "forward simulation", "profile-relative adequacy"]
+    },
+    {
+      "id": "ADR-09",
+      "harness_number": 14,
+      "blocker": "BD-SUPPORT",
+      "record_status": "proposed",
+      "metadata_status": "proposed-architecture-compiler-pending",
+      "architecture_status": "acceptance_pending",
+      "formal_acceptance": false,
+      "artifact_completeness": "md+json+lean-spike",
+      "compiler_status": "failed-pinned-toolchain-2026-08-28",
+      "compiler_summary": "missing Decidable instances plus linter warnings",
+      "dependency_status_note": "Packet metadata depends on ADR-07 and ADR-08, both still proposed.",
+      "production_status": "not_started_acceptance_gated",
+      "kernel_status": "pending",
+      "candidate_profile": ["positive SupportOperator", "canonical least fixed point", "provider/parent-to-dependent SupportRel", "named converse SupportDep", "explicit SupportWF/SupportOrder rank certificate", "support rank distinct from iterator rank"]
+    },
+    {
+      "id": "ADR-10",
+      "harness_number": 15,
+      "blocker": "BD-SCOPED",
+      "record_status": "incomplete",
+      "metadata_status": null,
+      "architecture_status": "open",
+      "formal_acceptance": false,
+      "artifact_completeness": "lean-spike-only; companion md/json absent",
+      "compiler_status": "failed-pinned-toolchain-2026-08-28",
+      "compiler_summary": "invalid import placement after module doc comment",
+      "production_status": "blocked_pending_complete_packet_and_acceptance",
+      "kernel_status": "pending",
+      "candidate_profile": ["typed RealmRef", "semantic ResolverSpec and executable Resolver", "finite override support", "persistent ScopedContext", "isolate/intercept", "metadata precedence", "physical distinctness", "one-way flat embedding"]
+    }
+  ],
   "source_manifest": {
     "paper": {
       "filename": "a-programming-paradigm-for-spatitemporal-composability.pdf",
@@ -71,11 +151,45 @@
       { "id": "ADR-05", "filename": "DeepSeek-Harness-09-ADR-05-Iterator-and-Failure-Architecture.json", "sha256": "86c555027a0a49bb40c95f1d612c12fcb6962d9801c5ed953ba9b1a7d1df04e9" },
       { "id": "ADR-06-CLOSURE", "filename": "DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure.json", "sha256": "e1baf7b96b2df72d1289e6148be3d801dc2477aa7c9230201f113ee91f118fea" },
       { "id": "ADR-06-SPIKE", "filename": "DeepSeek-Harness-10-ADR-06-Equivalence-and-Equivariance-Closure-Spike.lean", "sha256": "91239ee5aece9a485453aefd805bfbc37fec11a9c6e4e46841234462d63b4de4" }
+    ],
+    "candidate_adrs": [
+      {
+        "id": "ADR-07",
+        "record_status": "proposed",
+        "markdown": {"filename": "DeepSeek-Harness-12-ADR-07-Control-Architecture.md", "sha256": "9ea1360d97a364cbf6142daeae8bb423f4b6f4f241484fcd376997919947159f"},
+        "json": {"filename": "DeepSeek-Harness-12-ADR-07-Control-Architecture.json", "sha256": "b4210f4f5ab6c7811ae9488d82019dff0562a1b1fec46c02ca3b3e8dba4ada6f"},
+        "lean_spike": {"filename": "DeepSeek-Harness-12-ADR-07-Control-Architecture.lean", "sha256": "8b43b302e7a785a2d8590085eeb535a6a5413429d22a9f610d27a2b031c26465"}
+      },
+      {
+        "id": "ADR-08",
+        "record_status": "proposed",
+        "markdown": {"filename": "DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.md", "sha256": "91dd901a23f808d32b743e6cbbe4dfd0820664b913c24660f3af84b4c5926923"},
+        "json": {"filename": "DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.json", "sha256": "ac883c9084412ec8b63747ac978282e0ffd702ccd39abe4f49c3820e6f229fcb"},
+        "lean_spike": {"filename": "DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean", "sha256": "8f6a30937d79f6683049521f85dba1fda8856b29e8508f8092a469c34287054e"}
+      },
+      {
+        "id": "ADR-09",
+        "record_status": "proposed",
+        "markdown": {"filename": "DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.md", "sha256": "dcc10b584fa39fcc14d66eb527fe8764820447c5e0f45b1c15e9de829d6e7bd6"},
+        "json": {"filename": "DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json", "sha256": "9339f417793dbcf366af14162ae4b56f5ccb5dc56c2cadf58d5fd9b0f56a95d5"},
+        "lean_spike": {"filename": "DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean", "sha256": "a9d447009f41822aaba6820a5d58e1c2b5afa94391e05c7ac7ae3fdf1ae507f9"}
+      },
+      {
+        "id": "ADR-10",
+        "record_status": "incomplete",
+        "markdown": null,
+        "json": null,
+        "lean_spike": {"filename": "DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean", "sha256": "a631cf160e8c798e0e361a7c7854c7c51b29edf7e9cf6b5b6173654cf48e1e53"},
+        "artifact_mismatch": "Introducing commit b8e6297 claims companion packets for ADR-07..10, but ADR-10 md/json are absent."
+      }
     ]
   },
   "status_vocabulary": {
     "delivery": ["planned", "in_progress", "completed", "blocked", "deferred"],
     "evidence": ["pending", "aligned", "passed", "proved", "tested", "seam_only", "deferred", "not_applicable"],
+    "decision_record": ["accepted", "proposed", "incomplete", "superseded"],
+    "architecture": ["closed", "acceptance_pending", "open", "superseded"],
+    "compiler": ["passed", "pending", "failed", "not_applicable"],
     "kinds": ["audit", "definition", "theorem", "example", "adapter", "documentation"]
   },
   "module_dag": [
@@ -94,13 +208,19 @@
     { "module": "STC.Adapter", "requires": ["Core.Effect", "Core.Iterator", "State.Like"], "exports": ["StateRefinement", "Simulates", "R0 seam"] },
     { "module": "STC.Conformance.Manifest", "requires": ["all production modules"], "exports": ["paper/ADR status manifest"] }
   ],
+  "future_module_reservations": [
+    {"family": "STC.Control", "path": "STC/Control/**", "adr_gate": "ADR-07 accepted", "requires": ["STC.Foundation.Result", "STC.Core.Iterator", "STC.State interfaces"], "owns": ["orchestration/lifecycle relations", "typed labelled Step", "traces", "InFlight", "async/failure/freshness boundaries"], "current_status": "reserved_not_created"},
+    {"family": "STC.Staging", "path": "STC/Staging/**", "adr_gate": "ADR-08 accepted", "requires": ["STC.Control", "STC.State interfaces"], "owns": ["AtomicProfile", "derived Rb macro/view", "embed/project/stable image", "simulation/adequacy"], "current_status": "reserved_not_created"},
+    {"family": "STC.State.Support", "path": "STC/State/Support.lean", "adr_gate": "ADR-09 accepted", "requires": ["STC.State interfaces", "accepted control/staging trace contracts for trace theorems"], "owns": ["SupportOperator", "SupportSet", "SupportRel/SupportDep", "SupportWF/SupportOrder", "rank transport"], "current_status": "reserved_not_created"},
+    {"family": "STC.Scoped", "path": "STC/Scoped/**", "adr_gate": "complete ADR-10 packet accepted", "requires": ["STC.State.CoeffectStore", "STC.State.Observation"], "owns": ["typed realm resolution", "persistent isolate/intercept contexts", "metadata precedence", "physical distinctness", "flat embedding"], "current_status": "reserved_not_created"}
+  ],
   "gates": [
     { "id": "gate_A", "name": "alignment", "checks": ["paper/ADR traceability", "scope and strength review", "examples and counterexamples", "repair rationale"] },
     { "id": "gate_I", "name": "interface", "checks": ["per-file Lean elaboration", "milestone package build", "acyclic imports", "explicit hypotheses"] },
     { "id": "gate_K", "name": "kernel", "checks": ["substantive proof term", "no sorry/admit/custom axiom/unsafe", "generic and instance theorem coverage"] },
-    { "id": "gate_E", "name": "executable", "checks": ["finite concrete instance", "#eval/decide/property test", "expected output recorded"] },
+    { "id": "gate_E", "name": "executable", "checks": ["finite concrete instance", "example-by-decide/tooling-#eval/property test", "expected output recorded"] },
     { "id": "gate_R0", "name": "adapter seam", "checks": ["abstraction/simulation types compile", "no runtime correctness claim"] },
-    { "id": "gate_H", "name": "integrity", "checks": ["H03/H04 hashes unchanged", "derived manifest consistent", "source/ADR hashes recorded"] }
+    { "id": "gate_H", "name": "integrity", "checks": ["H03/H04 hashes unchanged", "explicit ADR status and artifact completeness", "derived manifest consistent", "source/ADR hashes recorded"] }
   ],
   "phases": [
     { "id": "P0", "title": "Baseline and traceability", "depends_on": [], "target": "A+I" },
@@ -112,6 +232,20 @@
     { "id": "P6", "title": "Alpha transport", "depends_on": ["P4", "P5"], "target": "A+I+K+E" },
     { "id": "P7", "title": "Two-counter vertical slice", "depends_on": ["P4", "P6"], "target": "A+K+E" },
     { "id": "P8", "title": "Conformance and feedback manifest", "depends_on": ["P7"], "target": "A+I+H+R0" }
+  ],
+  "phase_execution_snapshot": {
+    "repository_commit": "a72e3d733382bfa359ed2f130de1800786f1383d",
+    "recorded_on": "2026-08-28",
+    "merged": ["P0", "P1", "P2", "P3", "P4", "P5"],
+    "future_first_kernel": ["P6", "P7", "P8"],
+    "ledger_note": "Definition-Ledger.json is the P5-derived snapshot; exact P3/P4 patches remain an integration follow-up despite merged code."
+  },
+  "post_kernel_waves": [
+    {"id": "P9", "title": "ADR promotion gates", "depends_on": ["P8"], "gate": "prepare reviewed compiler-corrected successor artifacts without mutating historical spikes, complete ADR-10 packet, and obtain explicit lead acceptance per ADR", "scope": "architecture-decision/status documentation only", "evidence_boundary": "compiler pass is I; acceptance is a separate decision"},
+    {"id": "P10", "title": "Control integration", "depends_on": ["P9:ADR-07-accepted"], "gate": "ADR-07 accepted", "scope": "STC/Control/**", "evidence_boundary": "interfaces I; each guard/preservation/recovery/progress theorem requires separate K"},
+    {"id": "P11", "title": "Staging and support integration", "depends_on": ["P9:ADR-08-accepted", "P9:ADR-09-accepted", "P10 for trace-facing support results"], "gate": "relevant ADR accepted", "scope": "STC/Staging/** and STC/State/Support.lean", "evidence_boundary": "macro simulation, LFP laws, rank certificates, and trace theorems tracked separately"},
+    {"id": "P12", "title": "Scoped coeffect integration", "depends_on": ["P9:ADR-10-accepted"], "gate": "complete ADR-10 packet accepted", "scope": "STC/Scoped/**", "evidence_boundary": "no Section-4 or runtime generalization without explicit refinement"},
+    {"id": "P13", "title": "Global metatheory and conformance", "depends_on": ["P10", "P11", "P12 where scoped claims are in scope"], "gate": "relevant interfaces integrated and hypotheses discharged", "scope": "Section-4 preservation/progress/support/confluence inventory and manifest", "evidence_boundary": "architecture, production, K, E, R0, and R1+ remain separate"}
   ],
   "tasks": [
     {
@@ -853,31 +987,35 @@
   "traceability_policy": {
     "coverage": "All 74 numbered nodes and 8 auxiliary nodes must eventually have one derived row; first implementation waves may cover only the listed high-impact refs.",
     "paper_relation": "Mark each item faithful, faithful-explicit, type-repair, logical-repair, computability-repair, decomposition, derived, generalization, specialization, replacement, or refinement-only.",
-    "status_rule": "Compiled interface is I, not K. A contract is not a proved theorem. Toy E evidence does not imply runtime R.",
+    "status_rule": "File location is not ADR acceptance. Compiled interface is I, not architecture closure or K. A contract is not a proved theorem. Toy E evidence does not imply runtime R.",
     "cycle_rule": "Preserve H03 forward-reference cycles (D49/R.iter/R.fail and D67/L68) as deferred or explicitly staged; do not force a false topological order."
   },
   "deferred": [
-    {"id": "BD-CONTROL", "reason": "labelled lifecycle, nondeterminism, asynchrony, and failure/control traces require a separate decision"},
-    {"id": "BD-STAGING", "reason": "base/extended calculus correspondence is not needed for the first kernel"},
-    {"id": "BD-SUPPORT", "reason": "late-registration/support recursion and L68 need a separate well-foundedness treatment"},
-    {"id": "BD-SCOPED", "reason": "typed realms/interception and flat embedding are outside the first slice"},
+    {"id": "BD-CONTROL", "architecture_status": "acceptance_pending", "candidate_adr": "ADR-07", "decision_record_status": "proposed", "production_status": "pending", "kernel_status": "pending", "reason": "candidate packet exists but is not accepted and its spike fails the pinned compiler check"},
+    {"id": "BD-STAGING", "architecture_status": "acceptance_pending", "candidate_adr": "ADR-08", "decision_record_status": "proposed", "production_status": "pending", "kernel_status": "pending", "reason": "candidate packet exists but is not accepted and its spike fails the pinned compiler check"},
+    {"id": "BD-SUPPORT", "architecture_status": "acceptance_pending", "candidate_adr": "ADR-09", "decision_record_status": "proposed", "production_status": "pending", "kernel_status": "pending", "reason": "candidate packet exists but is not accepted and its spike fails the pinned compiler check"},
+    {"id": "BD-SCOPED", "architecture_status": "open", "candidate_adr": "ADR-10", "decision_record_status": "incomplete", "production_status": "blocked", "kernel_status": "pending", "reason": "only a failing Lean spike exists; companion Markdown/JSON status packet and lead acceptance are absent"},
     {"id": "R1+", "reason": "concrete TypeScript/runtime refinement requires a source audit and simulation proof"},
     {"id": "deep-DSL-proof", "reason": "EffectCode and interpreter semantics are reserved by G4 but not required for the first executable core"}
   ],
   "execution_protocol": {
     "order": ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"],
+    "post_kernel_order": ["P9", "P10", "P11", "P12", "P13"],
     "per_task": ["alignment review", "edit production module", "compile changed file", "run focused theorem/test", "record evidence state", "update derived ledger"],
-    "milestone_commands": ["lake env lean <changed-file>", "lake build", "rg -n '\\b(sorry|admit|axiom|unsafe)\\b' STC", "#eval or finite property test"],
-    "migration": "Port declarations manually from standalone ADR spikes; keep spikes as read-only regression mirrors and never import duplicate namespaces.",
-    "feedback": "A failed proof or counterexample may revise a provisional API task; a semantic change to an accepted ADR requires a superseding ADR.",
+    "milestone_commands": ["lake env lean -DautoImplicit=false -Dpp.unicode.fun=true <changed-file>", "lake build", "python scripts/validate_definition_ledger.py docs/status/Definition-Ledger.json", "python scripts/scan_lean.py STC", "example-by-decide or tooling-only finite property test"],
+    "decision_gate": "No P10+ production module may be created until the corresponding candidate has a complete packet and explicit accepted ADR status. Compiler validation alone does not satisfy this gate.",
+    "migration": "After explicit ADR acceptance, port declarations manually from the reviewed packet while keeping historical spikes read-only; never import duplicate namespaces or port a proposed/incomplete spike as normative code.",
+    "feedback": "A failed proof or counterexample may revise a provisional API task; a semantic change to an accepted ADR requires a superseding ADR. Proposed ADR promotion and ADR-10 packet completion require lead review.",
     "trusted_boundary": "Lean kernel, pinned libraries, explicitly recorded assumptions, and the selected abstract state/observation model."
   },
   "integrity": {
     "h03_sha256": "8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8",
     "h04_sha256": "63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db",
-    "markdown_sha256": "f1633006e1256e78fc68fc69e052da31510323b22dd5754976d04173c0697153",
+    "markdown_sha256": "da5cdd95fcaee9297e4ac15f47a8780ee85f63b215c96b256bed70c6ac29a471",
     "bootstrap_lean_sha256": "0e303ce8c9d1a6b346cef365bde1d2354227c9ffc09cdbeef867d34acd2ab726",
     "blueprint_sha256": "pending-local-computation",
-    "self_hash_policy": "Compute after final local bytes; do not embed a stale hash without recording the computation."
+    "candidate_audit_commit": "b8e6297b954e7bd27a360c0e2f5cc8ea58ed5e60",
+    "accepted_adr_hash_note": "P0-baseline.json provenance ruling remains authoritative for the known ADR-01, ADR-02, and ADR-06 spike manifest mismatches; this synchronization does not normalize them.",
+    "self_hash_policy": "Compute the Markdown hash after final local bytes. JSON self-hash remains pending/excluded; do not embed a stale hash."
   }
 }

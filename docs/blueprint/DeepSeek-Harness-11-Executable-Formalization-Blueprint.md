@@ -3,22 +3,26 @@
 | Field | Value |
 |---|---|
 | Blueprint ID | `DH-FORMAL-BP-01` |
-| Version | `1.0.2` |
+| Version | `1.1.0` |
 | Status | **proposed-executable / deliberately revisable** |
-| Date | 2026-08-27 |
+| Date | 2026-08-28 |
 | Semantic change | **None** — this blueprint consumes accepted decisions; it does not supersede an ADR. |
 | Supersedes | Nothing |
-| Revision note | Lean namespace boundary renamed to `STC`; formalization inputs remain narrowed. |
+| Revision note | Adds explicit ADR status governance, audits ADR-07..10, and reserves acceptance-gated post-kernel integration waves. |
 | Primary target | Standalone Lean formalization of the paper's metatheory kernel |
 | First executable slice | Two disjoint counters + failure + ranked iterator + alpha transport |
 | Namespace | `STC` (runtime connection reserved as `STC.Adapter`) |
-| Bootstrap validation in this workspace | **Not run** — `lean`/`lake` are not installed here; the file is a compile-targeted skeleton, not a claimed compiler result. |
+| Validation in this workspace | Production `lake build` passed (738 jobs) on 2026-08-28. The proposed ADR-07..10 spikes are separate historical checks and fail their focused compiler commands. |
 
 This blueprint turns the accepted formalization inputs into an executable, staged work plan.
 It is intentionally not a promise that the whole paper or the Cordis implementation will
 be verified in one pass.  The first target is a checked generic kernel plus a small finite
 example; later feedback may revise module boundaries or individual contracts without
 silently changing the accepted ADRs.
+
+Version 1.1.0 synchronizes guidance with the ADR-07..10 artifact drop. It records those
+artifacts without promoting them: an ADR file's directory is provenance, not an acceptance
+decision, and a compiler result is not a semantic or architectural acceptance record.
 
 ## 1. Fixed decision profile
 
@@ -35,11 +39,81 @@ The following choices are already accepted and are inputs to this blueprint.
 | State carrier | Begin with abstract `StateLike`; later instantiate/bridge to ADR-03 `RawState`, `ValidState`, and `WellFormed`. |
 | Working validation profile | `A + I + K + E`; only an `R0` adapter seam is expected in this phase. |
 
-The following architecture/contracts are not reopened: relation-parametric law architecture,
-explicit observation
-relations, no quotient execution carrier, positive finite ADR-03 state architecture,
-incarnation-lifetime identity, ranked continuation architecture, and explicit failure
-results.  `BD-CONTROL`, `BD-STAGING`, `BD-SUPPORT`, and `BD-SCOPED` remain independent.
+The following accepted architecture/contracts are not reopened: relation-parametric law
+architecture, explicit observation relations, no quotient execution carrier, positive
+finite ADR-03 state architecture, incarnation-lifetime identity, ranked continuation
+architecture, explicit failure results, and the ADR-06 transport contracts.
+
+### 1.1 Decision and evidence status are separate
+
+| Dimension | Meaning | Promotion authority |
+|---|---|---|
+| ADR record status | `accepted`, `proposed`, `incomplete`, or `superseded` as stated by an explicit ADR status/acceptance record | accepted or superseding ADR record |
+| Architecture status | whether a blocker has an accepted shared carrier and contract | accepted ADR only; neither file location nor compilation is sufficient |
+| Production/interface status | whether the corresponding `STC/**` interface has been integrated | production diff plus `I` evidence |
+| Kernel theorem status | whether a substantive proposition has a checked proof term | declaration-specific `K` evidence |
+| Runtime refinement status | whether concrete runtime steps simulate the model | explicit `R1+` refinement theorem |
+
+An architecture may be accepted while its production integration and `K` theorems remain
+pending. Conversely, a standalone spike may compile while its ADR remains proposed. These
+dimensions must never be collapsed into one `completed` flag.
+
+### 1.2 ADR-07..10 audit register
+
+The status below is the repository record at commit `a72e3d7`, including a focused rerun
+under the pinned Lean 4.33.0 / Mathlib v4.33.0 environment on 2026-08-28.
+
+| ADR | Artifact packet | Explicit record status | Focused spike result | Normative effect |
+|---|---|---|---|---|
+| ADR-07 / Harness-12 | MD + JSON + Lean spike | `proposed-architecture-compiler-pending` | **failed**: parser, implicit-argument, and Toy proof/type errors | `BD-CONTROL` is `acceptance_pending`; production and `K` work remain gated |
+| ADR-08 / Harness-13 | MD + JSON + Lean spike | `proposed-architecture-closure-compiler-pending` | **failed**: Prop/Bool negation, unresolved proof cases, and ambiguous constructors | `BD-STAGING` is `acceptance_pending`; no authoritative base/full integration yet |
+| ADR-09 / Harness-14 | MD + JSON + Lean spike | `proposed-architecture-compiler-pending` | **failed**: missing `Decidable` instances and linter warnings | `BD-SUPPORT` is `acceptance_pending`; no support theorem is promoted |
+| ADR-10 / Harness-15 | Lean spike only; MD and JSON are absent | no authoritative packet metadata; **incomplete** | **failed**: import occurs after a module doc comment | `BD-SCOPED` remains open and requires lead review plus a complete packet |
+
+The introducing commit `b8e6297` describes MD, JSON, and spikes for ADR-07..10, but its
+tree contains companion MD/JSON only for ADR-07..09. That commit-message/artifact mismatch
+is recorded here rather than repaired by inventing an ADR-10 packet.
+
+The new packets also describe `architecture-decision/json/` as the accepted/frozen ADR
+area while placing their own proposed JSON files there. This is a directory/status
+inconsistency, resolved for guidance by the explicit-status rule rather than by moving or
+rewriting artifacts. ADR-09's metadata depends on ADR-07 and ADR-08 even though both are
+also proposed; promotion must review that dependency chain rather than accept ADR-09 in
+isolation.
+
+The proposed profiles are still useful review inputs. If they are later accepted without
+a semantic change, integration must preserve these candidate boundaries:
+
+- ADR-07: orchestration and lifecycle remain distinct relation classes; their typed
+  labelled `Step` sum carries witnesses; the abstract semantics contains no scheduler;
+  `InFlight`, landing/abort boundaries, complete failure payloads, and freshness metadata
+  boundaries stay explicit.
+- ADR-08: `R+` is the sole authoritative transition relation; `Rb` is an
+  `AtomicProfile`-controlled finite macro/view with embed/project/stable-image contracts,
+  forward simulation, and profile-relative adequacy, never an independently maintained
+  second calculus.
+- ADR-09: support uses a positive `SupportOperator` and canonical least fixed point; the
+  provider/parent-to-dependent `SupportRel` direction and converse induction relation are
+  named; `SupportWF`/`SupportOrder` or a rank certificate is explicit; support rank is not
+  iterator rank and is not hidden in `WellFormed`.
+- ADR-10: only after a complete accepted packet may production guidance require typed
+  `RealmRef`, semantic/executable resolver separation, finite overrides, persistent
+  isolate/intercept contexts, explicit metadata precedence and physical distinctness, and
+  a one-way flat embedding.
+
+### 1.3 Blocker model transition
+
+| Blocker | Blueprint 1.0.2 | Blueprint 1.1.0 after audit |
+|---|---|---|
+| `BD-CONTROL` | separate decision deferred | candidate ADR-07 exists; formal acceptance, production integration, and `K` proofs pending |
+| `BD-STAGING` | separate decision deferred | candidate ADR-08 exists; formal acceptance, production integration, and `K` proofs pending |
+| `BD-SUPPORT` | separate decision deferred | candidate ADR-09 exists; formal acceptance, production integration, and `K` proofs pending |
+| `BD-SCOPED` | separate decision deferred | ADR-10 packet incomplete; architecture, production integration, and `K` proofs pending |
+
+No blocker is subtracted from H04 or the derived Definition Ledger until its ADR has an
+explicit accepted status. The candidate packets also do not authorize a later agent to
+silently design a competing architecture; divergence requires lead review and, once an
+ADR is accepted, a superseding ADR.
 
 ## 2. What each evidence label means
 
@@ -51,7 +125,7 @@ The blueprint uses separate evidence dimensions rather than one linear notion of
 | `A` | Semantic alignment/traceability | Paper/ADR reading, scope check, examples, counterexamples, repair rationale |
 | `I` | Interface/elaboration | Changed Lean files and package build type-check; no claim that laws are true |
 | `K` | Kernel semantic proof | A substantive theorem has a checked proof term with no placeholders |
-| `E` | Executable validation | A concrete finite instance runs (`#eval`, `decide`, or property test) |
+| `E` | Executable validation | A concrete finite instance is pinned by `example ... := by decide`, a tooling-only `#eval`, or a property test |
 | `R0` | Adapter seam | Types for abstraction/simulation are present; no runtime correctness claim |
 | `R1+` | Concrete refinement | A restricted or full runtime step is proved to simulate the abstract model |
 
@@ -71,7 +145,8 @@ dependency graph or disposition baseline; readiness reports are derived artifact
 | `DeepSeek-Harness-01-Formal-Reference.md` | Definitions, theorem anchors, notation | project source |
 | Harness-03 dependency graph JSON | Immutable 74-item/8-auxiliary graph | SHA-256 `8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8` |
 | Harness-04 disposition JSON | Immutable treatment/readiness baseline | SHA-256 `63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db` |
-| ADR-01 … ADR-06 artifacts | Accepted architecture decisions and closure contracts | local hashes recorded in companion JSON |
+| ADR-01 … ADR-06 artifacts | Accepted architecture decisions and closure contracts | local hashes recorded in companion JSON; P0 provenance ruling remains in force |
+| ADR-07 … ADR-10 artifacts | Proposed/incomplete decision evidence only | status and completeness recorded in §1.2; not normative production inputs |
 
 The following project-context files are explicitly excluded from the formalization
 pipeline and should not be assigned as Agent inputs:
@@ -84,6 +159,11 @@ pipeline and should not be assigned as Agent inputs:
 The ADR spike files are historical, standalone compiler mirrors.  Production modules are
 ported declaration by declaration under the `STC` namespace; they must not
 import spikes that redeclare the same names.
+
+File location alone does not imply ADR acceptance. In particular,
+`docs/blueprint/architecture-decision/json/` currently contains both accepted ADRs and
+proposed packets. Production work consumes only artifacts whose explicit status record is
+accepted; proposed or incomplete packets remain read-only review/provenance inputs.
 
 ## 4. Production module DAG
 
@@ -101,7 +181,7 @@ State.RegistryLike ──> State.Toy
 State.Like + Foundation.Relation ──> State.Observation
 Core.Iterator + State.Observation ──> Alpha.Transport
 all core layers ──> Examples.TwoCounter ──> Conformance.Manifest
-Core + State interfaces ──> Adapters.Cordis (R0 only)
+Core + State interfaces ──> STC.Adapter (R0 only)
 ```
 
 Recommended initial tree:
@@ -120,7 +200,7 @@ STC/
   Alpha/Core.lean
   Alpha/Transport.lean
   Examples/TwoCounter.lean
-  Adapters/Cordis.lean
+  Adapter.lean
   Conformance/Manifest.lean
   Bootstrap.lean
 ```
@@ -130,6 +210,37 @@ The ADR-02 coeffect store remains a separate dependent-store interface.  The Toy
 dependent coeffect `Finmap`.  The initial `Prelude.Finite` and `Foundation.Result` entries
 are logical module layers to be created in P0/P1 if the host repository does not already
 provide them.
+
+### 4.1 Acceptance-gated post-kernel reservations
+
+The following module families are reservations for P9+ planning, not current production
+files and not evidence that ADR-07..10 are accepted:
+
+```text
+STC/Control/**
+STC/Staging/**
+STC/State/Support.lean
+STC/Scoped/**
+```
+
+Their intended dependency direction, once the corresponding ADR is accepted, is:
+
+```text
+Foundation.Result + Core.Iterator + State interfaces ──> Control
+Control + State interfaces ──> Staging
+State interfaces + accepted Control/Staging trace contracts ──> State.Support
+State.CoeffectStore + State.Observation ──> Scoped
+Control + Staging + State.Support + Scoped ──> Conformance (A/I/K status kept separate)
+```
+
+`STC.Control` owns the two relation classes, labelled steps/traces, in-flight state,
+landing policy, and failure bridge. `STC.Staging` owns only the derived base macro/view
+and correspondence contracts over the authoritative full relation. `STC.State.Support`
+owns the positive support operator, least fixed point, explicit rank certificate, and
+support transport hooks. `STC.Scoped` owns typed realm resolution, persistent derived
+contexts, metadata/interception, and the one-way flat embedding. None may contain concrete
+Cordis runtime declarations, and none may be created before its acceptance and execution
+gate is recorded.
 
 ## 5. Execution waves
 
@@ -218,6 +329,35 @@ prerequisite for the first Effect proofs.
 | `P8-T01` | Generate a derived readiness manifest from H03/H04 plus current task evidence. | no baseline mutation; paper-ID traceability |
 | `P8-T02` | Add `STC.Adapter` abstraction/simulation types only. | R0 seam; explicitly no runtime verification claim |
 | `P8-T03` | Record feedback, failed proof attempts, counterexamples, and proposed superseding ADR triggers. | reproducible iteration log |
+
+### Current execution snapshot
+
+At `origin/main` commit `a72e3d7`, P0 through P5 production work is merged. P3 and P4
+handoffs report their focused gates as passed, and P5 is merged through PR #6. The central
+Definition Ledger is still the P5-derived snapshot: the exact P3/P4 row patches remain an
+integration follow-up and are not silently applied by this guidance pass. P6 through P8
+remain future first-kernel work.
+
+### Post-kernel waves (P9+)
+
+P0 through P8 retain their historical meaning and numbering. The following waves begin
+only after the first executable-kernel program and add no retrospective claims about those
+earlier phases.
+
+| Wave | Required gate | Planned ownership | Evidence boundary |
+|---|---|---|---|
+| P9 — ADR promotion | Prepare reviewed compiler-corrected successor artifacts without mutating historical spikes; complete the ADR-10 MD/JSON packet; obtain explicit lead acceptance per ADR | architecture-decision/status documentation only | compiler pass is `I` evidence; acceptance remains a separate recorded decision |
+| P10 — Control integration | ADR-07 accepted | `STC/Control/**`: orchestration/lifecycle relations, typed steps/traces, `InFlight`, async/failure/freshness boundaries | interfaces may earn `I`; each guard, preservation, recovery, or progress theorem needs separate `K` |
+| P11 — Staging and support integration | ADR-08 and/or ADR-09 accepted; trace-facing support results also require accepted control/staging contracts | `STC/Staging/**`; `STC/State/Support.lean` | macro simulation, LFP laws, rank/WF certificates, and trace theorems are tracked independently |
+| P12 — Scoped coeffect integration | complete ADR-10 packet accepted | `STC/Scoped/**`: typed realms/resolvers, isolate/intercept contexts, metadata, physical distinctness, flat embedding | no Section-4 or runtime generalization without explicit refinement proofs |
+| P13 — Global metatheory/conformance | relevant P10–P12 interfaces integrated and hypotheses discharged | Section-4 preservation/progress/support/confluence inventory and derived manifest | architecture closure, production completion, `K`, `E`, `R0`, and `R1+` remain separate |
+
+P9 may prepare a new reviewed compiler/API successor only when the candidate semantics
+remain unchanged; historical spike bytes stay read-only. The missing ADR-10 packet is not
+mechanically recoverable from the current repository record because no authoritative
+MD/JSON status or decision rationale exists; creating it requires lead review. No P10+
+production task may bypass P9 by treating the current directory layout or merge commit as
+acceptance.
 
 ## 6. Initial API sketch
 
@@ -329,18 +469,20 @@ The slice is successful only when all of the following are separately recorded:
 
 ## 8. Validation gates and commands
 
-The exact commands depend on P0's toolchain audit.  The default protocol is:
+The repository now has a pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain. The default
+protocol is:
 
 ```bash
-lake env lean STC/Foundation/Relation.lean
-lake env lean STC/Examples/TwoCounter.lean
+lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/Foundation/Relation.lean
+lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/Examples/TwoCounter.lean
 lake build
+python scripts/validate_definition_ledger.py docs/status/Definition-Ledger.json
+python scripts/scan_lean.py STC
 ```
 
-At blueprint creation time the current scratch workspace has no `lean` or `lake` binary,
-so no compilation result is claimed for the bootstrap file.  P0-T01 must run these
-commands in the selected host environment and record the exact output before promoting
-any `I` or `K` status.
+Every touched production Lean file uses the explicit `-D` options required by
+`AGENTS.md`. A package build or spike compile supplies interface evidence only. ADR status,
+paper alignment, production integration, and theorem proof remain separate gates.
 
 The repository should also provide a `Bootstrap.lean` that imports all production modules,
 checks the public signatures, and runs the finite examples.  A strict source scan should
@@ -354,19 +496,27 @@ path rule.
 | `G-K` | Placeholder-free substantive theorem proofs and explicit hypotheses | Runtime correspondence |
 | `G-E` | Concrete finite execution/property tests | Generic theorem validity by itself |
 | `G-R0` | Abstraction/simulation interface compiles | Any Cordis implementation theorem |
-| `G-H` | Frozen hashes and derived-manifest consistency | Correctness of the paper or code |
+| `G-H` | Frozen hashes, explicit ADR status/completeness, and derived-manifest consistency | Correctness of the paper or code |
 
 No item may be labelled `proved` merely because it compiles.  A contract field is an
 assumption until a concrete instance or theorem discharges it.
 
-## 9. Deferred scope and reopen rules
+## 9. Decision-gated and deferred scope
 
-Deferred by design:
+Decision-gated after this audit:
 
-- full `BD-CONTROL` labelled lifecycle semantics, nondeterminism, and asynchronous landing;
-- `BD-STAGING` base/extended calculus correspondence;
-- `BD-SUPPORT` recursive support and late-registration cycle;
-- `BD-SCOPED` realms/interception;
+- `BD-CONTROL`: ADR-07 is proposed and its spike fails; acceptance, production
+  integration, concrete guards, preservation/progress/recovery, and all `K` proofs remain
+  pending.
+- `BD-STAGING`: ADR-08 is proposed and its spike fails; the candidate macro/view is not
+  yet a normative production constraint, and all correspondence proofs remain pending.
+- `BD-SUPPORT`: ADR-09 is proposed and its spike fails; the candidate carrier/rank
+  boundary is not yet accepted, and L68/L70/L72/T73 remain unproved.
+- `BD-SCOPED`: ADR-10 has only a failing spike and no MD/JSON packet; architecture and
+  integration remain lead-review blocked.
+
+Deferred independently of those decision packets:
+
 - concrete D34 typed operation-test AST;
 - complete tracked-context/accumulator proof family;
 - concrete `ValidState`/WF/provider/lifecycle preservation;
@@ -378,6 +528,8 @@ Pending proof is different from deferred design.  For example, a recovery theore
 implemented as an interface (`I`) while its concrete proof is pending (`K`); that does not
 make it a new blocker.  A change to the selected state carrier, failure meaning, relation
 architecture, or iterator carrier requires a superseding ADR instead of an informal edit.
+Likewise, acceptance of ADR-07..10 would close only its named architecture question; it
+would not promote any Definition Ledger theorem row to `completed` or `proved`.
 
 ## 10. Feedback protocol
 
@@ -394,7 +546,7 @@ paper/ADR interpretation changes:
 next action or rollback/defer decision:
 ```
 
-The expected first implementation loop is therefore:
+The original first-kernel implementation loop remains:
 
 ```text
 P0 baseline
@@ -405,7 +557,10 @@ P0 baseline
   → P5 state/registry adapter
   → P6 alpha transport
   → P7 complete vertical slice
+  → P8 conformance and R0 seam
 ```
 
-This ordering keeps the metatheory kernel executable and auditable while leaving a clean,
-explicit route toward the later Cordis adapter and refinement work.
+The current repository has merged P0–P5. After P8, the acceptance-gated P9–P13 sequence in
+§5 is the only authorized route for ADR-07..10 promotion and integration. This ordering
+keeps the metatheory kernel executable and auditable while leaving a clean, explicit route
+toward later control/scoped work and the Cordis adapter/refinement boundary.
