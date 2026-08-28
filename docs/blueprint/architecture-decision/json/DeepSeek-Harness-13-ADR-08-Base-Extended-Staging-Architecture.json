@@ -2,10 +2,12 @@
   "metadata": {
     "artifact_title": "DeepSeek Harness ADR-08: Base/Extended Staging Architecture",
     "packet_id": "ADR-08",
-    "status": "proposed-architecture-closure-compiler-pending",
-    "artifact_version": "0.1-proposed-compiler-pending",
+    "status": "proposed-architecture-closure-compiler-validated",
+    "artifact_version": "0.1-proposed-compiler-validated",
     "created_on": "2026-08-28",
     "semantic_change": false,
+    "architecture_status": "acceptance_pending",
+    "formal_acceptance": false,
     "supersedes": [],
     "namespace": "STCADR08",
     "production_namespace": "STC",
@@ -156,8 +158,13 @@
   "validation": {
     "spike": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean",
     "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean",
-    "toolchain_available": false,
-    "compiler_result": "pending-toolchain",
+    "toolchain_available": true,
+    "compiler_result": "exit-0-zero-warnings",
+    "exit_code": 0,
+    "warning_count": 0,
+    "validated_commit": "d2f8caafe1081e2a154d7bad0d307e72b6930d8f",
+    "repair_commit": "c73000cefaa61a4ea8f8e816864b3f7dab9a8484",
+    "observed_output": "empty",
     "local_checks": [
       "JSON syntax parse",
       "no sorry/admit/project axiom/unsafe lexical markers in spike",
@@ -166,9 +173,9 @@
     "full_bd_staging_closed": false
   },
   "integrity": {
-    "markdown_sha256": "91dd901a23f808d32b743e6cbbe4dfd0820664b913c24660f3af84b4c5926923",
+    "markdown_sha256": "dfa9a69f0e92919cea33edd1f736e6846bb04212e933419927939a24206a0b55",
     "json_sha256": null,
-    "lean_sha256": "8f6a30937d79f6683049521f85dba1fda8856b29e8508f8092a469c34287054e",
+    "lean_sha256": "63aaf2e76bb9a64f5ea2e18c8293a5f0f5580da60df9c21e5237fcb266948c8f",
     "hash_policy": "SHA-256 covers companion bytes; JSON self-hash is intentionally excluded and remains null."
   }
 }

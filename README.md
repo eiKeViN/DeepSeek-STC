@@ -33,11 +33,14 @@ The next first-kernel wave is P6 alpha transport, followed by the P7 integrated
 vertical slice and P8 conformance/R0 work.  P0-P5 execution plans remain
 historical records and are not renumbered.
 
-ADR-07 (control), ADR-08 (staging), and ADR-09 (support) currently have
-proposed/compiler-pending packets, but their standalone spikes fail the pinned
-compiler checks.  ADR-10 (scoped coeffects) has only a failing spike and lacks
-its companion Markdown/JSON packet.  None is an accepted normative input yet;
-production integration and Section-4 `K` theorems remain pending.
+ADR-07 (control), ADR-08 (staging), ADR-09 (support), and ADR-10 (scoped
+coeffects) remain proposed packets, but all four repaired standalone spikes now
+pass their pinned Lean 4.33.0 / Mathlib v4.33.0 commands with exit 0 and zero
+warnings.  ADR-10 has its complete Markdown/JSON/Lean companion set.  The
+compiler result is interface evidence only, not formal ADR acceptance, automatic
+architecture closure, production integration, a Section-4 `K` theorem, or runtime
+refinement; all four blockers remain acceptance-gated.  The exact audit record is
+in [`docs/status/ADR-07-10-reconciliation.md`](docs/status/ADR-07-10-reconciliation.md).
 
 A compiling file is an interface result, not automatically a semantic proof;
 the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
