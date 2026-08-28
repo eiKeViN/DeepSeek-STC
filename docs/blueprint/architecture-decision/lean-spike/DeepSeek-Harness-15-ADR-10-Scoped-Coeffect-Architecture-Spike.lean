@@ -1,3 +1,5 @@
+import Mathlib.Tactic
+
 /-!
   ADR-10: scoped coeffect and realm architecture.
 
@@ -13,8 +15,6 @@
   and the one-way flat embedding.  Lifecycle, control, and runtime/refinement
   semantics are intentionally outside this spike.
 -/
-
-import Mathlib.Tactic
 
 set_option autoImplicit false
 set_option pp.unicode.fun true
@@ -177,12 +177,13 @@ structure MetadataPrecedence (A : MetaAlgebra K Meta) where
 /-- A finite interception specification keeps presence separate from metadata. -/
 structure InterceptionSpec (K : Type u) (Meta : K → Type y)
     [DecidableEq K] where
-  at : (k : K) → Option (Meta k)
+  /-- `at` is a reserved token in Lean, so the spike names this field `atKey`. -/
+  atKey : (k : K) → Option (Meta k)
   support : Finset K
   support_sound :
-    ∀ {k : K} {m : Meta k}, at k = some m → k ∈ support
+    ∀ {k : K} {m : Meta k}, atKey k = some m → k ∈ support
   support_complete :
-    ∀ {k : K}, k ∈ support → ∃ m : Meta k, at k = some m
+    ∀ {k : K}, k ∈ support → ∃ m : Meta k, atKey k = some m
 
 /-- Persistent scoped state: resolver, realm store, and inherited metadata. -/
 structure ScopedContext (M : RealmModel K V)
@@ -204,7 +205,7 @@ def deriveIntercept (A : MetaAlgebra K Meta)
   { c with
     contextMeta := fun k =>
       A.merge k (c.contextMeta k)
-        (match spec.at k with
+        (match spec.atKey k with
         | some m => m
         | none => A.empty k) }
 
@@ -241,9 +242,9 @@ variable [DecidableEq K]
 
 /-- A flat-to-scoped embedding with lookup, insert, and erase commuting laws. -/
 structure FlatEmbedding (M : RealmModel K V)
-    (FlatStore ScopedStore : Type x)
+    (FlatStore ScopedStore : Type x) [DecidableEq K]
     (ops : RealmStoreOps M ScopedStore)
-    (ρ : Resolver M) [DecidableEq K] where
+    (ρ : Resolver M) where
   embed : FlatStore → ScopedStore
   flatLookup : FlatStore → (k : K) → Option (V k)
   flatInsert : FlatStore → (k : K) → V k → FlatStore
@@ -313,17 +314,13 @@ def toyStoreOps : RealmStoreOps toyModel ToyStore where
     intro r
     rfl
   lookup_insert_same := by
-    intro s r v
-    simp [toyLookup, toyInsert]
+    grind only [toyLookup, toyInsert]
   lookup_insert_other := by
-    intro s r v q h
-    simp [toyLookup, toyInsert, h]
+    grind only [toyLookup, toyInsert]
   lookup_erase_same := by
-    intro s r
-    simp [toyLookup, toyErase]
+    grind only [toyLookup, toyErase]
   lookup_erase_other := by
-    intro s r q h
-    simp [toyLookup, toyErase, h]
+    grind only [toyLookup, toyErase]
 
 example (s : ToyStore) (k : ToyKey) (v : Nat) :
     toyLookup (toyInsert s k v) k = some v := by
@@ -369,14 +366,14 @@ def toyContext : ScopedContext toyModel ToyMeta ToyStore where
   contextMeta := fun _ => none
 
 def emptyToyInterception : InterceptionSpec ToyKey ToyMeta where
-  at := fun _ => none
+  atKey := fun _ => none
   support := ∅
   support_sound := by
     intro k m h
     cases h
   support_complete := by
     intro k hk
-    exact False.elim (by simpa using hk)
+    exact False.elim (by simp at hk)
 
 example :
     (deriveIntercept toyMetaAlg toyContext emptyToyInterception).resolver =
@@ -396,21 +393,23 @@ def toyFlatEmbedding :
   flatErase := toyErase
   embed_lookup := by
     intro s k
-    simp [scopedLookup, toyResolver, defaultRef, toyStoreOps,
-      toyLookup, RealmRef.cast]
+    simp only [scopedLookup, toyResolver, defaultRef, toyStoreOps, toyLookup, toyModel]
+    change (s k).map id = s k
+    cases s k <;> rfl
   embed_insert := by
     intro s k v
-    simp [scopedInsert, toyResolver, defaultRef, toyStoreOps,
-      toyInsert, RealmRef.castInv]
+    simp [scopedInsert, toyResolver, defaultRef, toyStoreOps, RealmRef.castInv, toyModel]
   embed_erase := by
     intro s k
-    simp [scopedErase, toyResolver, defaultRef, toyStoreOps, toyErase]
+    simp [scopedErase, toyResolver, defaultRef, toyStoreOps, toyModel]
 
 example (s : ToyStore) (k : ToyKey) :
     scopedLookup toyStoreOps toyResolver
         (scopedErase toyStoreOps toyResolver s k) k = none := by
-  simp [scopedLookup, scopedErase, toyResolver, defaultRef,
-    toyStoreOps, toyErase, RealmRef.cast]
+  simp only [scopedLookup, scopedErase, toyResolver, defaultRef, toyStoreOps,
+    toyLookup, toyErase, toyModel]
+  change (none : Option Nat).map id = none
+  rfl
 
 #eval toyLookup (toyInsert toyEmpty true 7) true
 #eval toyLookup (toyErase (toyInsert toyEmpty true 7) true) true

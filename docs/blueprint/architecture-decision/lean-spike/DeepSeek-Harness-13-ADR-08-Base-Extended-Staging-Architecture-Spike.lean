@@ -325,7 +325,7 @@ theorem toy_remove_macro :
     · exact Trace.nil _
 
 theorem toy_orchestration_rejects_wrong_endpoint :
-    not (AtomicOrchMacro toyModel .insert .inactive .active) := by
+    ¬ (AtomicOrchMacro toyModel .insert .inactive .active) := by
   intro h
   cases h.2 with
   | cons hstep hrest =>
@@ -333,7 +333,7 @@ theorem toy_orchestration_rejects_wrong_endpoint :
       cases hstep.2
 
 theorem toy_nonatomic_rejected :
-    not (toyAtomicLife [.begin, .finish, .leave]) := by
+    ¬ (toyAtomicLife [.begin, .finish, .leave]) := by
   intro h
   rcases h with h | h | h
   · simp at h
@@ -341,7 +341,7 @@ theorem toy_nonatomic_rejected :
   · simp at h
 
 theorem toy_failure_or_interleaving_rejected :
-    not (toyAtomicLife [.begin, .finish, .raise]) := by
+    ¬ (toyAtomicLife [.begin, .finish, .raise]) := by
   intro h
   rcases h with h | h | h
   · simp at h
@@ -356,7 +356,7 @@ theorem toy_base_life_cases
   cases before <;> cases label <;> cases after <;>
     simp [toyBaseLife] at h ⊢
 
-def toyForwardSimulation : ForwardSimulation toyModel where
+theorem toyForwardSimulation : ForwardSimulation toyModel where
   orchestration := by
     intro before after label h
     cases before with
@@ -365,19 +365,19 @@ def toyForwardSimulation : ForwardSimulation toyModel where
       | inactive =>
         cases label with
         | insert => exact toy_insert_macro
-        | retire => cases h
+        | retire => simp [toyModel, toyBaseOrch] at h
         | remove => exact toy_remove_macro
       | active =>
-        cases label <;> cases h
+        cases label <;> simp [toyModel, toyBaseOrch] at h
     | active =>
       cases after with
       | inactive =>
-        cases label <;> cases h
+        cases label <;> simp [toyModel, toyBaseOrch] at h
       | active =>
         cases label with
-        | insert => cases h
+        | insert => simp [toyModel, toyBaseOrch] at h
         | retire => exact toy_retire_macro
-        | remove => cases h
+        | remove => simp [toyModel, toyBaseOrch] at h
   lifecycle := by
     intro before after label h
     rcases toy_base_life_cases h with h | h
@@ -396,7 +396,7 @@ theorem toy_reload_adequacy :
     toyAtomicLife [.begin, .finish] ->
       Trace toyFullLife (toyEmbed .inactive) [.begin, .finish]
         (toyEmbed .active) ->
-      (.inactive = .active \/
+      ((.inactive : ToyBase) = .active \/
         exists label, [.begin, .finish] = toyExpandLife label /\
           toyBaseLife label .inactive .active) := by
   intro _ htrace

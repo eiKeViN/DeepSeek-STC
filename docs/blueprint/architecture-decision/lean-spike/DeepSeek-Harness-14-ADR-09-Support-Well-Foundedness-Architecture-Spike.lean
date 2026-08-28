@@ -49,6 +49,13 @@ def ParentEdge (s : Snapshot N K) (a b : N) : Prop :=
 def SupportRel (s : Snapshot N K) (a b : N) : Prop :=
   Precedes s a b ∨ ParentEdge s a b
 
+/- Lean 4.33 instance search does not unfold compound predicate definitions, so
+   the finite `decide` checks below need an explicit decidability bridge. -/
+instance instDecidableSupportRel (s : Snapshot N K) (a b : N) :
+    Decidable (SupportRel s a b) := by
+  unfold SupportRel Precedes ParentEdge
+  infer_instance
+
 /- The recursion-facing dependency relation is the converse: a dependent b
    points to its support predecessor a.  Thus a provider→dependent rank increase
    becomes a strict rank decrease when induction follows `SupportDep`. -/
@@ -98,8 +105,7 @@ theorem supportSet_least (s : Snapshot N K) {A : Set N}
 
 theorem supportSet_prefixed (s : Snapshot N K) :
     Prefixed s (SupportSet s) := by
-  intro n hn
-  intro A hA
+  intro n hn A hA
   apply hA
   exact supportClause_mono s (supportSet_least s hA) hn
 
@@ -198,8 +204,7 @@ theorem shorthand_rank_compatible :
       a.val < b.val := by
   intro a b h
   fin_cases a <;> fin_cases b <;>
-  simp [SupportRel, Precedes, ParentEdge, shorthandSnapshot] at h ⊢ <;>
-    omega
+  simp [SupportRel, Precedes, ParentEdge, shorthandSnapshot] at h ⊢
 
 theorem shorthand_not_cycle :
     ¬ ∃ (a b c : Fin 3),
@@ -229,8 +234,7 @@ theorem corrected_precedence_acyclic :
       (2 - a.val) < (2 - b.val) := by
   intro a b h
   fin_cases a <;> fin_cases b <;>
-  simp [Precedes, correctedCycleSnapshot] at h ⊢ <;>
-    omega
+  simp [Precedes, correctedCycleSnapshot] at h ⊢
 
 theorem corrected_cycle_edges :
     SupportRel correctedCycleSnapshot (2 : Fin 3) 0 ∧
