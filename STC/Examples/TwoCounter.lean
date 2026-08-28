@@ -13,7 +13,7 @@ evidence is decidable data.
 
 ## Main declarations
 
-* `CounterState`, `inc1`, `inc2`, `dec1`, `failIfZero`: the two-counter carriers;
+* `CounterState`, `inc1`, `inc2`, `dec1`, `dec2`, `failIfZero`: the two-counter carriers;
 * `inc1_lawful`, `inc2_lawful`, `failIfZero_atomic`: the K evidence;
 * `inc12_independent`: the instance-level operation independence contract;
 * `fstProjectOp_not_foreignStable`: the foreign-stability countermodel;
@@ -46,6 +46,13 @@ def dec1 : PartialOp CounterState Unit :=
   fun s =>
     if s.1 = 0 then none
     else some { state := (s.1 - 1, s.2), undo := fun t => (t.1 + 1, t.2), outcome := () }
+
+/-- Decrement the second counter: defined exactly when it is positive.  The guard is
+explicit `Option` undefinedness; the selected inverse restores the decremented counter. -/
+def dec2 : PartialOp CounterState Unit :=
+  fun s =>
+    if s.2 = 0 then none
+    else some { state := (s.1, s.2 - 1), undo := fun t => (t.1, t.2 + 1), outcome := () }
 
 /-- The atomic Toy failure: undefined exactly when the second counter is zero.
 Successful runs change nothing and select the identity inverse; atomicity is this
@@ -165,6 +172,15 @@ def decDefinedState : Bool :=
   | some r => decide (r.state = (2, 5))
   | none => false
 
+/-- `dec2` is undefined at a zero second counter. -/
+def dec2ZeroUndefined : Bool := (dec2 (3, 0)).isNone
+
+/-- A defined `dec2` run exposes its successor and selected inverse behavior. -/
+def dec2DefinedState : Bool :=
+  match dec2 (3, 5) with
+  | some r => decide (r.state = (3, 4) ∧ r.undo r.state = (3, 5) ∧ r.outcome = ())
+  | none => false
+
 /-- The mixed undefined/defined pair is rejected by the tagged relator. -/
 def optionMixedRejected : Bool :=
   letI : Decidable
@@ -192,6 +208,8 @@ structure CounterFailureReport where
   failStateUnchanged : Bool
   decZeroUndefined : Bool
   decDefinedState : Bool
+  dec2ZeroUndefined : Bool
+  dec2DefinedState : Bool
   optionMixedRejected : Bool
   failureBoundary : Bool
 deriving DecidableEq, Repr
@@ -204,6 +222,8 @@ def counterFailureReport : CounterFailureReport :=
     failStateUnchanged := failStateUnchanged
     decZeroUndefined := decZeroUndefined
     decDefinedState := decDefinedState
+    dec2ZeroUndefined := dec2ZeroUndefined
+    dec2DefinedState := dec2DefinedState
     optionMixedRejected := optionMixedRejected
     failureBoundary := failureBoundary }
 
@@ -218,6 +238,8 @@ example : counterFailureReport =
       failStateUnchanged := true
       decZeroUndefined := true
       decDefinedState := true
+      dec2ZeroUndefined := true
+      dec2DefinedState := true
       optionMixedRejected := true
       failureBoundary := true } := by
   decide
