@@ -22,17 +22,20 @@ structure RecoveryProfile (State : Type u) (Label : Type v)
   continuationStable : State → State → Prop
   landingCoherent : State → State → Prop
   cleanup : State → State → Prop
-  inverse_step : Prop
+  inverse_step : ∀ {label before after}, step label before after → inverse after before
 
 theorem recovery_profile_inverse {State : Type u} {Label : Type v}
     {step : Label → State → State → Prop}
-    (profile : RecoveryProfile State Label step) : profile.inverse_step → profile.inverse_step :=
-  fun h => h
+    (profile : RecoveryProfile State Label step) {label before after}
+    (h : step label before after) : profile.inverse after before :=
+  profile.inverse_step h
 
 /-- The strong "as if never begun" result requires no registered-child steps. -/
 structure NoRegisteredChildren (State : Type u) (Label : Type v)
     (step : Label → State → State → Prop) where
-  absent : ∀ {label before after}, step label before after → Prop
+  registeredChild : Label → State → State → Prop
+  absent : ∀ {label before after}, step label before after →
+    ¬ registeredChild label before after
 
 def RecoverableEpisode (State : Type u) (Label : Type v)
     (step : Label → State → State → Prop) (profile : RecoveryProfile State Label step)

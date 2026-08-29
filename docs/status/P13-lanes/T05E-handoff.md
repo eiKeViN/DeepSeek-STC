@@ -4,4 +4,5 @@
   `Examples/GlobalAlpha.lean`.
 * Result: alpha action/equivariance and adjacent-diamond contracts retain
   disjointness, same-witness, continuation, and control-edit premises.
-* Evidence: `A I K E`; the finite swap fixture is identity-state based.
+* Evidence: `I K E`; the finite `Fin 2` action is genuinely nonidentity, while
+  concrete global-state equivariance remains open.

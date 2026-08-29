@@ -36,10 +36,6 @@ structure PositiveContext (Ambient : Type u) (K : Type v) (D : Type w) (Code : T
   ambient : Ambient
   registry : PositiveRegistry K D Code
 
-/-- The registry has no negative recursive occurrence. -/
-def CellDataOnly (_cell : PositiveCell K D Code) : Prop :=
-  True
-
 theorem positiveRegistry_empty (K : Type u) (D : Type v) (Code : Type w) :
     (∅ : PositiveRegistry K D Code).keys = ∅ := by
   rfl

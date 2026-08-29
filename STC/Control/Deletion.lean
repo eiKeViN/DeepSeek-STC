@@ -26,15 +26,15 @@ structure DeletionEnvelope (State : Type u) (Label : Type v) where
   totalProvision : State → Prop
   quiescent : State → Prop
   structural : State → Prop
+  endpointObs : State → State → Prop
 
 structure DeletionResult (State : Type u) (Label : Type v)
-    (trace : State → State → Prop) (envelope : DeletionEnvelope State Label) where
-  source : State
-  target : State
+    (trace : State → State → Prop) (envelope : DeletionEnvelope State Label)
+    (source : State) (target : State) where
   shortened : State
-  original : Prop
-  shortenedTrace : Prop
-  endpointObs : Prop
+  original : trace source target
+  shortenedTrace : trace source shortened
+  endpoint_related : envelope.endpointObs shortened target
   envelope_holds : envelope.reachable source ∧ envelope.wellFormed source ∧
     envelope.closedEpisode target ∧ envelope.recovery source target ∧
       envelope.continuationIndependent source target ∧ envelope.noRegisteredChildren target ∧
@@ -44,8 +44,8 @@ structure DeletionResult (State : Type u) (Label : Type v)
 def CanDelete (State : Type u) (Label : Type v)
     (trace : State → State → Prop) (envelope : DeletionEnvelope State Label) : Prop :=
   ∀ source target, envelope.reachable source → envelope.wellFormed source →
-    envelope.closedEpisode target →
-      Nonempty (DeletionResult State Label trace envelope)
+    envelope.closedEpisode target → trace source target →
+      Nonempty (DeletionResult State Label trace envelope source target)
 
 end
 

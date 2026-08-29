@@ -8,21 +8,6 @@ public import STC.Control.Deletion
 
 namespace STC.Examples.GlobalDeletion
 
-open STC STC.Control
-
-@[expose] public section
-
-def envelope : DeletionEnvelope Nat Nat where
-  reachable := fun _ => True
-  wellFormed := fun _ => True
-  closedEpisode := fun _ => True
-  recovery := fun _ _ => True
-  continuationIndependent := fun _ _ => True
-  noRegisteredChildren := fun _ => True
-  totalProvision := fun _ => True
-  quiescent := fun _ => True
-  structural := fun _ => True
-
-end
+/-! This module intentionally provides no finite L72 witness yet. -/
 
 end STC.Examples.GlobalDeletion

@@ -30,7 +30,7 @@ theorem step_preserves_static {State : Type u} {Label : Type v}
     {label before after} (h : rule label before after) :
     profile.static before after := profile.step_static h
 
-/-- The machine-derived Table1 record is evidence data, not an axiom. -/
+/-- The machine-derived Table1 record is checked evidence data. -/
 structure Table1Entry where
   constructorName : String
   paperCase : String

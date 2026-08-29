@@ -31,7 +31,8 @@ theorem provided_lookup : lookup 2 providedStore = some 2 :=
 theorem provided_restore : erase 2 providedStore = emptyStore :=
   provide_revoke_restore provided_step
 
-noncomputable def decideSat : ∀ store : Store (fun _ : Nat => Nat), Decidable (Satisfies requirement store) :=
+noncomputable def decideSat :
+    ∀ store : Store (fun _ : Nat => Nat), Decidable (Satisfies requirement store) :=
   fun store => @Classical.propDecidable (Satisfies requirement store)
 
 theorem sat_round_trip (store : Store (fun _ : Nat => Nat)) :

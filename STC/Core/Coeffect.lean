@@ -1,7 +1,7 @@
 module
 
-public import STC.State.CoeffectStore
 public import STC.Core.Partial
+public import STC.State.CoeffectStore
 
 /-!
 # Coeffect and satisfaction prerequisites

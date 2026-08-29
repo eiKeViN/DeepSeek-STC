@@ -12,14 +12,20 @@ open STC STC.Control
 
 @[expose] public section
 
-def profile : RecoveryProfile Nat Nat (fun _ _ _ => True) where
-  inverse := fun x y => x = y
-  continuationStable := fun _ _ => True
-  landingCoherent := fun _ _ => True
-  cleanup := fun _ _ => True
-  inverse_step := True
+def step (_label before after : Nat) : Prop := after = before
 
-theorem inverse_profile : profile.inverse_step → profile.inverse_step := fun h => h
+def profile : RecoveryProfile Nat Nat step where
+  inverse := fun x y => x = y
+  continuationStable := fun x y => x = y
+  landingCoherent := fun x y => x = y
+  cleanup := fun x y => x = y
+  inverse_step := by
+    intro label before after h
+    exact h
+
+theorem inverse_profile {label before after} (h : step label before after) :
+    profile.inverse after before :=
+  recovery_profile_inverse profile h
 
 end
 

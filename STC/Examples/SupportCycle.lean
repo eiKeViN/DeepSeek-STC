@@ -43,11 +43,6 @@ theorem cycle_not_supportWF : ¬ SupportWF cycleSnapshot := by
     (by simp [cycleSnapshot]) (Or.inr (by rfl))
   omega
 
-def cycleReport : Bool := true
-
-theorem cycleReport_expected : cycleReport = true := by
-  rfl
-
 end
 
 end STC.Examples.SupportCycle

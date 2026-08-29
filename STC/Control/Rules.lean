@@ -26,7 +26,8 @@ variable {Action : Type u} {Iterator : Type v} {Accumulator : Type w}
 variable {Flight : Type u} {Failure : Type v} {Ambient : Type x}
 variable [DecidableEq Name] [DecidableEq Key]
 
-local notation "GState" => GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
+local notation "GState" =>
+  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
 local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Failure
 local notation "GComponent" => Component Key Value Action Iterator Accumulator Flight Failure
 
@@ -77,29 +78,6 @@ def phaseState (state : GState) (owner : Name) (phase : LifecyclePhase) : GState
 def failState (state : GState) (owner : Name) (failure : Failure) : GState :=
   editCell state owner (fun cell =>
     { cell with phase := .failed, payload := { cell.payload with failureData := some failure } })
-
-/-- A structural rule witness exposes the selected owner, exact successor, and
-the static/write frame predicates as first-class fields. -/
-structure RuleWitness (label : Sum OLabel LLabel)
-    (before after : GState) where
-  guard : Prop
-  successor : after = match label with
-    | .inl (.insert fresh cell) => insertState before fresh cell
-    | .inl (.retire owner) => retireState before owner
-    | .inl (.remove owner) => removeState before owner
-    | .inr (.begin owner) => phaseState before owner .reloading
-    | .inr (.iter owner) => phaseState before owner .reloading
-    | .inr (.finish owner) => phaseState before owner .active
-    | .inr (.divert owner .land) => phaseState before owner .active
-    | .inr (.divert owner .abort) => phaseState before owner .inactive
-    | .inr (.raise owner failure) => failState before owner failure
-    | .inr (.leave owner) => phaseState before owner .unloading
-    | .inr (.unload owner) => removeState before owner
-  writeKeys : Finset Key
-  readKeys : Finset Key
-  writeFrame : Prop
-  readNoninterference : Prop
-  nameUpdate : before.ledger.everIssued ⊆ after.ledger.everIssued
 
 def orchestrationRule (label : OLabel) (before after : GState) : Prop :=
   match label with

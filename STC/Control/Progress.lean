@@ -21,7 +21,9 @@ structure ProgressMeasure (State : Type u) (Label : Type v)
   decreases : ∀ {label before after}, step label before after → rank after < rank before
   ready : State → Prop
   ready_step : ∀ {label before after}, step label before after → ready before → ready after
-  successor_or_quiescent : State → Prop
+  quiescent : State → Prop
+  successor_or_quiescent : ∀ state, ready state →
+    (∃ label after, step label state after) ∨ quiescent state
 
 theorem progress_decreases {State : Type u} {Label : Type v}
     {step : Label → State → State → Prop}
@@ -34,6 +36,12 @@ theorem progress_ready_preserved {State : Type u} {Label : Type v}
     (profile : ProgressMeasure State Label step)
     {label before after} (h : step label before after) (ready : profile.ready before) :
     profile.ready after := profile.ready_step h ready
+
+theorem progress_or_quiescent {State : Type u} {Label : Type v}
+    {step : Label → State → State → Prop}
+    (profile : ProgressMeasure State Label step) {state} (ready : profile.ready state) :
+    (∃ label after, step label state after) ∨ profile.quiescent state :=
+  profile.successor_or_quiescent state ready
 
 end
 

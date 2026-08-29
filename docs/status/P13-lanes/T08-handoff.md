@@ -2,5 +2,6 @@
 
 * Scope: `STC/Conformance/Global.lean`, `STC/Examples/Global.lean`,
   `scripts/generate_p13_conformance_manifest.py`.
-* Result: deterministic manifest schema/generator and finite evidence umbrella.
-* Evidence: `A I E`; final output is generated only after T09 integration.
+* Result: deterministic readiness-manifest schema/generator and finite-evidence
+  inventory, with missing guarded-rule and theorem evidence recorded explicitly.
+* Evidence: `I`; T08 vertical-slice and negative profiles remain in progress.

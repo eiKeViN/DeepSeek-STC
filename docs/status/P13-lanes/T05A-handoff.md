@@ -2,6 +2,7 @@
 
 * Scope: `STC/Control/Structural.lean`, `Preservation.lean`,
   `Examples/GlobalStructural.lean`.
-* Result: explicit footprint, structural law, static-preservation, and derived
-  Table1 records.
-* Evidence: `I K`; full concrete guard derivation remains profile-relative.
+* Result: in-progress footprint, structural-law, static-preservation, and
+  Table1 data interfaces.
+* Evidence: `I`; concrete per-rule derivation, trace preservation, and Table1
+  proof population remain open.

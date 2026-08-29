@@ -1,6 +1,7 @@
 module
 
 public import STC.Alpha.Transport
+public import STC.Conformance.Global
 public import STC.Control
 public import STC.Control.Alpha
 public import STC.Control.Canonical
@@ -12,19 +13,18 @@ public import STC.Control.Progress
 public import STC.Control.Reachability
 public import STC.Control.Recovery
 public import STC.Control.Rules
+public import STC.Control.Spatial
+public import STC.Control.Structural
 public import STC.Control.Support
 public import STC.Control.Support.Quiescence
 public import STC.Control.Support.Reachable
-public import STC.Control.Spatial
-public import STC.Control.Structural
-public import STC.Conformance.Global
 public import STC.Core.Coeffect
-public import STC.Core.Effect.Closure
-public import STC.Core.Partial.Recovery
 public import STC.Core.Effect
+public import STC.Core.Effect.Closure
 public import STC.Core.EffectCode
 public import STC.Core.Iterator
 public import STC.Core.Partial
+public import STC.Core.Partial.Recovery
 public import STC.Examples.Alpha
 public import STC.Examples.Control
 public import STC.Examples.Effect
@@ -42,30 +42,34 @@ public import STC.Examples.PrerequisiteRecovery
 public import STC.Examples.PrerequisiteState
 public import STC.Examples.RelationResult
 public import STC.Examples.Scoped
-public import STC.Examples.State
 public import STC.Examples.Staging
+public import STC.Examples.State
 public import STC.Examples.Support
+public import STC.Examples.SupportCycle
 public import STC.Examples.SupportTrace
 public import STC.Examples.TwoCounter
 public import STC.Examples.VerticalSlice
-public import STC.Examples.SupportCycle
 public import STC.Foundation.Relation
+public import STC.Foundation.Relation.Transport
 public import STC.Foundation.Result
 public import STC.Scoped
+public import STC.Staging
+public import STC.Staging.Support
 public import STC.State.CoeffectStore
-public import STC.State.FinmapAdapter
+public import STC.State.Component
 public import STC.State.Fiber
+public import STC.State.FinmapAdapter
 public import STC.State.Global
 public import STC.State.Global.Observation
 public import STC.State.Like
 public import STC.State.Observation
+public import STC.State.Observation.Lift
+public import STC.State.Positive
 public import STC.State.RegistryLike
 public import STC.State.Support
 public import STC.State.Support.Alpha
 public import STC.State.Support.Closure
 public import STC.State.Toy
-public import STC.Staging
-public import STC.Staging.Support
 
 /-!
 # STC production bootstrap

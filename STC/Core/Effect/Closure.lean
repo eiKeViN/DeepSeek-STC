@@ -85,8 +85,7 @@ structure RecoveryOperation (R : RelSpec S) (A : Type u) where
 /-- A selected earlier operation can be removed after an independent suffix.
 The operation and suffix relations remain explicit rather than being inferred
 from an opaque transformation monoid. -/
-def SelectiveRemoval (R : RelSpec S) (_O : A → A → Prop)
-    (before suffix : PartialOp S A) : Prop :=
+def SelectiveRemoval (R : RelSpec S) (before suffix : PartialOp S A) : Prop :=
   ∀ {input r s}, before input = some r → suffix r.state = some s →
     ∃ r', suffix input = some r' ∧ R.rel r'.state s.state
 
@@ -96,7 +95,7 @@ structure RecoveryWord (R : RelSpec S) (A : Type u) where
   operations : List (PartialOp S A)
   recover : ∀ op ∈ operations, OperationRecovers R op
   remove : ∀ {op}, op ∈ operations →
-    ∀ suffix, SelectiveRemoval R (fun _ _ => True) op suffix
+    ∀ suffix, SelectiveRemoval R op suffix
 
 end Recovery
 

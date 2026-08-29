@@ -24,38 +24,37 @@ variable {Action : Type u} {Iterator : Type v} {Accumulator : Type w}
 variable {Flight : Type u} {Failure : Type v} {Ambient : Type x}
 variable [DecidableEq Name] [DecidableEq Key]
 
+local notation "GCell" =>
+  FiberCell Name Key Value Action Iterator Accumulator Flight Failure
+local notation "GState" =>
+  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
+
 /-- A complete observation kit for global states. -/
 structure GlobalObservation where
-  registry : ∀ _name : Name, RelSpec (FiberCell Name Key Value Action Iterator Accumulator Flight Failure)
+  registry : ∀ _name : Name, RelSpec GCell
   coeffects : RelSpec (Finmap (fun _ : Key => Value))
-  lifecycle : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient →
-    GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient → Prop
-  controlEdit : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient →
-    GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient → Prop
-  names : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient →
-    GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient → Prop
+  lifecycle : GState → GState → Prop
+  controlEdit : GState → GState → Prop
+  names : GState → GState → Prop
+
+local notation "GObs" => GlobalObservation (Name := Name) (Key := Key) (Value := Value)
+  (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
+  (Flight := Flight) (Failure := Failure) (Ambient := Ambient)
 
 /-- Lift registry and coeffect observations to the full state carrier. -/
-def StateObs (kit : GlobalObservation (Name := Name) (Key := Key) (Value := Value)
-    (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
-    (Flight := Flight) (Failure := Failure) (Ambient := Ambient))
-    (left right : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient) : Prop :=
+def StateObs (kit : GObs) (left right : GState) : Prop :=
   (∀ name, OptionRel (kit.registry name).rel
       (Finmap.lookup name left.registry) (Finmap.lookup name right.registry)) ∧
     kit.coeffects.rel left.coeffects right.coeffects ∧
       kit.lifecycle left right ∧ kit.controlEdit left right ∧ kit.names left right
 
-theorem stateObs_registry (kit : GlobalObservation (Name := Name) (Key := Key) (Value := Value)
-    (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
-    (Flight := Flight) (Failure := Failure) (Ambient := Ambient))
-    {left right : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient}
+theorem stateObs_registry (kit : GObs) {left right : GState}
     (h : StateObs kit left right) (name : Name) :
-    OptionRel (kit.registry name).rel (Finmap.lookup name left.registry) (Finmap.lookup name right.registry) := h.1 name
+    OptionRel (kit.registry name).rel (Finmap.lookup name left.registry)
+      (Finmap.lookup name right.registry) :=
+  h.1 name
 
-theorem stateObs_coeffects (kit : GlobalObservation (Name := Name) (Key := Key) (Value := Value)
-    (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
-    (Flight := Flight) (Failure := Failure) (Ambient := Ambient))
-    {left right : GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient}
+theorem stateObs_coeffects (kit : GObs) {left right : GState}
     (h : StateObs kit left right) : kit.coeffects.rel left.coeffects right.coeffects := h.2.1
 
 end GlobalObservation

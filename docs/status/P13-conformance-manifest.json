@@ -10,10 +10,9 @@
     "scoped_global_generalization": "not proved"
   },
   "branch": "codex/p13-global-metatheory-20260829",
-  "commit": "96b87529863a5c24704337c215ef4599df31a88b",
   "entries": [
     {
-      "delivery": "completed",
+      "delivery": "in_progress",
       "evidence": [
         "I",
         "K",
@@ -22,14 +21,14 @@
       "id": "P13-T01"
     },
     {
-      "delivery": "completed",
+      "delivery": "in_progress",
       "evidence": [
         "I"
       ],
       "id": "P13-T02"
     },
     {
-      "delivery": "completed",
+      "delivery": "in_progress",
       "evidence": [
         "I",
         "E"
@@ -37,7 +36,7 @@
       "id": "P13-T03"
     },
     {
-      "delivery": "completed",
+      "delivery": "in_progress",
       "evidence": [
         "I",
         "K"
@@ -67,6 +66,13 @@
       "id": "P13-T07"
     },
     {
+      "delivery": "in_progress",
+      "evidence": [
+        "I"
+      ],
+      "id": "P13-T08"
+    },
+    {
       "delivery": "completed",
       "evidence": [
         "A",
@@ -77,16 +83,16 @@
       "id": "P12"
     }
   ],
+  "execution_base_commit": "96b87529863a5c24704337c215ef4599df31a88b",
   "finite_evidence": {
     "alpha_nonidentity": true,
+    "guarded_rule_cases": true,
     "negative_profiles": [
-      "failure",
-      "overlap",
-      "cycle"
+      "abstract_support_cycle"
     ],
     "nonempty_state": true,
-    "rule_cases": true,
-    "support_cycle": true
+    "rule_constructor_surface": true,
+    "support_cycle": "abstract_snapshot_only"
   },
   "plan_id": "DH-P13-GLOBAL-METATHEORY-EXEC-01",
   "repository": "DeepSeek-STC",
@@ -98,11 +104,11 @@
     },
     {
       "path": "docs/status/Definition-Ledger.json",
-      "sha256": "6c117d635e8ceb4317b6865d996f7391ebb11fb7866551d3da59ea11e2cb7d28"
+      "sha256": "55636a81c24cd0aa77d1bb25d987ea565e8821da4f51c3b14f1519e492a37792"
     },
     {
       "path": "docs/blueprint/DeepSeek-Harness-11-Executable-Formalization-Blueprint.json",
-      "sha256": "8090c8f35d8781b2b0667b1655a86dd0de8bfdb9972ad1a91e8a8ef655872821"
+      "sha256": "f42b8072b1ea48d8eeb57a4cb36d10dd29f3db11489710cd2891db871f8eca26"
     }
   ]
 }

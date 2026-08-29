@@ -26,7 +26,8 @@ theorem increment_generated : Generated generators increment :=
 
 theorem identity_generated : Generated generators Transformation.identity := Generated.identity
 
-def recoveryOp : PartialOp Nat Unit := fun n => some { state := n + 1, undo := fun m => m - 1, outcome := () }
+def recoveryOp : PartialOp Nat Unit := fun n =>
+  some { state := n + 1, undo := fun m => m - 1, outcome := () }
 
 theorem recoveryOp_recovers : OperationRecovers (equality Nat) recoveryOp := by
   intro input result h
@@ -34,7 +35,7 @@ theorem recoveryOp_recovers : OperationRecovers (equality Nat) recoveryOp := by
   subst result
   rfl
 
-def recoverySpec : RecoverySpec (equality Nat) (fun _ _ : Unit => True) where
+def recoverySpec : RecoverySpec (equality Nat) (equality Unit).rel where
   op := recoveryOp
   respects := by
     intro x y h
@@ -42,8 +43,10 @@ def recoverySpec : RecoverySpec (equality Nat) (fun _ _ : Unit => True) where
     simp [recoveryOp, OptionRel, OpResultRel]
     constructor
     · rfl
-    · intro n
-      rfl
+    · constructor
+      · intro n
+        rfl
+      · rfl
   inverseStable := by
     intro input result h
     simp [recoveryOp] at h

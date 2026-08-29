@@ -4,10 +4,10 @@
 |---|---|
 | Plan | `DH-P13-GLOBAL-METATHEORY-EXEC-01` |
 | Base | `96b8752` (`P13 plan added`) |
-| Freeze state | additive production API; concrete rule/state signatures are stable for this lane |
+| Freeze state | review checkpoint; final T02/T03/T04 freeze remains open |
 | Toolchain | Lean 4.33.0 / Mathlib v4.33.0 |
 
-## Frozen production surface
+## Current production surface
 
 The P13 production graph is additive and data-positive:
 
@@ -34,13 +34,14 @@ the sole union of `orchestrationRule` and `lifecycleRule`; `withdrawRule`,
 * `STC.Control.GlobalOrchestrationLabel`, `GlobalLifecycleLabel`,
   `orchestrationRule`, `lifecycleRule`, `fullRule`, `globalControlModel`.
 * `STC.Control.InitialProfile`, `ReachedFrom`, `Reachable`, `Episode`,
-  `ActivationProvenance`, `SameOrderedOrchestrationInputs`,
+  `ActivationProvenance`, `GrowingBijection`, `RelatedCell`,
+  `SameOrderedOrchestrationInputs`,
   `SameResolvedSemanticWitnesses`.
 * `STC.Control.StructuralLaws`, `PreservationProfile`, `RecoveryProfile`,
   `SpatialProfile`, `ProgressMeasure`, `RuleAlphaProfile`, `DiamondProfile`,
   `DeletionEnvelope`, `CanonicalEnvelope`, `ConfluenceEnvelope`.
 * `STC.Conformance.p13Entries`, `p13Deferred`, and `globalManifestShape`.
 
-No frozen upstream file was edited. Any future carrier/rule signature change
-requires a coordinated reopen recorded in this file and in the final P13
-handoff.
+No frozen upstream file was edited. This inventory is not the final semantic
+freeze: per-rule factorization, write/read frame laws, and activation-provenance
+preservation must close before T05 theorem lanes can rely on these signatures.

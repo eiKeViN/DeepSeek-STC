@@ -41,17 +41,30 @@ structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
   accumulator : Accumulator → State → Option State
   flight : Flight → State → Option State
   failure : Failure → State → Option State
-  noWriteOutside : Prop
-  action_frame : Prop
-  iterator_frame : Prop
-  inverse_law : Prop
-  relation_respect : Prop
-  rank_law : Prop
-  continuation_stable : Prop
+  undo : State → Option State
+  observes : State → State → Prop
+  writesWithinProvision : State → State → Prop
+  continuationStable : State → State → Prop
+  rank : State → Nat
+  noWriteOutside : ∀ {code before after}, action code before = some after →
+    writesWithinProvision before after
+  action_frame : ∀ {code before after}, action code before = some after →
+    observes before after
+  iterator_frame : ∀ {code before after}, iterator code before = some after →
+    observes before after
+  inverse_law : ∀ {code before after}, action code before = some after →
+    undo after = some before
+  relation_respect : ∀ {code left right left' right'}, observes left right →
+    action code left = some left' → action code right = some right' → observes left' right'
+  rank_law : ∀ {code before after}, iterator code before = some after →
+    rank after < rank before
+  continuation_stable : ∀ {code before after}, flight code before = some after →
+    continuationStable before after
 
 /-- A component's declared provisions are disjoint from foreign writes under a
 supplied local footprint relation. -/
-def NoWriteOutsideProvision (component : Component Key Value Action Iterator Accumulator Flight Failure)
+def NoWriteOutsideProvision
+    (component : Component Key Value Action Iterator Accumulator Flight Failure)
     (written : Finset Key) : Prop :=
   written ⊆ component.provides
 

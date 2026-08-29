@@ -1,7 +1,7 @@
 module
 
-public import STC.State.Component
 public import STC.Alpha.Trace
+public import STC.State.Component
 
 /-!
 # Positive fiber cells
@@ -57,7 +57,8 @@ structure FiberCell (Name : Type u) (Key : Type v) (Value : Type w)
   payload : FiberPayload Iterator Accumulator Flight Failure
 
 /-- Initial fibers are inactive unless an explicit commit certificate is supplied. -/
-def InitiallyInactive (fiber : FiberCell Name Key Value Action Iterator Accumulator Flight Failure) : Prop :=
+def InitiallyInactive
+    (fiber : FiberCell Name Key Value Action Iterator Accumulator Flight Failure) : Prop :=
   fiber.phase = .inactive
 
 def initiallyInactive_decidable

@@ -19,10 +19,10 @@ open STC
 @[expose] public section
 
 def p13Entries : List EvidenceEntry :=
-  [ { paperId := "D43-D50", delivery := "completed", evidence := .interface,
-      note := "positive global state and guarded-rule API" }
-  , { paperId := "D53", delivery := "completed", evidence := .interface,
-      note := "reached traces and episode carrier" }
+  [ { paperId := "D43-D50", delivery := "in_progress", evidence := .interface,
+      note := "positive global state and guarded-rule API; concrete frames remain open" }
+  , { paperId := "D53", delivery := "in_progress", evidence := .interface,
+      note := "reached traces and episode carrier; per-rule factorization remains open" }
   , { paperId := "L68", delivery := "in_progress", evidence := .kernel,
       note := "restricted support theorem plus explicit cycle profile" }
   , { paperId := "L70", delivery := "in_progress", evidence := .kernel,
@@ -37,7 +37,8 @@ def p13Entries : List EvidenceEntry :=
 def p13Deferred : List DeferredObligation :=
   [ { id := "D27", reason := "expository realization/refinement", evidenceBoundary := "R1+" }
   , { id := "D74", reason := "Cordis runtime refinement", evidenceBoundary := "R1+" }
-  , { id := "newer-paper", reason := "version reconciliation", evidenceBoundary := "architecture" } ]
+  , { id := "newer-paper", reason := "version reconciliation",
+      evidenceBoundary := "architecture" } ]
 
 def globalManifestShape : Manifest :=
   { schemaVersion := "p13-v1"

@@ -25,10 +25,14 @@ structure Footprint (Name : Type u) (Key : Type v) where
 /-- Structural preservation profile for an arbitrary labelled transition system. -/
 structure StructuralLaws (State : Type u) (Label : Type v)
     (rule : Label → State → State → Prop) (wellFormed : State → Prop) where
+  frame : Label → State → State → Prop
+  observation : Label → State → State → Prop
   wellFormed_step : ∀ {label before after}, rule label before after →
     wellFormed before → wellFormed after
-  frame : ∀ {label before after}, rule label before after → Prop
-  observation : ∀ {label before after}, rule label before after → Prop
+  frame_step : ∀ {label before after}, rule label before after →
+    frame label before after
+  observation_step : ∀ {label before after}, rule label before after →
+    observation label before after
 
 theorem oneStep_wellFormed {State : Type u} {Label : Type v}
     {rule : Label → State → State → Prop} {wellFormed : State → Prop}
