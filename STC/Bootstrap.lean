@@ -11,6 +11,7 @@ public import STC.Examples.Alpha
 public import STC.Examples.Control
 public import STC.Examples.Effect
 public import STC.Examples.RelationResult
+public import STC.Examples.Scoped
 public import STC.Examples.State
 public import STC.Examples.Staging
 public import STC.Examples.Support
@@ -19,6 +20,7 @@ public import STC.Examples.TwoCounter
 public import STC.Examples.VerticalSlice
 public import STC.Foundation.Relation
 public import STC.Foundation.Result
+public import STC.Scoped
 public import STC.State.CoeffectStore
 public import STC.State.FinmapAdapter
 public import STC.State.Like
@@ -56,6 +58,10 @@ Rules that must hold as production modules appear:
 * `STC.StateLike`, `STC.ObservationProfile`: abstract state observations;
 * `STC.RegistryLike`, `STC.ToyRegistry`: finite registry interfaces;
 * `STC.Coeffect.Store`: the dependent coeffect façade;
+* `STC.Scoped.RealmModel`, `STC.Scoped.Resolver`, `STC.Scoped.scopedLookup`,
+  `STC.Scoped.ScopedContext`, `STC.Scoped.FlatEmbedding`: the ADR-10 typed scoped
+  coeffect layer over the P5 store;
+* `STC.Examples.Scoped.scopedReport`: the finite scoped-coeffect report.
 * `STC.State.FinmapAdapter.RawState`: the state-side ADR-03 R0 seam;
 * `STC.SupportSnapshot`, `STC.SupportSet`, `STC.SupportOrder`: committed positive
   support closure and rank certificate;

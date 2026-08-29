@@ -155,7 +155,7 @@ lifecycle `WellFormed` preservation (all remain deferred per ADR-10 scope).
 7. flat embedding on values inside its image (`embed := id` under the identity
    model; lookups pinned by `decide`; derived diagrams; `FlatImage` checks).
 
-## Proposed Definition Ledger deltas (central integration, not applied here)
+## Proposed Definition Ledger deltas (applied 2026-08-29 in the post-join integration commit)
 
 Convention used: `completed`/`proved` for rows this lane discharged;
 `planned` + explicit `deferred_reason` for dependency-blocked rows, until the
@@ -200,9 +200,10 @@ and the per-file pinned commands. Both were run and pass.
 
 ## Integration requests for the post-parallel join
 
-1. Import `STC.Scoped` and `STC.Examples.Scoped` into `STC/Bootstrap.lean`
-   (shared file, outside this lane's ownership).
-2. Apply the proposed Definition Ledger deltas from the table above.
+1. ~~Import `STC.Scoped` and `STC.Examples.Scoped` into `STC/Bootstrap.lean`~~
+   — applied in the post-join integration commit.
+2. ~~Apply the proposed Definition Ledger deltas from the table above~~ —
+   applied in the post-join integration commit; validator passes.
 3. Optional follow-up instance: a `FlatEmbedding` whose `embed` transports an
    arbitrary flat `Finmap` store into `RealmStore M` for a non-identity model
    (needs `Finmap.foldl` step lemmas; the generic contract and laws in
