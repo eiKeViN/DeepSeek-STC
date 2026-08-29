@@ -1,0 +1,108 @@
+{
+  "boundaries": {
+    "architecture": "A",
+    "executable": "E",
+    "kernel": "K",
+    "newer_paper_reconciliation": "not scheduled",
+    "production": "I",
+    "r0": "abstract seam only",
+    "r1_plus": "not proved",
+    "scoped_global_generalization": "not proved"
+  },
+  "branch": "codex/p13-global-metatheory-20260829",
+  "commit": "96b87529863a5c24704337c215ef4599df31a88b",
+  "entries": [
+    {
+      "delivery": "completed",
+      "evidence": [
+        "I",
+        "K",
+        "E"
+      ],
+      "id": "P13-T01"
+    },
+    {
+      "delivery": "completed",
+      "evidence": [
+        "I"
+      ],
+      "id": "P13-T02"
+    },
+    {
+      "delivery": "completed",
+      "evidence": [
+        "I",
+        "E"
+      ],
+      "id": "P13-T03"
+    },
+    {
+      "delivery": "completed",
+      "evidence": [
+        "I",
+        "K"
+      ],
+      "id": "P13-T04"
+    },
+    {
+      "delivery": "in_progress",
+      "evidence": [
+        "I",
+        "K"
+      ],
+      "id": "P13-T05"
+    },
+    {
+      "delivery": "in_progress",
+      "evidence": [
+        "I"
+      ],
+      "id": "P13-T06"
+    },
+    {
+      "delivery": "in_progress",
+      "evidence": [
+        "I"
+      ],
+      "id": "P13-T07"
+    },
+    {
+      "delivery": "completed",
+      "evidence": [
+        "A",
+        "I",
+        "K",
+        "E"
+      ],
+      "id": "P12"
+    }
+  ],
+  "finite_evidence": {
+    "alpha_nonidentity": true,
+    "negative_profiles": [
+      "failure",
+      "overlap",
+      "cycle"
+    ],
+    "nonempty_state": true,
+    "rule_cases": true,
+    "support_cycle": true
+  },
+  "plan_id": "DH-P13-GLOBAL-METATHEORY-EXEC-01",
+  "repository": "DeepSeek-STC",
+  "schema_version": "p13-v1",
+  "sources": [
+    {
+      "path": "docs/plans/P13-Execution-Plan.md",
+      "sha256": "e70efca0a0590b216eb44b2dee848c932061a8428ff7fb6a20ead1d9f7b4468f"
+    },
+    {
+      "path": "docs/status/Definition-Ledger.json",
+      "sha256": "6c117d635e8ceb4317b6865d996f7391ebb11fb7866551d3da59ea11e2cb7d28"
+    },
+    {
+      "path": "docs/blueprint/DeepSeek-Harness-11-Executable-Formalization-Blueprint.json",
+      "sha256": "8090c8f35d8781b2b0667b1655a86dd0de8bfdb9972ad1a91e8a8ef655872821"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+command: python scripts/scan_lean.py STC
+exit: 0
+classification: lexical matches require review below
+STC/Control/Preservation.lean:33:/-- The machine-derived Table1 record is evidence data, not an axiom. -/

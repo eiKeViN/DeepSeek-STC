@@ -47,9 +47,9 @@ STC/Adapter
 ```
 
 The accepted P10/P11 production families are `STC/Control/**`, `STC/Staging/**`, and
-`STC/State/Support.lean` plus their additive bridge modules.  `STC/Scoped/**` remains
-reserved and acceptance-gated for the independent P12 lane.  Do not create scoped
-production modules until ADR-10 has a corresponding execution gate.
+`STC/State/Support.lean` plus their additive bridge modules. `STC/Scoped/**` is the
+completed independent P12 lane. P13 global modules are additive under the ownership
+paths recorded in `docs/plans/P13-Execution-Plan.md`.
 
 - `STC.Adapter` is the reserved abstract R0 abstraction/simulation seam.  Do not put concrete Cordis implementation declarations into the metatheory namespace; the `Cordis` name and its namespaces are reserved for a future runtime-side integration/refinement project.
 - Frozen inputs (read-only): `docs/blueprint/baseline/` (H03 graph, H04 disposition, Formal Reference) and every explicitly accepted ADR artifact.  Proposed ADR packets in the same directory remain non-normative and may be edited only by a dedicated ADR repair/promotion task.
@@ -65,8 +65,9 @@ As of 2026-08-29, separate status records accept ADR-07, ADR-08, ADR-09, and ADR
 P10 Control, P11 Staging, and P11 Support Core are merged; this P11 integration
 closeout adds their production bridges and finite evidence.  Acceptance and
 compilation remain distinct from kernel theorem strength and runtime refinement.
-ADR-10 is accepted architecturally, but Scoped production remains a separate P12
-execution state.  Global Section-4 results and Cordis refinement remain pending.
+ADR-10 is accepted architecturally and Scoped production is merged as P12. P13 owns
+the old-paper single-realm global metatheory/conformance lane; Cordis refinement and
+realm-aware global theorems remain pending.
 
 Downstream integrations for accepted ADR-07..10 must preserve these reviewed boundaries:
 

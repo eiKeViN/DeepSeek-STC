@@ -121,7 +121,7 @@
       "compiler_exit_code": 0,
       "compiler_warning_count": 0,
       "compiler_summary": "exit 0 with zero warnings; finite checks emit expected values",
-      "production_status": "pending_p12",
+      "production_status": "merged_p12",
       "kernel_status": "pending",
       "candidate_profile": ["typed RealmRef", "semantic ResolverSpec and executable Resolver", "finite override support", "persistent ScopedContext", "isolate/intercept", "metadata precedence", "physical distinctness", "one-way flat embedding"]
     }
@@ -271,17 +271,17 @@
     { "id": "P8", "title": "Conformance and feedback manifest", "depends_on": ["P7"], "target": "A+I+H+R0" }
   ],
   "phase_execution_snapshot": {
-    "repository_commit": "d2f8caafe1081e2a154d7bad0d307e72b6930d8f",
+    "repository_commit": "96b87529863a5c24704337c215ef4599df31a88b",
     "recorded_on": "2026-08-28",
     "merged": ["P0", "P1", "P2", "P3", "P4", "P5", "P6"],
-    "future_first_kernel": ["P7", "P8"],
+    "future_first_kernel": ["P13"],
     "ledger_note": "Definition-Ledger.json is the P5-derived snapshot; exact P3/P4 patches remain an integration follow-up despite merged code."
   },
   "post_kernel_waves": [
     {"id": "P9", "title": "ADR promotion gates", "depends_on": ["P8"], "gate": "prepare reviewed status/acceptance records for the compiler-validated candidate packets without mutating historical spikes, and obtain explicit lead acceptance per ADR", "scope": "architecture-decision/status documentation only", "evidence_boundary": "compiler pass is I; acceptance is a separate decision"},
     {"id": "P10", "title": "Control integration", "depends_on": ["P9:ADR-07-accepted"], "gate": "ADR-07 accepted", "scope": "STC/Control/**", "evidence_boundary": "interfaces I; each guard/preservation/recovery/progress theorem requires separate K"},
     {"id": "P11", "title": "Staging and support integration", "depends_on": ["P9:ADR-08-accepted", "P9:ADR-09-accepted", "P10 for trace-facing support results"], "gate": "relevant ADR accepted", "scope": "STC/Staging/** and STC/State/Support.lean", "evidence_boundary": "macro simulation, LFP laws, rank certificates, and trace theorems tracked separately"},
-    {"id": "P12", "title": "Scoped coeffect integration", "depends_on": ["P9:ADR-10-accepted"], "gate": "complete ADR-10 packet accepted", "scope": "STC/Scoped/**", "evidence_boundary": "no Section-4 or runtime generalization without explicit refinement"},
+    {"id": "P12", "title": "Scoped coeffect integration", "depends_on": ["P9:ADR-10-accepted"], "gate": "complete ADR-10 packet accepted", "scope": "STC/Scoped/**", "evidence_boundary": "completed independent layer; no Section-4 or runtime generalization without explicit refinement"},
     {"id": "P13", "title": "Global metatheory and conformance", "depends_on": ["P10", "P11", "P12 where scoped claims are in scope"], "gate": "relevant interfaces integrated and hypotheses discharged", "scope": "Section-4 preservation/progress/support/confluence inventory and manifest", "evidence_boundary": "architecture, production, K, E, R0, and R1+ remain separate"}
   ],
   "tasks": [
@@ -1031,7 +1031,7 @@
     {"id": "BD-CONTROL", "architecture_status": "closed", "candidate_adr": "ADR-07", "decision_record_status": "accepted", "production_status": "merged_p10", "kernel_status": "partial_pending", "reason": "ADR-07 accepted and Control production merged; concrete guarded-rule theorems remain pending"},
     {"id": "BD-STAGING", "architecture_status": "closed", "candidate_adr": "ADR-08", "decision_record_status": "accepted", "production_status": "merged_p11", "kernel_status": "partial_pending", "reason": "ADR-08 accepted and derived Staging production merged; global adequacy remains pending"},
     {"id": "BD-SUPPORT", "architecture_status": "closed", "candidate_adr": "ADR-09", "decision_record_status": "accepted", "production_status": "merged_p11", "kernel_status": "partial_pending", "reason": "ADR-09 accepted and Support production/bridges merged; concrete lifecycle projection remains pending"},
-    {"id": "BD-SCOPED", "architecture_status": "closed", "candidate_adr": "ADR-10", "decision_record_status": "accepted", "production_status": "pending_p12", "kernel_status": "pending", "reason": "ADR-10 accepted architecturally; Scoped production remains the independent P12 lane"},
+    {"id": "BD-SCOPED", "architecture_status": "closed", "candidate_adr": "ADR-10", "decision_record_status": "accepted", "production_status": "merged_p12", "kernel_status": "partial_pending", "reason": "ADR-10 accepted and Scoped production merged as an independent P12 layer; realm-aware global theorems remain outside P13"},
     {"id": "R1+", "reason": "concrete TypeScript/runtime refinement requires a source audit and simulation proof"},
     {"id": "deep-DSL-proof", "reason": "EffectCode and interpreter semantics are reserved by G4 but not required for the first executable core"}
   ],
