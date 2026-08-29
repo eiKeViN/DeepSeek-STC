@@ -1819,9 +1819,9 @@
       "kind": "Theorem",
       "paper_anchor": "4.4.1",
       "title": "Preservation of registry well-formedness",
-      "target_module": "",
+      "target_module": "STC/Control/Rules.lean; STC/Control/Preservation.lean; STC/Examples/GlobalStructural.lean",
       "treatment": "DIRECT",
-      "delivery_status": "planned",
+      "delivery_status": "blocked",
       "evidence_state": "pending",
       "depends_on": [
         "D43",
@@ -1839,8 +1839,8 @@
       "adr_refs": [
         "ADR-04"
       ],
-      "deferred_reason": "BD-CONTROL deferred: trace-level preservation not in the first slice",
-      "notes": "",
+      "deferred_reason": "The current O-Insert guard admits a fresh cell whose parent is absent; parent closure, and therefore global WellFormed preservation, is false for the authoritative rule.",
+      "notes": "P13 continuation: `no_parentClosed_orchestration_preservation` is a kernel-checked counterexample. Reopen the local insert/removal guards rather than assuming successor WellFormedness.",
       "h03_section": "4.4.1",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "faithful-explicit",
@@ -2073,9 +2073,9 @@
       "kind": "Theorem",
       "paper_anchor": "4.4.4",
       "title": "Progress and lifecycle termination",
-      "target_module": "STC/Core/Iterator.lean",
+      "target_module": "STC/Core/Iterator.lean; STC/Control/Rules.lean; STC/Control/Progress.lean; STC/Examples/GlobalStructural.lean",
       "treatment": "REPAIR",
-      "delivery_status": "in_progress",
+      "delivery_status": "blocked",
       "evidence_state": "pending",
       "depends_on": [
         "D43",
@@ -2099,8 +2099,8 @@
         "ADR-05",
         "ADR-06-CLOSURE"
       ],
-      "deferred_reason": "global lifecycle-termination suffix deferred (BD-CONTROL); rank termination planned P4",
-      "notes": "F-T66-ORIGIN repair: lifecycle-only suffix from reachable states, not full traces P4: rank termination bound proved (stageCountFrom_le); global lifecycle suffix theorem remains deferred (BD-CONTROL, F-T66-ORIGIN).",
+      "deferred_reason": "The current lifecycle iterator rule has an inhabited self-loop and does not advance ranked-iterator state, so no measure can strictly decrease on every lifecycle step.",
+      "notes": "F-T66-ORIGIN still requires a lifecycle-only suffix from a reached state. P13 continuation adds kernel-checked `iterator_self_loop` and `no_strict_lifecycle_measure`; the rule must expose a ranked successor before T66 can resume.",
       "h03_section": "4.4.4",
       "h04_target_layer": "METATHEORY",
       "h04_paper_relation": "logical-repair",

@@ -6,16 +6,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import subprocess
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 P8_PATH = "docs/status/P8-conformance-manifest.json"
-
-
-def git_value(*args: str) -> str:
-    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+EXECUTION_BASE = "7100e07479dcdd4339040da1e6b4daa05cc29d34"
 
 
 def source_record(path: str) -> dict[str, str]:
@@ -44,8 +40,8 @@ def build_manifest() -> dict:
         "schema_version": "p13-v1",
         "plan_id": "DH-P13-GLOBAL-METATHEORY-EXEC-01",
         "repository": "DeepSeek-STC",
-        "execution_base_commit": git_value("merge-base", "HEAD", "origin/main"),
-        "branch": git_value("branch", "--show-current"),
+        "phase_status": "blocked_pending_semantic_reopen",
+        "execution_base_commit": EXECUTION_BASE,
         "sources": [source_record(path) for path in sources],
         "entries": entries,
         "finite_evidence": {
@@ -54,7 +50,11 @@ def build_manifest() -> dict:
             "guarded_rule_cases": True,
             "support_cycle": "abstract_snapshot_only",
             "alpha_nonidentity": True,
-            "negative_profiles": ["abstract_support_cycle"],
+            "negative_profiles": [
+                "abstract_support_cycle",
+                "orphan_parent_insert",
+                "iterator_self_loop",
+            ],
         },
         "boundaries": {
             "architecture": "A",

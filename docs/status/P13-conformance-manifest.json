@@ -9,7 +9,6 @@
     "r1_plus": "not proved",
     "scoped_global_generalization": "not proved"
   },
-  "branch": "codex/p13-global-metatheory-20260829",
   "entries": [
     {
       "delivery": "in_progress",
@@ -83,17 +82,20 @@
       "id": "P12"
     }
   ],
-  "execution_base_commit": "96b87529863a5c24704337c215ef4599df31a88b",
+  "execution_base_commit": "7100e07479dcdd4339040da1e6b4daa05cc29d34",
   "finite_evidence": {
     "alpha_nonidentity": true,
     "guarded_rule_cases": true,
     "negative_profiles": [
-      "abstract_support_cycle"
+      "abstract_support_cycle",
+      "orphan_parent_insert",
+      "iterator_self_loop"
     ],
     "nonempty_state": true,
     "rule_constructor_surface": true,
     "support_cycle": "abstract_snapshot_only"
   },
+  "phase_status": "blocked_pending_semantic_reopen",
   "plan_id": "DH-P13-GLOBAL-METATHEORY-EXEC-01",
   "repository": "DeepSeek-STC",
   "schema_version": "p13-v1",
@@ -104,7 +106,7 @@
     },
     {
       "path": "docs/status/Definition-Ledger.json",
-      "sha256": "55636a81c24cd0aa77d1bb25d987ea565e8821da4f51c3b14f1519e492a37792"
+      "sha256": "d90512822720466971de09ade78eaf98d3c3225efb5e451a1be3566f80a3973b"
     },
     {
       "path": "docs/blueprint/DeepSeek-Harness-11-Executable-Formalization-Blueprint.json",

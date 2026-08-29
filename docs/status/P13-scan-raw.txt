@@ -1,7 +1,11 @@
 command: python scripts/scan_lean.py STC
 exit: 1
-classification: clean; no lexical matches
+classification: clean/no matches
 
-command: rg -n 'sorry|admit|axiom|unsafe' <P13 Lean paths>
+command: targeted P13 import-boundary scan
 exit: 1
-classification: clean; no lexical matches
+classification: clean/no matches
+
+command: targeted sorry/admit/axiom/unsafe scan
+exit: 1
+classification: clean/no matches

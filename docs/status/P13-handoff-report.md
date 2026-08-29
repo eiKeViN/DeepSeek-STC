@@ -3,13 +3,22 @@
 | Field | Value |
 |---|---|
 | Plan | `DH-P13-GLOBAL-METATHEORY-EXEC-01` |
-| Execution base | `96b8752` (`P13 plan added`) |
-| Branch | `codex/p13-global-metatheory-20260829` |
-| Checkpoint | `4a9dad7` (`P13未完成`) |
-| Phase status | `in_progress`; not P13 phase-complete |
+| Original execution base | `96b8752` (`P13 plan added`) |
+| Original branch | `codex/p13-global-metatheory-20260829` |
+| Original checkpoint | `4a9dad7` (`P13未完成`) |
+| Continuation base | `7100e07` (`origin/main`) |
+| Continuation branch | `codex/p13-completion-20260829` |
+| Phase status | `blocked`; not P13 phase-complete |
 | Toolchain | Lean 4.33.0 / Mathlib v4.33.0 |
 
 ## Outcome
+
+Continuation audit at base `7100e07` found two kernel-checked contradictions
+between the authoritative guarded rules and the mandatory T59/T66 targets.
+See `docs/status/P13-reopen-report.md`. The insert rule does not preserve the
+required parent-closure component, and the iterator rule has an inhabited
+lifecycle self-loop, ruling out a strictly decreasing lifecycle measure.
+The semantic API must be reopened before the residual proof lanes can close.
 
 This branch delivers an additive P13 production/API checkpoint, guarded-rule
 fixtures, and explicit theorem contracts. It does **not** claim completion of
