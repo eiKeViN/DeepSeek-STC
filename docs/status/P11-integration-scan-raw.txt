@@ -1,0 +1,11 @@
+$ python scripts/scan_lean.py STC
+exit 1
+clean; no forbidden markers found
+
+$ rg -n 'architecture-decision/lean-spike|STCADR0[789]' STC
+exit 1
+no historical spike imports or STCADR07-09 identifiers
+
+$ rg -n 'sorry|admit|axiom|unsafe' STC/Staging.lean STC/State/Support STC/Control/Support.lean STC/Staging/Support.lean STC/Examples/Staging.lean STC/Examples/SupportTrace.lean
+exit 1
+no forbidden declarations

@@ -107,11 +107,27 @@ def unloadPath : MacroPath model (expandLife .unload) .active .inactive :=
   ⟨.cons (.lifecycle (.leave 1) (show fullLife (.leave 1) .active .unloading from ⟨rfl, rfl⟩))
       (.cons (.lifecycle (.unload 1) (show fullLife (.unload 1) .unloading .inactive from ⟨rfl, rfl⟩)) .nil), by rfl⟩
 
+def insertPath : MacroPath model (expandOrch .insert) .inactive .inactive :=
+  ⟨.cons (.orchestration (.insert 1 ()) (show fullOrch (.insert 1 ()) .inactive .inactive from
+      ⟨rfl, rfl⟩)) .nil, by rfl⟩
+
 theorem reload_macro : RbLife model .reload .inactive .active :=
   ⟨by exact Or.inr (Or.inl rfl), ⟨reloadPath⟩⟩
 
 theorem unload_macro : RbLife model .unload .active .inactive :=
   ⟨by exact Or.inr (Or.inr rfl), ⟨unloadPath⟩⟩
+
+theorem insert_macro : RbOrch model .insert .inactive .inactive :=
+  ⟨by exact Or.inl rfl, ⟨insertPath⟩⟩
+
+def stutterProfile : StutterProfile model where
+  Tag := Unit
+  orchestration := fun _ labels _ => labels = []
+  lifecycle := fun _ labels _ => labels = []
+
+theorem permitted_empty_stutter :
+    stutterProfile.lifecycle () [] .inactive ∧ (.inactive : BaseState) = .inactive := by
+  exact ⟨rfl, rfl⟩
 
 theorem simulation : ForwardSimulation model where
   orchestration := by intro before after label h; exact h.2

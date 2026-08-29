@@ -68,10 +68,10 @@ interface evidence; no formal acceptance is inferred.
 
 | ADR | Artifact packet | Explicit record status | Focused spike result | Normative effect |
 |---|---|---|---|---|
-| ADR-07 / Harness-12 | MD + JSON + Lean spike | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-CONTROL` remains `acceptance_pending`; production and `K` work remain gated |
-| ADR-08 / Harness-13 | MD + JSON + Lean spike | `proposed-architecture-closure-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-STAGING` remains `acceptance_pending`; no authoritative base/full integration yet |
-| ADR-09 / Harness-14 | MD + JSON + Lean spike | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-SUPPORT` remains `acceptance_pending`; no support theorem is promoted |
-| ADR-10 / Harness-15 | MD + JSON + Lean spike (complete companion set) | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-SCOPED` remains `acceptance_pending`; production and `K` work remain gated |
+| ADR-07 / Harness-12 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-CONTROL` architecture closed; P10 production and `K` evidence tracked separately |
+| ADR-08 / Harness-13 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-STAGING` architecture closed; P11 production and `K` evidence tracked separately |
+| ADR-09 / Harness-14 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-SUPPORT` architecture closed; P11 production and `K` evidence tracked separately |
+| ADR-10 / Harness-15 | MD + JSON + Lean spike (complete companion set) | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-SCOPED` architecture closed; P12 production remains a separate lane |
 
 The repair commit `c73000c` changes only the four standalone Lean spikes and reports the
 compiler repair.  The current tree also contains the ADR-10 Markdown and JSON companions
@@ -109,10 +109,10 @@ a semantic change, integration must preserve these candidate boundaries:
 
 | Blocker | Blueprint 1.0.2 | Blueprint 1.1.0 after audit |
 |---|---|---|
-| `BD-CONTROL` | separate decision deferred | candidate ADR-07 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
-| `BD-STAGING` | separate decision deferred | candidate ADR-08 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
-| `BD-SUPPORT` | separate decision deferred | candidate ADR-09 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
-| `BD-SCOPED` | separate decision deferred | complete ADR-10 packet is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
+| `BD-CONTROL` | accepted architecture | ADR-07 accepted; P10 Control production is merged, while concrete guarded-rule `K` proofs remain pending |
+| `BD-STAGING` | accepted architecture | ADR-08 accepted; P11 derived Staging production and integration bridges are merged, while global adequacy remains pending |
+| `BD-SUPPORT` | accepted architecture | ADR-09 accepted; P11 Support production, closure, alpha, and trace bridges are merged, while concrete lifecycle projection remains pending |
+| `BD-SCOPED` | accepted architecture | ADR-10 accepted; Scoped production remains the independent P12 lane |
 
 No blocker is subtracted from H04 or the derived Definition Ledger until its ADR has an
 explicit accepted status. The candidate packets also do not authorize a later agent to
@@ -217,8 +217,8 @@ provide them.
 
 ### 4.1 Acceptance-gated post-kernel reservations
 
-The following module families are reservations for P9+ planning, not current production
-files and not evidence that ADR-07..10 are accepted:
+The following module families reflect the current production snapshot; Scoped remains
+the only acceptance-gated post-kernel family:
 
 ```text
 STC/Control/**
@@ -227,7 +227,7 @@ STC/State/Support.lean
 STC/Scoped/**
 ```
 
-Their intended dependency direction, once the corresponding ADR is accepted, is:
+The dependency direction is:
 
 ```text
 Foundation.Result + Core.Iterator + State interfaces ──> Control
@@ -507,15 +507,14 @@ assumption until a concrete instance or theorem discharges it.
 
 Decision-gated after this audit:
 
-- `BD-CONTROL`: ADR-07 is proposed and compiler-validated; acceptance, production
-  integration, concrete guards, preservation/progress/recovery, and all `K` proofs remain
-  pending.
-- `BD-STAGING`: ADR-08 is proposed and compiler-validated; the candidate macro/view is not
-  yet a normative production constraint, and all correspondence proofs remain pending.
-- `BD-SUPPORT`: ADR-09 is proposed and compiler-validated; the candidate carrier/rank
-  boundary is not yet accepted, and L68/L70/L72/T73 remain unproved.
-- `BD-SCOPED`: ADR-10 has a complete packet and a compiler-validated spike; architecture
-  acceptance, production integration, and downstream proofs remain lead-review gated.
+- `BD-CONTROL`: ADR-07 is accepted and P10 Control production is merged; concrete guards,
+  preservation/progress/recovery, and global `K` proofs remain pending.
+- `BD-STAGING`: ADR-08 is accepted and P11 Staging production/integration is merged;
+  global correspondence and quiescence proofs remain pending.
+- `BD-SUPPORT`: ADR-09 is accepted and P11 Support production/bridges are merged; concrete
+  lifecycle projection and reachable-state proofs remain pending.
+- `BD-SCOPED`: ADR-10 is accepted architecturally; Scoped production and downstream proofs
+  remain the independent P12 lane.
 
 Deferred independently of those decision packets:
 
@@ -562,7 +561,7 @@ P0 baseline
   → P8 conformance and R0 seam
 ```
 
-The current repository has merged P0–P5. After P8, the acceptance-gated P9–P13 sequence in
-§5 is the only authorized route for ADR-07..10 promotion and integration. This ordering
+The current repository has merged P0–P8, P9 promotion, P10 Control, and P11 Staging/Support
+integration. P12 Scoped and P13 global metatheory remain the authorized downstream lanes. This ordering
 keeps the metatheory kernel executable and auditable while leaving a clean, explicit route
 toward later control/scoped work and the Cordis adapter/refinement boundary.

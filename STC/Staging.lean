@@ -78,6 +78,28 @@ def RbLife
     (model : StagingModel BaseState ExtendedState BaseOrchLabel FullOrchLabel
       BaseLifeLabel FullLifeLabel) := AtomicLifeMacro model
 
+/-- Explicit permission for a converse no-op; endpoint equality alone is not enough. -/
+structure StutterProfile
+    {BaseState ExtendedState BaseOrchLabel FullOrchLabel BaseLifeLabel FullLifeLabel : Type u}
+    (model : StagingModel BaseState ExtendedState BaseOrchLabel FullOrchLabel
+      BaseLifeLabel FullLifeLabel) where
+  Tag : Type u
+  orchestration : Tag → List (Sum FullOrchLabel FullLifeLabel) → BaseState → Prop
+  lifecycle : Tag → List (Sum FullOrchLabel FullLifeLabel) → BaseState → Prop
+
+/-- Explicit premises for a profile-relative stable-image quiescence bridge. -/
+structure QuiescenceBridge
+    {BaseState ExtendedState BaseOrchLabel FullOrchLabel BaseLifeLabel FullLifeLabel : Type u}
+    (model : StagingModel BaseState ExtendedState BaseOrchLabel FullOrchLabel
+      BaseLifeLabel FullLifeLabel) where
+  stableImage : ∀ base, model.stable (model.embed base)
+  partitionComplete : List (Sum FullOrchLabel FullLifeLabel) → Prop
+  noPending : ExtendedState → Prop
+  noPendingImage : ∀ base, noPending (model.embed base)
+  guard : BaseState → Prop
+  provider : BaseState → Prop
+  wellFormed : BaseState → Prop
+
 structure ForwardSimulation
     {BaseState ExtendedState BaseOrchLabel FullOrchLabel BaseLifeLabel FullLifeLabel : Type u}
     (model : StagingModel BaseState ExtendedState BaseOrchLabel FullOrchLabel
@@ -94,17 +116,20 @@ structure ForwardSimulation
 structure AtomicAdequacy
     {BaseState ExtendedState BaseOrchLabel FullOrchLabel BaseLifeLabel FullLifeLabel : Type u}
     (model : StagingModel BaseState ExtendedState BaseOrchLabel FullOrchLabel
-      BaseLifeLabel FullLifeLabel) : Prop where
+      BaseLifeLabel FullLifeLabel)
+    (stutter : StutterProfile model) : Prop where
   orchestration : ∀ {before after : BaseState}
     {labels : List (Sum FullOrchLabel FullLifeLabel)},
     model.atomicOrch labels →
     (path : MacroPath model labels (model.embed before) (model.embed after)) →
-    before = after ∨ ∃ label, labels = model.expandOrch label ∧ RbOrch model label before after
+    (∃ tag, stutter.orchestration tag labels before ∧ before = after) ∨
+      ∃ label, labels = model.expandOrch label ∧ RbOrch model label before after
   lifecycle : ∀ {before after : BaseState}
     {labels : List (Sum FullOrchLabel FullLifeLabel)},
     model.atomicLife labels →
     (path : MacroPath model labels (model.embed before) (model.embed after)) →
-    before = after ∨ ∃ label, labels = model.expandLife label ∧ RbLife model label before after
+    (∃ tag, stutter.lifecycle tag labels before ∧ before = after) ∨
+      ∃ label, labels = model.expandLife label ∧ RbLife model label before after
 
 theorem project_embed_round_trip
     {BaseState ExtendedState BaseOrchLabel FullOrchLabel BaseLifeLabel FullLifeLabel : Type u}
