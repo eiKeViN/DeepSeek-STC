@@ -3,16 +3,16 @@
 | Field | Value |
 |---|---|
 | Blueprint ID | `DH-FORMAL-BP-01` |
-| Version | `1.1.0` |
+| Version | `1.1.1` |
 | Status | **proposed-executable / deliberately revisable** |
 | Date | 2026-08-28 |
 | Semantic change | **None** — this blueprint consumes accepted decisions; it does not supersede an ADR. |
 | Supersedes | Nothing |
-| Revision note | Adds explicit ADR status governance, audits ADR-07..10, and reserves acceptance-gated post-kernel integration waves. |
+| Revision note | Reconciles repaired ADR-07..10 compiler evidence and packet completeness while preserving acceptance-gated post-kernel integration waves. |
 | Primary target | Standalone Lean formalization of the paper's metatheory kernel |
 | First executable slice | Two disjoint counters + failure + ranked iterator + alpha transport |
 | Namespace | `STC` (runtime connection reserved as `STC.Adapter`) |
-| Validation in this workspace | Production `lake build` passed (738 jobs) on 2026-08-28. The proposed ADR-07..10 spikes are separate historical checks and fail their focused compiler commands. |
+| Validation in this workspace | Production `lake build` passes. The proposed ADR-07..10 spikes are separate historical checks; all four focused pinned commands exit 0 with zero warnings. |
 
 This blueprint turns the accepted formalization inputs into an executable, staged work plan.
 It is intentionally not a promise that the whole paper or the Cordis implementation will
@@ -20,9 +20,10 @@ be verified in one pass.  The first target is a checked generic kernel plus a sm
 example; later feedback may revise module boundaries or individual contracts without
 silently changing the accepted ADRs.
 
-Version 1.1.0 synchronizes guidance with the ADR-07..10 artifact drop. It records those
-artifacts without promoting them: an ADR file's directory is provenance, not an acceptance
-decision, and a compiler result is not a semantic or architectural acceptance record.
+Version 1.1.1 reconciles the repaired ADR-07..10 spikes and their companion packets. It
+records compiler validation without promoting the decisions: an ADR file's directory is
+provenance, not an acceptance decision, and a compiler result is not a semantic or
+architectural acceptance record.
 
 ## 1. Fixed decision profile
 
@@ -60,19 +61,22 @@ dimensions must never be collapsed into one `completed` flag.
 
 ### 1.2 ADR-07..10 audit register
 
-The status below is the repository record at commit `a72e3d7`, including a focused rerun
-under the pinned Lean 4.33.0 / Mathlib v4.33.0 environment on 2026-08-28.
+The status below is the repository record at `origin/main` commit `d2f8caa` (which includes
+repair commit `c73000c`), including an independent focused rerun under the pinned Lean
+4.33.0 / Mathlib v4.33.0 environment on 2026-08-28.  Compiler validation is recorded as
+interface evidence; no formal acceptance is inferred.
 
 | ADR | Artifact packet | Explicit record status | Focused spike result | Normative effect |
 |---|---|---|---|---|
-| ADR-07 / Harness-12 | MD + JSON + Lean spike | `proposed-architecture-compiler-pending` | **failed**: parser, implicit-argument, and Toy proof/type errors | `BD-CONTROL` is `acceptance_pending`; production and `K` work remain gated |
-| ADR-08 / Harness-13 | MD + JSON + Lean spike | `proposed-architecture-closure-compiler-pending` | **failed**: Prop/Bool negation, unresolved proof cases, and ambiguous constructors | `BD-STAGING` is `acceptance_pending`; no authoritative base/full integration yet |
-| ADR-09 / Harness-14 | MD + JSON + Lean spike | `proposed-architecture-compiler-pending` | **failed**: missing `Decidable` instances and linter warnings | `BD-SUPPORT` is `acceptance_pending`; no support theorem is promoted |
-| ADR-10 / Harness-15 | Lean spike only; MD and JSON are absent | no authoritative packet metadata; **incomplete** | **failed**: import occurs after a module doc comment | `BD-SCOPED` remains open and requires lead review plus a complete packet |
+| ADR-07 / Harness-12 | MD + JSON + Lean spike | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-CONTROL` remains `acceptance_pending`; production and `K` work remain gated |
+| ADR-08 / Harness-13 | MD + JSON + Lean spike | `proposed-architecture-closure-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-STAGING` remains `acceptance_pending`; no authoritative base/full integration yet |
+| ADR-09 / Harness-14 | MD + JSON + Lean spike | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-SUPPORT` remains `acceptance_pending`; no support theorem is promoted |
+| ADR-10 / Harness-15 | MD + JSON + Lean spike (complete companion set) | `proposed-architecture-compiler-validated` (`formal_acceptance=false`) | **exit 0; zero warnings** | `BD-SCOPED` remains `acceptance_pending`; production and `K` work remain gated |
 
-The introducing commit `b8e6297` describes MD, JSON, and spikes for ADR-07..10, but its
-tree contains companion MD/JSON only for ADR-07..09. That commit-message/artifact mismatch
-is recorded here rather than repaired by inventing an ADR-10 packet.
+The repair commit `c73000c` changes only the four standalone Lean spikes and reports the
+compiler repair.  The current tree also contains the ADR-10 Markdown and JSON companions
+introduced before the repair; their exact paths, hashes, command results, and observed
+finite-check output are recorded in `docs/status/ADR-07-10-reconciliation.md`.
 
 The new packets also describe `architecture-decision/json/` as the accepted/frozen ADR
 area while placing their own proposed JSON files there. This is a directory/status
@@ -105,10 +109,10 @@ a semantic change, integration must preserve these candidate boundaries:
 
 | Blocker | Blueprint 1.0.2 | Blueprint 1.1.0 after audit |
 |---|---|---|
-| `BD-CONTROL` | separate decision deferred | candidate ADR-07 exists; formal acceptance, production integration, and `K` proofs pending |
-| `BD-STAGING` | separate decision deferred | candidate ADR-08 exists; formal acceptance, production integration, and `K` proofs pending |
-| `BD-SUPPORT` | separate decision deferred | candidate ADR-09 exists; formal acceptance, production integration, and `K` proofs pending |
-| `BD-SCOPED` | separate decision deferred | ADR-10 packet incomplete; architecture, production integration, and `K` proofs pending |
+| `BD-CONTROL` | separate decision deferred | candidate ADR-07 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
+| `BD-STAGING` | separate decision deferred | candidate ADR-08 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
+| `BD-SUPPORT` | separate decision deferred | candidate ADR-09 is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
+| `BD-SCOPED` | separate decision deferred | complete ADR-10 packet is compiler-validated but still proposed; formal acceptance, production integration, and `K` proofs pending |
 
 No blocker is subtracted from H04 or the derived Definition Ledger until its ADR has an
 explicit accepted status. The candidate packets also do not authorize a later agent to
@@ -146,7 +150,7 @@ dependency graph or disposition baseline; readiness reports are derived artifact
 | Harness-03 dependency graph JSON | Immutable 74-item/8-auxiliary graph | SHA-256 `8f99db87d7aa4d856657abdaf469d9941d3af7fea88ababd2e58cba49041ded8` |
 | Harness-04 disposition JSON | Immutable treatment/readiness baseline | SHA-256 `63d1fb68bcebb63e5282c7314d03038a93db0a836a6c8b1a08a41c2cd70a43db` |
 | ADR-01 … ADR-06 artifacts | Accepted architecture decisions and closure contracts | local hashes recorded in companion JSON; P0 provenance ruling remains in force |
-| ADR-07 … ADR-10 artifacts | Proposed/incomplete decision evidence only | status and completeness recorded in §1.2; not normative production inputs |
+| ADR-07 … ADR-10 artifacts | Proposed decision evidence with compiler-validated spikes; ADR-10 packet is complete | status and completeness recorded in §1.2; not normative production inputs |
 
 The following project-context files are explicitly excluded from the formalization
 pipeline and should not be assigned as Agent inputs:
@@ -332,7 +336,7 @@ prerequisite for the first Effect proofs.
 
 ### Current execution snapshot
 
-At `origin/main` commit `a72e3d7`, P0 through P5 production work is merged. P3 and P4
+At `origin/main` commit `d2f8caa`, P0 through P6 production work is merged. P3 and P4
 handoffs report their focused gates as passed, and P5 is merged through PR #6. The central
 Definition Ledger is still the P5-derived snapshot: the exact P3/P4 row patches remain an
 integration follow-up and are not silently applied by this guidance pass. P6 through P8
@@ -346,18 +350,16 @@ earlier phases.
 
 | Wave | Required gate | Planned ownership | Evidence boundary |
 |---|---|---|---|
-| P9 — ADR promotion | Prepare reviewed compiler-corrected successor artifacts without mutating historical spikes; complete the ADR-10 MD/JSON packet; obtain explicit lead acceptance per ADR | architecture-decision/status documentation only | compiler pass is `I` evidence; acceptance remains a separate recorded decision |
+| P9 — ADR promotion | Prepare reviewed status/acceptance records for the compiler-validated candidate packets without mutating historical spikes; obtain explicit lead acceptance per ADR | architecture-decision/status documentation only | compiler pass is `I` evidence; acceptance remains a separate recorded decision |
 | P10 — Control integration | ADR-07 accepted | `STC/Control/**`: orchestration/lifecycle relations, typed steps/traces, `InFlight`, async/failure/freshness boundaries | interfaces may earn `I`; each guard, preservation, recovery, or progress theorem needs separate `K` |
 | P11 — Staging and support integration | ADR-08 and/or ADR-09 accepted; trace-facing support results also require accepted control/staging contracts | `STC/Staging/**`; `STC/State/Support.lean` | macro simulation, LFP laws, rank/WF certificates, and trace theorems are tracked independently |
 | P12 — Scoped coeffect integration | complete ADR-10 packet accepted | `STC/Scoped/**`: typed realms/resolvers, isolate/intercept contexts, metadata, physical distinctness, flat embedding | no Section-4 or runtime generalization without explicit refinement proofs |
 | P13 — Global metatheory/conformance | relevant P10–P12 interfaces integrated and hypotheses discharged | Section-4 preservation/progress/support/confluence inventory and derived manifest | architecture closure, production completion, `K`, `E`, `R0`, and `R1+` remain separate |
 
-P9 may prepare a new reviewed compiler/API successor only when the candidate semantics
-remain unchanged; historical spike bytes stay read-only. The missing ADR-10 packet is not
-mechanically recoverable from the current repository record because no authoritative
-MD/JSON status or decision rationale exists; creating it requires lead review. No P10+
-production task may bypass P9 by treating the current directory layout or merge commit as
-acceptance.
+P9 may prepare a reviewed status/API successor only when the candidate semantics remain
+unchanged; historical spike bytes stay read-only.  The ADR-10 packet is complete, but no
+explicit lead acceptance record is present.  No P10+ production task may bypass P9 by
+treating compiler success, directory layout, or the merge commit as acceptance.
 
 ## 6. Initial API sketch
 
@@ -505,15 +507,15 @@ assumption until a concrete instance or theorem discharges it.
 
 Decision-gated after this audit:
 
-- `BD-CONTROL`: ADR-07 is proposed and its spike fails; acceptance, production
+- `BD-CONTROL`: ADR-07 is proposed and compiler-validated; acceptance, production
   integration, concrete guards, preservation/progress/recovery, and all `K` proofs remain
   pending.
-- `BD-STAGING`: ADR-08 is proposed and its spike fails; the candidate macro/view is not
+- `BD-STAGING`: ADR-08 is proposed and compiler-validated; the candidate macro/view is not
   yet a normative production constraint, and all correspondence proofs remain pending.
-- `BD-SUPPORT`: ADR-09 is proposed and its spike fails; the candidate carrier/rank
+- `BD-SUPPORT`: ADR-09 is proposed and compiler-validated; the candidate carrier/rank
   boundary is not yet accepted, and L68/L70/L72/T73 remain unproved.
-- `BD-SCOPED`: ADR-10 has only a failing spike and no MD/JSON packet; architecture and
-  integration remain lead-review blocked.
+- `BD-SCOPED`: ADR-10 has a complete packet and a compiler-validated spike; architecture
+  acceptance, production integration, and downstream proofs remain lead-review gated.
 
 Deferred independently of those decision packets:
 

@@ -13,7 +13,7 @@ evidence is decidable data.
 
 ## Main declarations
 
-* `CounterState`, `inc1`, `inc2`, `dec1`, `failIfZero`: the two-counter carriers;
+* `CounterState`, `inc1`, `inc2`, `dec1`, `dec2`, `failIfZero`: the two-counter carriers;
 * `inc1_lawful`, `inc2_lawful`, `failIfZero_atomic`: the K evidence;
 * `inc12_independent`: the instance-level operation independence contract;
 * `fstProjectOp_not_foreignStable`: the foreign-stability countermodel;
@@ -47,6 +47,13 @@ def dec1 : PartialOp CounterState Unit :=
     if s.1 = 0 then none
     else some { state := (s.1 - 1, s.2), undo := fun t => (t.1 + 1, t.2), outcome := () }
 
+/-- Decrement the second counter: defined exactly when it is positive.  The guard is
+explicit `Option` undefinedness; the selected inverse restores the decremented counter. -/
+def dec2 : PartialOp CounterState Unit :=
+  fun s =>
+    if s.2 = 0 then none
+    else some { state := (s.1, s.2 - 1), undo := fun t => (t.1, t.2 + 1), outcome := () }
+
 /-- The atomic Toy failure: undefined exactly when the second counter is zero.
 Successful runs change nothing and select the identity inverse; atomicity is this
 fixture's specialization, not a general failure law. -/
@@ -77,6 +84,72 @@ theorem failIfZero_atomic : ∀ s r, failIfZero s = some r → r.state = s ∧ r
 
 end Counters
 
+/-! ### Recovery and observation contracts -/
+
+section Recovery
+
+/-- Exact recovery for the first increment. -/
+theorem inc1_recovers_exact (input : CounterState) :
+    (inc1 input).undo (inc1 input).state = input := by
+  cases input
+  simp [inc1]
+
+/-- Exact recovery for the second increment. -/
+theorem inc2_recovers_exact (input : CounterState) :
+    (inc2 input).undo (inc2 input).state = input := by
+  cases input
+  simp [inc2]
+
+/-- The first decrement recovers every defined run under equality. -/
+theorem dec1_recovers_defined :
+    OperationRecovers (equality CounterState) dec1 := by
+  intro input result h
+  by_cases hz : input.1 = 0
+  · simp [dec1, hz] at h
+  · simp [dec1, hz] at h
+    cases h
+    have hle : 1 ≤ input.1 := Nat.one_le_iff_ne_zero.mpr hz
+    simp [equality, Nat.sub_add_cancel hle]
+
+/-- The second decrement recovers every defined run under equality. -/
+theorem dec2_recovers_defined :
+    OperationRecovers (equality CounterState) dec2 := by
+  intro input result h
+  by_cases hz : input.2 = 0
+  · simp [dec2, hz] at h
+  · simp [dec2, hz] at h
+    cases h
+    have hle : 1 ≤ input.2 := Nat.one_le_iff_ne_zero.mpr hz
+    simp [equality, Nat.sub_add_cancel hle]
+
+/-- Any selected inverse of `dec1` preserves equality. -/
+theorem dec1_selectedInverse_stable :
+    SelectedInverseStableOp (equality CounterState) dec1 := by
+  intro input result _h x y hxy
+  cases hxy
+  rfl
+
+/-- Any selected inverse of `dec2` preserves equality. -/
+theorem dec2_selectedInverse_stable :
+    SelectedInverseStableOp (equality CounterState) dec2 := by
+  intro input result _h x y hxy
+  cases hxy
+  rfl
+
+/-- The observation that forgets the first counter. -/
+def secondCounterObservation : RelSpec CounterState where
+  rel := fun left right => left.2 = right.2
+  refl := by intro s; rfl
+  symm := by intro left right h; exact h.symm
+  trans := by intro left middle right h₁ h₂; exact h₁.trans h₂
+
+/-- First-counter increments recover under the explicit second-counter observation. -/
+theorem inc1_recovers_second_observation (input : CounterState) :
+    secondCounterObservation.rel ((inc1 input).undo (inc1 input).state) input := by
+  rfl
+
+end Recovery
+
 /-! ### Independence and foreign stability -/
 
 section Independence
@@ -104,6 +177,17 @@ theorem inc12_independent :
       intro x
       simp only [Function.comp_apply, equality], rfl⟩⟩
 
+/-- The two increment results commute exactly at every input, including their selected
+inverses; this is the concrete equality instance behind `inc12_independent`. -/
+theorem inc12_commutes_exact (input : CounterState) :
+    seqRun inc1 inc2 input = seqRun inc2 inc1 input := by
+  cases input with
+  | mk first second =>
+      apply effectResult_ext
+      · rfl
+      · funext value
+        ext <;> simp [seqRun, inc1, inc2] <;> omega
+
 /-- A selected inverse that projects away the second counter. -/
 def fstProjectUndo : CounterState → CounterState := fun t => (t.1, 0)
 
@@ -125,6 +209,10 @@ theorem fstProjectOp_not_foreignStable :
   simp [fstProjectUndo, swapCounters] at hw
   have hfst := congrArg Prod.fst hw
   omega
+
+/-- A concrete finite witness for the failed foreign-stability claim. -/
+def foreignStabilityCounterexample : Bool :=
+  decide (fstProjectUndo (swapCounters (1, 2)) ≠ swapCounters (fstProjectUndo (1, 2)))
 
 end Independence
 
@@ -165,6 +253,15 @@ def decDefinedState : Bool :=
   | some r => decide (r.state = (2, 5))
   | none => false
 
+/-- `dec2` is undefined at a zero second counter. -/
+def dec2ZeroUndefined : Bool := (dec2 (3, 0)).isNone
+
+/-- A defined `dec2` run exposes its successor and selected inverse behavior. -/
+def dec2DefinedState : Bool :=
+  match dec2 (3, 5) with
+  | some r => decide (r.state = (3, 4) ∧ r.undo r.state = (3, 5) ∧ r.outcome = ())
+  | none => false
+
 /-- The mixed undefined/defined pair is rejected by the tagged relator. -/
 def optionMixedRejected : Bool :=
   letI : Decidable
@@ -192,6 +289,10 @@ structure CounterFailureReport where
   failStateUnchanged : Bool
   decZeroUndefined : Bool
   decDefinedState : Bool
+  dec2ZeroUndefined : Bool
+  dec2DefinedState : Bool
+  inc12Commutes : Bool
+  foreignStabilityCounterexample : Bool
   optionMixedRejected : Bool
   failureBoundary : Bool
 deriving DecidableEq, Repr
@@ -204,6 +305,11 @@ def counterFailureReport : CounterFailureReport :=
     failStateUnchanged := failStateUnchanged
     decZeroUndefined := decZeroUndefined
     decDefinedState := decDefinedState
+    dec2ZeroUndefined := dec2ZeroUndefined
+    dec2DefinedState := dec2DefinedState
+    inc12Commutes := decide ((seqRun inc1 inc2 (0, 0)).state =
+      (seqRun inc2 inc1 (0, 0)).state)
+    foreignStabilityCounterexample := foreignStabilityCounterexample
     optionMixedRejected := optionMixedRejected
     failureBoundary := failureBoundary }
 
@@ -218,6 +324,10 @@ example : counterFailureReport =
       failStateUnchanged := true
       decZeroUndefined := true
       decDefinedState := true
+      dec2ZeroUndefined := true
+      dec2DefinedState := true
+      inc12Commutes := true
+      foreignStabilityCounterexample := true
       optionMixedRejected := true
       failureBoundary := true } := by
   decide

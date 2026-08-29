@@ -5,8 +5,8 @@
 | Plan ID | DH-P7-P8-EXEC-01 |
 | Repository | https://github.com/eiKeViN/DeepSeek-STC |
 | Prepared | 2026-08-28 |
-| Planning baseline | origin/main at a72e3d7; execution starts from the post-P6 merge |
-| Blueprint | DH-FORMAL-BP-01, v1.0.2 |
+| Planning baseline | origin/main at d2f8caa; execution starts from the post-P6 merge and ADR-07..10 compiler repair |
+| Blueprint | DH-FORMAL-BP-01, v1.1.1 |
 | Scope | complete the finite TwoCounter vertical slice, then publish conformance/readiness evidence and the R0 adapter seam |
 | Ownership | one agent, sequentially: P7 must pass before P8 starts |
 | Prerequisite | P6 alpha-transport handoff and integration gate |
@@ -28,10 +28,10 @@ TypeScript Cordis runtime.
 The paper is authoritative for literal source claims. The Formal Reference and
 H03/H04 are frozen provenance/disposition records. Accepted ADR-01 through
 ADR-06-CLOSURE are normative for the repaired target; the later ADR-07–10
-packets currently describe proposed architecture/interface closures and are not
-automatically compiler-validated or semantically accepted. The Lean kernel
-validates elaborated declarations and proof terms, while compilation alone is
-interface evidence.
+packets currently describe proposed architecture/interface closures whose
+standalone spikes are compiler-validated but not semantically or formally
+accepted. The Lean kernel validates elaborated declarations and proof terms,
+while compilation alone is interface evidence.
 
 Evidence labels remain separate:
 
@@ -101,6 +101,9 @@ docs/blueprint/architecture-decision/json/DeepSeek-Harness-10-ADR-06-Equivalence
 docs/blueprint/architecture-decision/json/DeepSeek-Harness-12-ADR-07-Control-Architecture.json
 docs/blueprint/architecture-decision/json/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.json
 docs/blueprint/architecture-decision/json/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json
+docs/blueprint/architecture-decision/md/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.md
+docs/blueprint/architecture-decision/json/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.json
+docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean
 docs/status/P0-baseline.json
 docs/status/P3-handoff-report.md
 docs/status/P4-handoff-report.md
@@ -128,7 +131,7 @@ gate as blocked; do not promote evidence.
 
 ## 3. Existing staged work and ownership
 
-The current main tree already contains finite P3/P4 material:
+The current main tree already contains finite P3/P4/P6 material:
 
 - STC/Examples/TwoCounter.lean defines CounterState, inc1, inc2, dec1,
   failIfZero, local lawfulness/independence evidence, and a finite failure
@@ -496,12 +499,14 @@ frozen file.
 
 ### 9.3 Proposed ADR packet integrity
 
-The current main tree includes JSON/Markdown/spike material for ADR-07,
-ADR-08, and ADR-09. ADR-10 currently has only its Lean spike in this checkout;
-its JSON and Markdown companions are absent. P8-T01 must inventory these
-packets and report completeness explicitly. A missing artifact, compiler-pending
-status, or proposed status must remain a warning/deferred item; it must not be
-upgraded to an accepted ADR or silently repaired inside the manifest task.
+The current main tree includes Markdown, JSON, and Lean-spike artifacts for each
+of ADR-07, ADR-08, ADR-09, and ADR-10. ADR-10's companion packet is complete.
+The four packets remain proposed with compiler-validated spikes (exit 0, zero
+warnings), so P8-T01 must inventory them and report both completeness and the
+separate acceptance status explicitly. Compiler validation is an `I` result and
+must not be upgraded to an accepted ADR or silently treated as production/K
+evidence inside the manifest task. The exact reconciliation record is
+`docs/status/ADR-07-10-reconciliation.md`.
 
 ## 10. P8-T02 — generic STC.Adapter R0 seam
 
@@ -597,7 +602,7 @@ P8 is ready for merge only when the following all hold:
 4. The cumulative STC/Bootstrap.lean import update (performed by the
    integration owner) compiles and lake build is green.
 5. The manifest validator covers all 82 IDs, preserves H03/H04 hashes, and
-   reports proposed/compiler-pending ADR packets accurately.
+   reports the proposed/compiler-validated ADR-07..10 packets accurately.
 6. scripts/scan_lean.py STC exits 1; raw output is retained in
    docs/status/P8-scan-raw.txt.
 7. No production file contains placeholders or unchecked axioms.
@@ -617,7 +622,9 @@ python scripts/scan_lean.py STC
 git diff --check
 ~~~
 
-A missing compiler is a blocked validation result, not evidence of success.
+A missing compiler is a blocked validation result, not evidence of success. In
+this batch the ADR-07..10 compiler checks are present and passing, but P9 remains
+the explicit ADR-acceptance gate because no lead acceptance record has been added.
 
 ## 13. Ledger coordination and expected derived updates
 

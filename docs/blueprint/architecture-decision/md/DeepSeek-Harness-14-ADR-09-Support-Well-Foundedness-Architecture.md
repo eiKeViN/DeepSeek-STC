@@ -4,8 +4,8 @@
 |---|---|
 | Packet ID | `ADR-09` |
 | Global blocker | `BD-SUPPORT` |
-| Status | **Proposed — architecture-only, compiler pending** |
-| Packet version | `0.1-proposed` |
+| Status | **Proposed — architecture-only, compiler validated (formal acceptance pending)** |
+| Packet version | `0.1-proposed-compiler-validated` |
 | Date | `2026-08-28` |
 | Scope | Support carrier, least-fixed-point contract, rank certificate, and restricted profiles |
 | Semantic change | **No change to the frozen paper/H03/H04 records** |
@@ -13,6 +13,7 @@
 | Spike namespace | `STCADR09` |
 | Companion artifacts | `DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json`; `DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean` |
 | Frozen inputs | H03 dependency graph and H04 disposition are read-only |
+| Formal acceptance | `false`; no explicit lead acceptance record |
 
 ## 1. Decision in brief
 
@@ -216,10 +217,11 @@ proves the LFP laws, rank/no-two-cycle lemma, acyclicity of the frozen shorthand
 the no-rank result for the corrected finite graph witness.  Two `#eval` checks expose
 the finite edge witnesses.
 
-The pinned project compiler is not available in this scratch environment: the discovered
-Lean 4.33 runner fails before elaboration because `libInit_shared.so` is absent.  Thus
-this packet remains `compiler-pending`; no compile result is being claimed.  The intended
-command in a complete checkout is:
+The repaired spike was independently checked on 2026-08-28 with the pinned Lean 4.33.0 /
+Mathlib v4.33.0 command in a complete checkout.  It exited 0 with zero warnings (the two
+`true` lines are the expected finite edge checks).  This packet therefore records compiler
+validation as interface evidence only; it remains proposed and no formal acceptance,
+production integration, or downstream `K` theorem is implied.  The command is:
 
 ```text
 lake env lean -DautoImplicit=false -Dpp.unicode.fun=true \

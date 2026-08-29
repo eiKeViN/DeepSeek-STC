@@ -3,10 +3,12 @@
     "artifact_title": "DeepSeek Harness ADR-09: Support Well-Foundedness Architecture",
     "packet_id": "ADR-09",
     "global_blocker": "BD-SUPPORT",
-    "status": "proposed-architecture-compiler-pending",
-    "packet_version": "0.1-proposed",
+    "status": "proposed-architecture-compiler-validated",
+    "packet_version": "0.1-proposed-compiler-validated",
     "created_on": "2026-08-28",
     "closure_scope": "architecture-and-interface-only",
+    "architecture_status": "acceptance_pending",
+    "formal_acceptance": false,
     "semantic_change": false,
     "production_namespace": "STC",
     "spike_namespace": "STCADR09",
@@ -123,7 +125,13 @@
   "validation": {
     "toolchain": "Lean 4.33.0 / Lake pinned project",
     "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean",
-    "local_status": "blocked-before-elaboration-missing-libInit_shared.so",
+    "local_status": "passed-pinned-toolchain-2026-08-28",
+    "compiler_result": "exit-0-zero-warnings",
+    "exit_code": 0,
+    "warning_count": 0,
+    "validated_commit": "d2f8caafe1081e2a154d7bad0d307e72b6930d8f",
+    "repair_commit": "c73000cefaa61a4ea8f8e816864b3f7dab9a8484",
+    "observed_output": "true\\ntrue",
     "spike_checks": [
       "SupportOperator monotonicity",
       "SupportSet leastness and fixed-point equation",
@@ -137,8 +145,8 @@
     "evidence_boundary": "Compilation is interface evidence only; downstream K proofs remain deferred"
   },
   "integrity": {
-    "markdown_sha256": "dcc10b584fa39fcc14d66eb527fe8764820447c5e0f45b1c15e9de829d6e7bd6",
-    "lean_sha256": "a9d447009f41822aaba6820a5d58e1c2b5afa94391e05c7ac7ae3fdf1ae507f9",
+    "markdown_sha256": "e65e36e4538cfc838fd4bb8a825d518db040eabd61020a077397c7f0c93b738b",
+    "lean_sha256": "4c7c9c51a5366bc34f215e6279c0e9365ffe1c3b033c51484b4d4d96f4ddd243",
     "json_sha256": null,
     "hash_scope": "SHA-256 over companion bytes; JSON self-hash intentionally excluded"
   },

@@ -4,18 +4,22 @@
 |---|---|
 | Packet ID | ADR-07 |
 | Title | Control, nondeterminism, asynchrony, and failure |
-| Status | Proposed architecture closure; compiler validation pending |
-| Packet version | 0.1.1-proposed |
+| Status | Proposed architecture closure; compiler validated (formal acceptance pending) |
+| Packet version | 0.1.2-proposed-compiler-validated |
 | Date | 2026-08-28 |
 | Resolves | BD-CONTROL at the architecture/interface level |
 | Semantic change | None to the frozen paper, H03/H04, or accepted ADRs |
 | Depends on | ADR-03 closure, ADR-04, ADR-05, ADR-06 closure; P3/P4/P5 APIs when instantiated |
 | Namespace | STC for production; STCADR07 for this standalone spike |
+| Formal acceptance | `false`; no explicit lead acceptance record |
 
 This packet fixes the control boundary needed by Section 4 without pretending that its
 concrete lifecycle guards or global theorems are already implemented. It is deliberately
-an architecture packet: a compiling spike below demonstrates that the chosen carriers and
-relations are well formed, but it does not prove the full lifecycle calculus.
+an architecture packet: the standalone spike demonstrates that the chosen carriers and
+relations are well formed, but it does not prove the full lifecycle calculus.  The repaired
+spike was independently checked on 2026-08-28 with the pinned command, exiting 0 with zero
+warnings.  This updates the compiler/interface dimension only; the packet remains proposed,
+and production integration and substantive `K` evidence remain gated by explicit acceptance.
 
 ## 1. Decision summary
 

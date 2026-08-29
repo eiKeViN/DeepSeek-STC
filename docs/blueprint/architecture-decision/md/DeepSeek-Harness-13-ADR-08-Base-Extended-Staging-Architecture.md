@@ -4,14 +4,15 @@
 |---|---|
 | Packet ID | ADR-08 |
 | Title | Base/extended staging through one authoritative labelled relation |
-| Status | Proposed architecture closure — compiler validation pending |
-| Packet version | 0.1-proposed-compiler-pending |
+| Status | Proposed architecture closure — compiler validated (formal acceptance pending) |
+| Packet version | 0.1-proposed-compiler-validated |
 | Date | 2026-08-28 |
 | Resolves | BD-STAGING at the architecture/interface level only |
 | Semantic change | None to the paper, frozen H03/H04, or accepted ADRs |
 | Depends on | ADR-01/02/03/04/05/06; ADR-07 control interfaces when instantiated |
 | Namespace | STCADR08 in this standalone spike; production target remains STC |
 | Companion files | DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture.json; DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean |
+| Formal acceptance | `false`; no explicit lead acceptance record |
 
 ## 1. Decision summary
 
@@ -258,6 +259,9 @@ The intended command is:
 
     lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-13-ADR-08-Base-Extended-Staging-Architecture-Spike.lean
 
-The current shared environment has no lean/lake executable, so compiler validation is
-pending and is not claimed here. JSON syntax and lexical placeholder checks are
+The repaired spike was independently checked on 2026-08-28 with the pinned Lean 4.33.0 /
+Mathlib v4.33.0 command above: it exited 0 with zero warnings.  This is compiler/interface
+evidence only.  The packet remains proposed, `full_bd_staging_closed` remains false, and
+formal acceptance, production integration, concrete `K` proofs, guards, and runtime
+refinement remain separate gates.  JSON syntax and lexical placeholder checks are also
 performed locally before handoff.

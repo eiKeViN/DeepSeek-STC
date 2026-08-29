@@ -4,8 +4,8 @@
 |---|---|
 | Packet ID | ADR-10 |
 | Title | Typed scoped coeffects, interception, and flat embedding |
-| Status | **Proposed architecture closure; compiler validation pending** |
-| Packet version | 0.1-proposed |
+| Status | **Proposed architecture closure; compiler validated (formal acceptance pending)** |
+| Packet version | 0.1-proposed-compiler-validated |
 | Date | 2026-08-28 |
 | Resolves | BD-SCOPED at the architecture/interface level |
 | Semantic change | None to the frozen paper, H03/H04, or accepted ADRs |
@@ -13,6 +13,7 @@
 | Production namespace | STC |
 | Spike namespace | STCADR10 |
 | Companion artifacts | DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.json; DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean |
+| Formal acceptance | `false`; no explicit lead acceptance record |
 
 ## 1. Decision summary
 
@@ -296,7 +297,9 @@ lake env lean -DautoImplicit=false -Dpp.unicode.fun=true \
   DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean
 ~~~
 
-The current creation environment has no working lake/lean executable, so
-the initial packet records pending-toolchain. A later pinned-toolchain run
-must report zero errors and no sorry, admit, custom unchecked axioms, or
-unsafe declarations before the packet is promoted.
+The repaired spike was independently checked on 2026-08-28 with the pinned Lean 4.33.0 /
+Mathlib v4.33.0 command above: it exited 0 with zero warnings (the `some 7` and `none`
+lines are the expected finite Toy checks).  The packet remains proposed and this compiler
+result is interface evidence only; it does not establish formal acceptance, production
+integration, Section-4 theorem evidence, or runtime/refinement correctness.  No sorry,
+admit, custom unchecked axiom, or unsafe declaration is present.

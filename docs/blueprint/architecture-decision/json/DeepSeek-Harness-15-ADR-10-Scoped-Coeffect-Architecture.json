@@ -2,11 +2,14 @@
   "metadata": {
     "artifact_title": "DeepSeek Harness ADR-10: Scoped Coeffect and Realm Architecture",
     "packet_id": "ADR-10",
-    "status": "proposed-architecture-compiler-pending",
-    "packet_version": "0.1-proposed",
+    "status": "proposed-architecture-compiler-validated",
+    "packet_version": "0.1-proposed-compiler-validated",
     "created_on": "2026-08-28",
     "resolves": ["BD-SCOPED"],
     "closure_scope": "architecture-and-interface-only",
+    "architecture_status": "acceptance_pending",
+    "formal_acceptance": false,
+    "artifact_completeness": "md+json+lean-spike",
     "semantic_change": false,
     "production_namespace": "STC",
     "spike_namespace": "STCADR10",
@@ -223,7 +226,13 @@
   "validation": {
     "toolchain": "Lean 4.33.0 / Lake pinned project",
     "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean",
-    "local_status": "pending-toolchain",
+    "local_status": "passed-pinned-toolchain-2026-08-28",
+    "compiler_result": "exit-0-zero-warnings",
+    "exit_code": 0,
+    "warning_count": 0,
+    "validated_commit": "d2f8caafe1081e2a154d7bad0d307e72b6930d8f",
+    "repair_commit": "c73000cefaa61a4ea8f8e816864b3f7dab9a8484",
+    "observed_output": "some 7\\nnone",
     "required": [
       "zero errors",
       "zero linter warnings",
@@ -236,8 +245,8 @@
     "evidence_boundary": "Elaboration/compilation demonstrates interface evidence only; semantic/provider/lifecycle/refinement theorems remain downstream."
   },
   "integrity": {
-    "markdown_sha256": "28c22f905ffab5a88bf1e73ab7d25585a55d6b583a125668de53fb1da74ff8f6",
-    "lean_sha256": "a631cf160e8c798e0e361a7c7854c7c51b29edf7e9cf6b5b6173654cf48e1e53",
+    "markdown_sha256": "377ddbd5cc433fd9047206d22a22b3f55241ee934f114c10249803d818591bff",
+    "lean_sha256": "9088bf7c1e0e5c6c35dbf2fec1ac8ff270e88c9afa6d433079881eea7eb1dc4c",
     "json_sha256": null,
     "hash_scope": "SHA-256 over companion bytes; JSON self-hash intentionally excluded"
   },
