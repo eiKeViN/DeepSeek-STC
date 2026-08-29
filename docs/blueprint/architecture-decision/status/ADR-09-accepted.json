@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "record_type": "adr_acceptance",
+  "packet_id": "ADR-09",
+  "record_status": "accepted",
+  "architecture_status": "closed",
+  "formal_acceptance": true,
+  "accepted_on": "2026-08-29",
+  "accepted_by": "project lead",
+  "acceptance_basis": "Explicit project-lead instruction to execute and complete P9 on 2026-08-29.",
+  "decision_scope": "Positive support operator, canonical least fixed point, orientation, and explicit rank/WF certificate boundary.",
+  "semantic_change": false,
+  "candidate_packet": {
+    "markdown": {"path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.md", "sha256": "e65e36e4538cfc838fd4bb8a825d518db040eabd61020a077397c7f0c93b738b"},
+    "json": {"path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture.json", "sha256": "4cacf55bedc496309ff9c88baab969ec47f6e1dd4526426571cabc066a6cee61"},
+    "lean_spike": {"path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean", "sha256": "4c7c9c51a5366bc34f215e6279c0e9365ffe1c3b033c51484b4d4d96f4ddd243"}
+  },
+  "compiler_evidence": {"kind": "I", "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-14-ADR-09-Support-Well-Foundedness-Architecture-Spike.lean", "exit_code": 0, "warning_count": 0, "observed_output": ["true", "true"]},
+  "production_status": "pending",
+  "kernel_status": "pending",
+  "executable_status": "partial_fixture_only",
+  "runtime_refinement_status": "deferred",
+  "remaining_obligations": ["STC/State/Support production integration", "SupportWF/rank and confluence K proofs", "Reachable lifecycle cycle counterexample and runtime refinement"]
+}

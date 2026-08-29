@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "record_type": "adr_acceptance",
+  "packet_id": "ADR-10",
+  "record_status": "accepted",
+  "architecture_status": "closed",
+  "formal_acceptance": true,
+  "accepted_on": "2026-08-29",
+  "accepted_by": "project lead",
+  "acceptance_basis": "Explicit project-lead instruction to execute and complete P9 on 2026-08-29.",
+  "decision_scope": "Typed semantic/executable realm resolution, persistent scoped contexts, metadata precedence, and one-way flat embedding.",
+  "semantic_change": false,
+  "candidate_packet": {
+    "markdown": {"path": "docs/blueprint/architecture-decision/md/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.md", "sha256": "377ddbd5cc433fd9047206d22a22b3f55241ee934f114c10249803d818591bff"},
+    "json": {"path": "docs/blueprint/architecture-decision/json/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture.json", "sha256": "eb483253fbab9ace7a92610bb4136b3499da68d72ba37888d0b3e8a7797daab8"},
+    "lean_spike": {"path": "docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean", "sha256": "9088bf7c1e0e5c6c35dbf2fec1ac8ff270e88c9afa6d433079881eea7eb1dc4c"}
+  },
+  "compiler_evidence": {"kind": "I", "command": "lake env lean -DautoImplicit=false -Dpp.unicode.fun=true docs/blueprint/architecture-decision/lean-spike/DeepSeek-Harness-15-ADR-10-Scoped-Coeffect-Architecture-Spike.lean", "exit_code": 0, "warning_count": 0, "observed_output": ["some 7", "none"]},
+  "production_status": "pending",
+  "kernel_status": "pending",
+  "executable_status": "partial_fixture_only",
+  "runtime_refinement_status": "deferred",
+  "remaining_obligations": ["STC/Scoped production integration", "Resolver/store and physical-distinctness K proofs", "Cordis runtime refinement"]
+}
