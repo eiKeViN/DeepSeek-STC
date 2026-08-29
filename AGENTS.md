@@ -46,7 +46,10 @@ STC/Conformance
 STC/Adapter
 ```
 
-The following post-kernel families are reserved but acceptance-gated: `STC/Control/**`, `STC/Staging/**`, `STC/State/Support.lean`, and `STC/Scoped/**`.  Do not create them until the corresponding ADR has an explicit accepted record and an execution plan assigns ownership and dependencies.
+The accepted P10/P11 production families are `STC/Control/**`, `STC/Staging/**`, and
+`STC/State/Support.lean` plus their additive bridge modules.  `STC/Scoped/**` remains
+reserved and acceptance-gated for the independent P12 lane.  Do not create scoped
+production modules until ADR-10 has a corresponding execution gate.
 
 - `STC.Adapter` is the reserved abstract R0 abstraction/simulation seam.  Do not put concrete Cordis implementation declarations into the metatheory namespace; the `Cordis` name and its namespaces are reserved for a future runtime-side integration/refinement project.
 - Frozen inputs (read-only): `docs/blueprint/baseline/` (H03 graph, H04 disposition, Formal Reference) and every explicitly accepted ADR artifact.  Proposed ADR packets in the same directory remain non-normative and may be edited only by a dedicated ADR repair/promotion task.
@@ -56,11 +59,16 @@ The following post-kernel families are reserved but acceptance-gated: `STC/Contr
 The current accepted architecture includes relation-parametric laws, explicit partiality and failure results, the positive finite state/registry shell, lifetime-safe `IncarnationId` with explicit alpha actions, ranked iterators, and the ADR-06 equivalence/transport contracts.  Do not reopen these decisions implicitly.
 
 
-## Pending decision packets
+## Decision Packets and Pending Lanes
 
-As of 2026-08-28, ADR-07, ADR-08, ADR-09, and ADR-10 remain proposed architecture packets with compiler-validated standalone spikes.  Under the pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain, each focused command exits 0 with zero warnings; the exact paths, commands, hashes, and finite-check output are recorded in `docs/status/ADR-07-10-reconciliation.md`.  ADR-10 has its complete Markdown, JSON, and Lean-spike companion set.  Compiler validation is interface evidence only: it does not establish formal ADR acceptance, architecture closure, production integration, kernel theorem evidence, or runtime refinement.  Therefore `BD-CONTROL`, `BD-STAGING`, `BD-SUPPORT`, and `BD-SCOPED` remain acceptance-gated.  Do not subtract these blockers, create their production modules, or mark theorem rows complete.  Do not silently invent a competing architecture either; route promotion, repair, or divergence through lead review and the ADR process.
+As of 2026-08-29, separate status records accept ADR-07, ADR-08, ADR-09, and ADR-10.
+P10 Control, P11 Staging, and P11 Support Core are merged; this P11 integration
+closeout adds their production bridges and finite evidence.  Acceptance and
+compilation remain distinct from kernel theorem strength and runtime refinement.
+ADR-10 is accepted architecturally, but Scoped production remains a separate P12
+execution state.  Global Section-4 results and Cordis refinement remain pending.
 
-If ADR-07..10 are later explicitly accepted without a superseding semantic change, downstream integrations must preserve these reviewed boundaries:
+Downstream integrations for accepted ADR-07..10 must preserve these reviewed boundaries:
 
 - Control: orchestration and lifecycle are distinct relation classes combined by a typed labelled `Step`; the abstract semantics has no scheduler; `InFlight`, landing/abort boundaries, complete failure payloads, and freshness metadata boundaries remain explicit.
 - Staging: `R+` is authoritative; `Rb` is an `AtomicProfile`-controlled finite macro/view with embed/project/stable-image, forward-simulation, and profile-relative adequacy contracts, never an independently maintained calculus.
@@ -111,6 +119,18 @@ Every production `.lean` file, top to bottom:
 Before committing, every touched file must pass `lake env lean -DautoImplicit=false -Dpp.unicode.fun=true <file>` with zero errors and zero linter warnings.
 
 ## Working loop
+
+When operating in a newly created Git worktree, initialize its ignored Lake
+state before the first build.  This links a compatible existing dependency
+checkout while keeping branch-specific build outputs local:
+
+```bash
+python scripts/prepare_worktree_lake.py
+```
+
+If no populated compatible worktree exists, run `lake update` once in a
+checkout with network access and rerun the helper.  Do not share the entire
+`.lake` directory between worktrees.
 
 Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs:
 

@@ -14,33 +14,31 @@ successful package build.
 
 ## Current status
 
-P0 through P2 are complete and merged: the repository contains the frozen
+P0 through P9 are complete and merged: the repository contains the frozen
 provenance record, 82-item Definition Ledger and validator, relation/result
-foundations, shallow reversible effect kernel, R0 interpreter seam, and finite
-fixtures under the pinned Lean 4.33.0 / Mathlib v4.33.0 environment.
+foundations, reversible effect/iterator/state kernels, alpha transport, R0 seam,
+finite fixtures, and accepted ADR-07..10 status records under the pinned Lean
+4.33.0 / Mathlib v4.33.0 environment.
 
-P3 and P4 (partial operations/failure and the ranked iterator) are complete and
-merged through PR #7; P5 (abstract state, observation, registry, dependent
-coeffect facade, and ADR-03 state seam) is complete and merged through PR #6.
-Their detailed evidence is recorded in the
+P3 through P8 (partial operations/failure, ranked iterator, state/registry,
+alpha transport, vertical slice, and conformance) are complete.  Their detailed
+evidence is recorded in the
 [`P3`](docs/status/P3-handoff-report.md),
 [`P4`](docs/status/P4-handoff-report.md), and
-[`P5`](docs/status/P5-handoff-report.md) handoffs.  The central Definition
-Ledger is still the P5-derived snapshot, so the exact P3/P4 row patches remain
-an integration follow-up even though their code is merged.
+[`P5`](docs/status/P5-handoff-report.md), [`P8`](docs/status/P8-handoff-report.md),
+and [`P9`](docs/status/P9-handoff-report.md) handoffs.
 
-The next first-kernel wave is P6 alpha transport, followed by the P7 integrated
-vertical slice and P8 conformance/R0 work.  P0-P5 execution plans remain
-historical records and are not renumbered.
+P10 Control and P11 Staging/Support plus this integration closeout are merged;
+P12 Scoped and P13 global metatheory remain downstream plans.  Earlier execution
+plans remain historical records and are not renumbered.
 
-ADR-07 (control), ADR-08 (staging), ADR-09 (support), and ADR-10 (scoped
-coeffects) remain proposed packets, but all four repaired standalone spikes now
-pass their pinned Lean 4.33.0 / Mathlib v4.33.0 commands with exit 0 and zero
-warnings.  ADR-10 has its complete Markdown/JSON/Lean companion set.  The
-compiler result is interface evidence only, not formal ADR acceptance, automatic
-architecture closure, production integration, a Section-4 `K` theorem, or runtime
-refinement; all four blockers remain acceptance-gated.  The exact audit record is
-in [`docs/status/ADR-07-10-reconciliation.md`](docs/status/ADR-07-10-reconciliation.md).
+ADR-07 through ADR-10 have explicit accepted status records.  P10 Control, P11
+Staging, and P11 Support Core are merged, and the P11 integration closeout adds
+the cross-module closure, alpha, trace, and macro bridges.  Acceptance and
+compilation remain distinct from kernel theorem strength or runtime refinement;
+Scoped production is still an independent P12 state.  Global Section-4 `K`
+results and Cordis refinement remain pending.  The historical audit record is in
+[`docs/status/ADR-07-10-reconciliation.md`](docs/status/ADR-07-10-reconciliation.md).
 
 A compiling file is an interface result, not automatically a semantic proof;
 the project records `A`, `I`, `K`, `E`, `R0`, and `R1+` evidence separately.
@@ -73,21 +71,26 @@ STC/Adapter.lean
 not identify the STC metatheory kernel.  Concrete runtime verification requires
 an explicit source audit and an R1+ simulation/refinement theorem.
 
-The merged fixtures already contain two disjoint counters, reversible effects,
-an explicit failure path, and a ranked iterator.  P6/P7 still own the genuine
-name-bearing alpha transport and integrated vertical-slice evidence.
+The merged fixtures contain two disjoint counters, reversible effects, explicit
+failure paths, ranked iterators, labelled Control traces, derived Staging macros,
+and support certificate transport.  Name-bearing runtime payload refinement and
+global Section-4 theorems remain open.
 
-After P8, these module families are reserved only for explicitly accepted ADRs:
+The current production families include Control, Staging, and Support:
 
 ```text
 STC/Control/**
 STC/Staging/**
 STC/State/Support.lean
+STC/State/Support/Closure.lean
+STC/State/Support/Alpha.lean
+STC/Control/Support.lean
+STC/Staging/Support.lean
+STC/Examples/SupportTrace.lean
 STC/Scoped/**
 ```
 
-They do not exist yet and must not be created from the current proposed or
-incomplete packets.
+`STC/Scoped/**` remains reserved for the accepted ADR-10 P12 execution lane.
 
 ## Validation
 
@@ -97,6 +100,22 @@ From the repository root, use the pinned toolchain and the focused checks:
 lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/<changed-file>.lean
 lake build
 ```
+
+### Git worktrees and Lake
+
+`.lake` is intentionally ignored by Git, so a newly created worktree does not
+inherit build artifacts.  Initialize a worktree from an existing checkout with
+the pinned dependencies as follows:
+
+```bash
+python scripts/prepare_worktree_lake.py
+lake build
+```
+
+The helper links only `.lake/packages` when the manifest and `lean-toolchain`
+match.  Each worktree keeps its own `.lake/build`, so branch-specific `STC`
+OLean files cannot overwrite one another.  When no populated compatible
+worktree exists, run `lake update` once in a checkout and rerun the helper.
 
 Historical ADR spikes under `docs/blueprint/architecture-decision/lean-spike/`
 are read-only compiler fixtures.  They are not production imports.  See
