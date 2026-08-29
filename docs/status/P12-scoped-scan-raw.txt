@@ -1,0 +1,17 @@
+P12 scoped execution: raw scan results
+=====================================
+
+$ python scripts/scan_lean.py STC
+exit 1 — clean; no forbidden markers found
+(no output)
+
+$ rg -n '^import .*Control|^import .*Staging|^import .*Support' STC/Scoped.lean STC/Scoped STC/Examples/Scoped.lean
+exit 1 — no matches; no Control, Staging, or Support import present
+
+$ rg -n 'sorry|admit|axiom|unsafe' STC/Scoped.lean STC/Scoped STC/Examples/Scoped.lean
+2 lexical matches; both classified as false positives (docstring prose, not declarations):
+
+  STC/Scoped/Resolver.lean:90 — docstring: "…admits every default reference." (substring "admit" of "admits")
+  STC/Examples/Scoped.lean:100 — docstring: "…admitting both the default references…" (substring "admit" of "admitting")
+
+No sorry, admit, project-defined unchecked axiom, or unsafe declaration exists in the P12 files.
