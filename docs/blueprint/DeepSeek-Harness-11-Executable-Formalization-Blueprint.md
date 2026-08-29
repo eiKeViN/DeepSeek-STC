@@ -71,7 +71,7 @@ interface evidence; no formal acceptance is inferred.
 | ADR-07 / Harness-12 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-CONTROL` architecture closed; P10 production and `K` evidence tracked separately |
 | ADR-08 / Harness-13 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-STAGING` architecture closed; P11 production and `K` evidence tracked separately |
 | ADR-09 / Harness-14 | MD + JSON + Lean spike | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-SUPPORT` architecture closed; P11 production and `K` evidence tracked separately |
-| ADR-10 / Harness-15 | MD + JSON + Lean spike (complete companion set) | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-SCOPED` architecture closed; P12 production remains a separate lane |
+| ADR-10 / Harness-15 | MD + JSON + Lean spike (complete companion set) | accepted status record (`formal_acceptance=true`) | **exit 0; zero warnings** | `BD-SCOPED` architecture closed; P12 production is merged and remains independent |
 
 The repair commit `c73000c` changes only the four standalone Lean spikes and reports the
 compiler repair.  The current tree also contains the ADR-10 Markdown and JSON companions
@@ -112,7 +112,7 @@ a semantic change, integration must preserve these candidate boundaries:
 | `BD-CONTROL` | accepted architecture | ADR-07 accepted; P10 Control production is merged, while concrete guarded-rule `K` proofs remain pending |
 | `BD-STAGING` | accepted architecture | ADR-08 accepted; P11 derived Staging production and integration bridges are merged, while global adequacy remains pending |
 | `BD-SUPPORT` | accepted architecture | ADR-09 accepted; P11 Support production, closure, alpha, and trace bridges are merged, while concrete lifecycle projection remains pending |
-| `BD-SCOPED` | accepted architecture | ADR-10 accepted; Scoped production remains the independent P12 lane |
+| `BD-SCOPED` | accepted architecture | ADR-10 accepted; Scoped production is the completed independent P12 lane |
 
 No blocker is subtracted from H04 or the derived Definition Ledger until its ADR has an
 explicit accepted status. The candidate packets also do not authorize a later agent to
@@ -217,14 +217,21 @@ provide them.
 
 ### 4.1 Acceptance-gated post-kernel reservations
 
-The following module families reflect the current production snapshot; Scoped remains
-the only acceptance-gated post-kernel family:
+The following module families reflect the current production snapshot; P13 global
+modules are additive and Scoped is the completed independent P12 family:
 
 ```text
 STC/Control/**
 STC/Staging/**
 STC/State/Support.lean
 STC/Scoped/**
+STC/State/Component.lean
+STC/State/Fiber.lean
+STC/State/Global.lean
+STC/Control/Rules.lean
+STC/Control/Reachability.lean
+STC/Control/Canonical.lean
+STC/Conformance/Global.lean
 ```
 
 The dependency direction is:
@@ -234,7 +241,7 @@ Foundation.Result + Core.Iterator + State interfaces ──> Control
 Control + State interfaces ──> Staging
 State interfaces + accepted Control/Staging trace contracts ──> State.Support
 State.CoeffectStore + State.Observation ──> Scoped
-Control + Staging + State.Support + Scoped ──> Conformance (A/I/K status kept separate)
+Control + Staging + State.Support + Scoped + P13 global modules ──> Conformance (A/I/K status kept separate)
 ```
 
 `STC.Control` owns the two relation classes, labelled steps/traces, in-flight state,
@@ -243,8 +250,8 @@ and correspondence contracts over the authoritative full relation. `STC.State.Su
 owns the positive support operator, least fixed point, explicit rank certificate, and
 support transport hooks. `STC.Scoped` owns typed realm resolution, persistent derived
 contexts, metadata/interception, and the one-way flat embedding. None may contain concrete
-Cordis runtime declarations, and none may be created before its acceptance and execution
-gate is recorded.
+Cordis runtime declarations. P13 global modules are additive and old-paper single-realm;
+realm-aware generalization remains outside this phase.
 
 ## 5. Execution waves
 
@@ -561,7 +568,7 @@ P0 baseline
   → P8 conformance and R0 seam
 ```
 
-The current repository has merged P0–P8, P9 promotion, P10 Control, and P11 Staging/Support
-integration. P12 Scoped and P13 global metatheory remain the authorized downstream lanes. This ordering
+The current repository has merged P0–P8, P9 promotion, P10 Control, P11 Staging/Support
+integration, and P12 Scoped. P13 global metatheory is the current authorized downstream lane. This ordering
 keeps the metatheory kernel executable and auditable while leaving a clean, explicit route
 toward later control/scoped work and the Cordis adapter/refinement boundary.

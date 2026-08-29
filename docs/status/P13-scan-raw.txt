@@ -1,0 +1,7 @@
+command: python scripts/scan_lean.py STC
+exit: 1
+classification: clean; no lexical matches
+
+command: rg -n 'sorry|admit|axiom|unsafe' <P13 Lean paths>
+exit: 1
+classification: clean; no lexical matches

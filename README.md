@@ -28,16 +28,17 @@ evidence is recorded in the
 [`P5`](docs/status/P5-handoff-report.md), [`P8`](docs/status/P8-handoff-report.md),
 and [`P9`](docs/status/P9-handoff-report.md) handoffs.
 
-P10 Control and P11 Staging/Support plus this integration closeout are merged;
-P12 Scoped and P13 global metatheory remain downstream plans.  Earlier execution
+P10 Control, P11 Staging/Support, and P12 Scoped plus their integration closeouts
+are merged; P13 global metatheory is the current execution lane. Earlier execution
 plans remain historical records and are not renumbered.
 
 ADR-07 through ADR-10 have explicit accepted status records.  P10 Control, P11
 Staging, and P11 Support Core are merged, and the P11 integration closeout adds
 the cross-module closure, alpha, trace, and macro bridges.  Acceptance and
 compilation remain distinct from kernel theorem strength or runtime refinement;
-Scoped production is still an independent P12 state.  Global Section-4 `K`
-results and Cordis refinement remain pending.  The historical audit record is in
+Scoped production is a completed independent P12 layer. Global Section-4 results
+are being delivered under the P13 gates; Cordis refinement remains pending. The
+historical audit record is in
 [`docs/status/ADR-07-10-reconciliation.md`](docs/status/ADR-07-10-reconciliation.md).
 
 A compiling file is an interface result, not automatically a semantic proof;
@@ -90,7 +91,9 @@ STC/Examples/SupportTrace.lean
 STC/Scoped/**
 ```
 
-`STC/Scoped/**` remains reserved for the accepted ADR-10 P12 execution lane.
+`STC/Scoped/**` is the completed independent ADR-10 P12 lane. P13 adds the
+old-paper single-realm global state/rule/metatheory families and a separate
+conformance manifest; realm-aware generalization and Cordis R1+ remain outside.
 
 ## Validation
 
