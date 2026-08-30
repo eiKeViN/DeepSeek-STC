@@ -215,7 +215,7 @@ dependent coeffect `Finmap`.  The initial `Prelude.Finite` and `Foundation.Resul
 are logical module layers to be created in P0/P1 if the host repository does not already
 provide them.
 
-### 4.1 Acceptance-gated post-kernel reservations
+### 4.1 Post-kernel production families (current snapshot)
 
 The following module families reflect the current production snapshot; P13 global
 modules are additive and Scoped is the completed independent P12 family:
