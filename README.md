@@ -29,16 +29,25 @@ evidence is recorded in the
 and [`P9`](docs/status/P9-handoff-report.md) handoffs.
 
 P10 Control, P11 Staging/Support, and P12 Scoped plus their integration closeouts
-are merged; P13 global metatheory is the current execution lane. Earlier execution
-plans remain historical records and are not renumbered.
+are merged.  P13 (old-paper, single-realm global metatheory) is the current
+execution lane: the T00 entry gate and the T01 join (the twelve transitive
+prerequisites with checked downstream-usable declarations) are closed, and the
+T02 positive state/model API freeze is recorded on `codex/p13-continuation`;
+the concrete rule family, the five proof lanes, the joins, and the P13
+conformance manifest remain open.  Execution status lives in the
+[P13 plan](docs/plans/P13-Execution-Plan.md), the
+[lane handoffs](docs/status/P13-lanes/), and the
+[API freeze record](docs/status/P13-api-freeze.md).  Earlier execution plans
+remain historical records and are not renumbered.
 
 ADR-07 through ADR-10 have explicit accepted status records.  P10 Control, P11
 Staging, and P11 Support Core are merged, and the P11 integration closeout adds
 the cross-module closure, alpha, trace, and macro bridges.  Acceptance and
 compilation remain distinct from kernel theorem strength or runtime refinement;
 Scoped production is a completed independent P12 layer. Global Section-4 results
-are being delivered under the P13 gates; Cordis refinement remains pending. The
-historical audit record is in
+are delivered under the P13 gates (T01 join and the T02 state/model freeze
+recorded; rules, proof lanes, and conformance pending); Cordis refinement
+remains pending. The historical audit record is in
 [`docs/status/ADR-07-10-reconciliation.md`](docs/status/ADR-07-10-reconciliation.md).
 
 A compiling file is an interface result, not automatically a semantic proof;
@@ -93,7 +102,8 @@ STC/Scoped/**
 
 `STC/Scoped/**` is the completed independent ADR-10 P12 lane. P13 adds the
 old-paper single-realm global state/rule/metatheory families and a separate
-conformance manifest; realm-aware generalization and Cordis R1+ remain outside.
+conformance manifest (state/model API frozen at the T02 checkpoint);
+realm-aware generalization and Cordis R1+ remain outside.
 
 ## Validation
 
@@ -103,6 +113,9 @@ From the repository root, use the pinned toolchain and the focused checks:
 lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/<changed-file>.lean
 lake build
 ```
+
+Recurring Lean proof/debug pitfalls and their fixes are collected in
+[`docs/notes/lean-proof-debug-lessons.md`](docs/notes/lean-proof-debug-lessons.md).
 
 ### Git worktrees and Lake
 
