@@ -59,6 +59,81 @@ structure Commutes (R : RelSpec S) (later earlier : Transformation S) : Prop whe
   undo : ∀ x, R.rel ((Transformation.twisted later earlier).undo x)
       ((Transformation.twisted earlier later).undo x)
 
+namespace Commutes
+
+/-- Commutation is symmetric. -/
+theorem symm {R : RelSpec S} {later earlier : Transformation S}
+    (h : Commutes R later earlier) : Commutes R earlier later := by
+  constructor
+  · intro x
+    exact R.symm (h.forward x)
+  · intro x
+    exact R.symm (h.undo x)
+
+/-- The identity commutes with every transformation. -/
+theorem identity_left (R : RelSpec S) (t : Transformation S) :
+    Commutes R Transformation.identity t := by
+  constructor <;> intro x <;>
+    simp only [Transformation.twisted_identity_left, Transformation.twisted_identity_right]
+  · exact R.refl (t.forward x)
+  · exact R.refl (t.undo x)
+
+/-- Every transformation commutes with the identity. -/
+theorem identity_right (R : RelSpec S) (t : Transformation S) :
+    Commutes R t Transformation.identity := by
+  constructor <;> intro x <;>
+    simp only [Transformation.twisted_identity_left, Transformation.twisted_identity_right]
+  · exact R.refl (t.forward x)
+  · exact R.refl (t.undo x)
+
+/-- Commutation extends through `twisted` on the left, with the composed operand's
+forward and undo respects explicit. -/
+theorem twisted_left (R : RelSpec S) {a b c : Transformation S}
+    (hac : Commutes R a c) (hbc : Commutes R b c)
+    (haf : Respects R a.forward) (hbu : Respects R b.undo) :
+    Commutes R (Transformation.twisted a b) c := by
+  constructor
+  · intro x
+    change R.rel (a.forward (b.forward (c.forward x))) (c.forward (a.forward (b.forward x)))
+    have h₁ : R.rel (b.forward (c.forward x)) (c.forward (b.forward x)) := hbc.forward x
+    have h₂ : R.rel (a.forward (b.forward (c.forward x)))
+        (a.forward (c.forward (b.forward x))) := haf h₁
+    have h₃ : R.rel (a.forward (c.forward (b.forward x)))
+        (c.forward (a.forward (b.forward x))) := hac.forward (b.forward x)
+    exact R.trans h₂ h₃
+  · intro x
+    change R.rel (c.undo (b.undo (a.undo x))) (b.undo (a.undo (c.undo x)))
+    have h₁ : R.rel (a.undo (c.undo x)) (c.undo (a.undo x)) := R.symm (hac.undo x)
+    have h₂ : R.rel (b.undo (a.undo (c.undo x))) (b.undo (c.undo (a.undo x))) := hbu h₁
+    have h₃ : R.rel (b.undo (c.undo (a.undo x))) (c.undo (b.undo (a.undo x))) :=
+      R.symm (hbc.undo (a.undo x))
+    exact R.symm <| R.trans h₂ h₃
+
+/-- Commutation extends through `twisted` on the right, with the composed operand's
+forward and undo respects explicit. -/
+theorem twisted_right (R : RelSpec S) {a b c : Transformation S}
+    (hca : Commutes R c a) (hcb : Commutes R c b)
+    (haf : Respects R a.forward) (hbu : Respects R b.undo) :
+    Commutes R c (Transformation.twisted a b) := by
+  constructor
+  · intro x
+    change R.rel (c.forward (a.forward (b.forward x))) (a.forward (b.forward (c.forward x)))
+    have h₁ : R.rel (c.forward (b.forward x)) (b.forward (c.forward x)) := hcb.forward x
+    have h₂ : R.rel (c.forward (a.forward (b.forward x))) (a.forward (c.forward (b.forward x))) :=
+      hca.forward (b.forward x)
+    have h₃ : R.rel (a.forward (c.forward (b.forward x))) (a.forward (b.forward (c.forward x))) :=
+      haf h₁
+    exact R.trans h₂ h₃
+  · intro x
+    change R.rel (b.undo (a.undo (c.undo x))) (c.undo (b.undo (a.undo x)))
+    have h₁ : R.rel (a.undo (c.undo x)) (c.undo (a.undo x)) := hca.undo x
+    have h₂ : R.rel (b.undo (a.undo (c.undo x))) (b.undo (c.undo (a.undo x))) := hbu h₁
+    have h₃ : R.rel (b.undo (c.undo (a.undo x))) (c.undo (b.undo (a.undo x))) :=
+      hcb.undo (a.undo x)
+    exact R.trans h₂ h₃
+
+end Commutes
+
 /-- A supplied closure law lifts generator commutation to the generated monoid.
 The closure premise is explicit because generator commutation alone is not
 stable under arbitrary transformations without compatibility hypotheses. -/
@@ -71,7 +146,143 @@ theorem generated_commutes (R : RelSpec S) (generators : Transformation S → Pr
     {a b : Transformation S} (ha : Generated generators a) (hb : Generated generators b) :
     Commutes R a b := closure.commute ha hb
 
+/-- The closure principle for `Generated`: composition introduces no new generator
+kind, so any property holding of the identity, the generators, and closed under
+`twisted` holds of every generated transformation. -/
+theorem generated_induction {P : Transformation S → Prop} (generators : Transformation S → Prop)
+    (hid : P Transformation.identity)
+    (hgen : ∀ {t}, generators t → P t)
+    (htw : ∀ {a b}, P a → P b → P (Transformation.twisted a b)) :
+    ∀ {t}, Generated generators t → P t := by
+  intro t h
+  induction h with
+  | identity => exact hid
+  | generator hg => exact hgen hg
+  | twisted _ _ iha ihb => exact htw iha ihb
+
+/-- The generated set is a submonoid: it is closed under identity, generators, and
+twisted composition with the frozen unit and associativity laws. -/
+theorem generated_twisted_identity_left (generators : Transformation S → Prop)
+    {t : Transformation S} (h : Generated generators t) :
+    Generated generators (Transformation.twisted Transformation.identity t) := by
+  simpa [Transformation.twisted_identity_left] using h
+
+/-- The generated set is a right unit under twisted composition. -/
+theorem generated_twisted_identity_right (generators : Transformation S → Prop)
+    {t : Transformation S} (h : Generated generators t) :
+    Generated generators (Transformation.twisted t Transformation.identity) := by
+  simpa [Transformation.twisted_identity_right] using h
+
+/-- The generated set respects the frozen twisted associativity law. -/
+theorem generated_twisted_assoc (generators : Transformation S → Prop)
+    {a b c : Transformation S} (ha : Generated generators a)
+    (hb : Generated generators b) (hc : Generated generators c) :
+    Generated generators (Transformation.twisted (Transformation.twisted a b) c) := by
+  simpa [Transformation.twisted_assoc] using
+    generated_twisted generators (generated_twisted generators ha hb) hc
+
+/-- Generated transformations respect the relation whenever every generator does. -/
+theorem generated_respects (R : RelSpec S) (generators : Transformation S → Prop)
+    (h : ∀ {t}, generators t → Respects R t.forward ∧ Respects R t.undo) :
+    ∀ {t}, Generated generators t → Respects R t.forward ∧ Respects R t.undo := by
+  intro t ht
+  induction ht with
+  | identity => exact ⟨respects_id R, respects_id R⟩
+  | generator hg => exact h hg
+  | twisted _ _ iha ihb => exact ⟨respects_comp iha.1 ihb.1, respects_comp ihb.2 iha.2⟩
+
+/-- L18: generator-wise commutation, with every generator respecting the relation,
+extends to the whole generated monoid.  The closure law is derived, not assumed. -/
+theorem commutationClosure_of_generators (R : RelSpec S) (generators : Transformation S → Prop)
+    (hcomm : ∀ {a b}, generators a → generators b → Commutes R a b)
+    (hresp : ∀ {t}, generators t → Respects R t.forward ∧ Respects R t.undo) :
+    CommutationClosure R generators where
+  commute := by
+    intro a b ha hb
+    have hres : ∀ {t}, Generated generators t → Respects R t.forward ∧ Respects R t.undo :=
+      fun {t} ht => generated_respects R generators hresp ht
+    induction ha generalizing b with
+    | identity => exact Commutes.identity_left R b
+    | @generator a hg =>
+        induction hb with
+        | identity => exact Commutes.identity_right R a
+        | @generator b' hg' => exact hcomm hg hg'
+        | twisted hb₁ hb₂ ih₁ ih₂ =>
+            exact Commutes.twisted_right R ih₁ ih₂ (hres hb₁).1 (hres hb₂).2
+    | twisted ha₁ ha₂ ih₁ ih₂ =>
+        exact Commutes.twisted_left R (ih₁ hb) (ih₂ hb) (hres ha₁).1 (hres ha₂).2
+
 end Closure
+
+/-! ### T20: selective removal across an independent suffix -/
+
+section SelectiveRemovalEffect
+
+variable {S : Type u}
+
+/-- T20: removing one earlier effect after a later independent suffix.  Applying the
+removed effect's selected inverse after the suffix reaches a state related to the
+state the suffix alone reaches from the original input, provided every inverse the
+removed effect may select commutes with every later effect's forward map and the
+later effects are lawful. -/
+theorem selective_removal (R : RelSpec S) (first : Effect S) (suffix : List (Effect S))
+    (hfirst : IsLawfulEffect R first)
+    (hsuffix : ∀ h ∈ suffix, IsLawfulEffect R h)
+    (hcomm : ∀ h ∈ suffix, ∀ input,
+      CrossRel R ((first input).undo ∘ effectForward h)
+        (effectForward h ∘ (first input).undo))
+    (input : S) :
+    R.rel ((first input).undo ((runSequence suffix (first input).state).state))
+      ((runSequence suffix input).state) := by
+  have hcross : ∀ input' : S,
+      CrossRel R ((first input).undo ∘ effectForward (runSequence suffix))
+        (effectForward (runSequence suffix) ∘ (first input).undo) := by
+    intro input'
+    induction suffix with
+    | nil =>
+        intro x y hxy
+        change R.rel ((first input).undo x) ((first input).undo y)
+        exact (hfirst.undo_respects input) hxy
+    | cons h rest ih =>
+        intro x y hxy
+        change R.rel ((first input).undo (effectForward (runSequence rest) (effectForward h x)))
+          (effectForward (runSequence rest) (effectForward h ((first input).undo y)))
+        have hrest : ∀ h' ∈ rest, IsLawfulEffect R h' :=
+          fun h' hh' => hsuffix h' (by simp [hh'])
+        have hcommRest : ∀ h' ∈ rest, ∀ input' : S,
+            CrossRel R ((first input').undo ∘ effectForward h')
+              (effectForward h' ∘ (first input').undo) :=
+          fun h' hh' input' => hcomm h' (by simp [hh']) input'
+        have h₁ : R.rel ((first input).undo (effectForward h x))
+            (effectForward h ((first input).undo y)) :=
+          (hcomm h (by simp) input) hxy
+        have h₂ : R.rel ((first input).undo (effectForward (runSequence rest)
+              (effectForward h x)))
+            (effectForward (runSequence rest) ((first input).undo (effectForward h x))) :=
+          ih hrest hcommRest (R.refl (effectForward h x))
+        have h₃ : R.rel (effectForward (runSequence rest) ((first input).undo (effectForward h x)))
+            (effectForward (runSequence rest) (effectForward h ((first input).undo y))) := by
+          have hF : Respects R (effectForward (runSequence rest)) := by
+            have hlaw := runSequence_lawful R rest hrest
+            intro x' y' hxy'
+            exact (hlaw.run_respects hxy').1
+          exact hF h₁
+        exact R.trans h₂ h₃
+  have h₁ : R.rel ((first input).undo ((runSequence suffix (first input).state).state))
+      (effectForward (runSequence suffix) ((first input).undo (first input).state)) := by
+    change R.rel ((first input).undo (effectForward (runSequence suffix) (first input).state))
+      (effectForward (runSequence suffix) ((first input).undo (first input).state))
+    exact hcross input (R.refl (first input).state)
+  have h₂ : R.rel (effectForward (runSequence suffix) ((first input).undo (first input).state))
+      (effectForward (runSequence suffix) input) := by
+    have hF : Respects R (effectForward (runSequence suffix)) := by
+      have hlaw := runSequence_lawful R suffix hsuffix
+      intro x y hxy
+      exact (hlaw.run_respects hxy).1
+    exact hF (hfirst.recovers input)
+  exact R.trans h₁ h₂
+
+end SelectiveRemovalEffect
 
 section Recovery
 

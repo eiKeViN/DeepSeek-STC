@@ -27,7 +27,7 @@ def component : Component Nat Nat Unit Unit Unit Unit Unit :=
 
 def cell0 : Cell :=
   { incarnation := 0, parent := none, birth := 0, component := component,
-    committed := { entries := ∅ }, retired := false, phase := .inactive,
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
     payload :=
       { iteratorCode := (), accumulatorCode := (), flightCode := none, failureData := none } }
 

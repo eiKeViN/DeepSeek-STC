@@ -61,13 +61,16 @@ The current accepted architecture includes relation-parametric laws, explicit pa
 
 ## Decision Packets and Pending Lanes
 
-As of 2026-08-29, separate status records accept ADR-07, ADR-08, ADR-09, and ADR-10.
-P10 Control, P11 Staging, and P11 Support Core are merged; this P11 integration
-closeout adds their production bridges and finite evidence.  Acceptance and
-compilation remain distinct from kernel theorem strength and runtime refinement.
-ADR-10 is accepted architecturally and Scoped production is merged as P12. P13 owns
-the old-paper single-realm global metatheory/conformance lane; Cordis refinement and
-realm-aware global theorems remain pending.
+Normative acceptance state lives in the per-ADR status records
+(`docs/blueprint/architecture-decision/status/ADR-*-accepted.json`); lane
+progress and evidence live in the per-lane handoffs
+(`docs/status/P13-lanes/*.md`) and the freeze record
+(`docs/status/P13-api-freeze.md`); integration history lives in the dated
+handoff reports under `docs/status/`.  P10 Control, the P11 Staging/Support
+integration, and P12 Scoped are merged; P13 owns the old-paper single-realm
+global metatheory/conformance lane; Cordis refinement and realm-aware global
+theorems remain pending.  Acceptance and compilation remain distinct from
+kernel theorem strength and runtime refinement.
 
 Downstream integrations for accepted ADR-07..10 must preserve these reviewed boundaries:
 
@@ -109,15 +112,21 @@ Every production `.lean` file, top to bottom:
 - Section-scoped `variable` replaces repeated per-declaration binders (`{α : Type u}`, `[DecidableEq α]`, explicit parameters exactly as mathlib writes them).  Type-family declarations (`Store (V)`, `PartialMap (α) (β)`, …) keep their explicit parameters.
 - Section variables are auto-included only when used; where Lean over-includes an unused instance, drop it with `omit [Foo] in` (linter `unusedSectionVars`).
 - Notations needed by several sections stay outside sections (precedent: ADR-03 closure spike).
+- Prefer `abbrev` over `def` when proofs would otherwise need explicit `unfold` of the declaration.
+- Split large proofs into per-case lemmas and assemble them in one theorem.
 
 ### Evaluation
 
-- No top-level `#eval` over `@[expose]`d declarations in library modules.  Exposure marks declarations external, and the interpreter then needs the package's native shared library — which cannot be linked on Windows (DLL export limit of 65,535 symbols; `Mathlib:shared` link fails at ~203k symbols).  Executable checks are `example … := by decide` blocks that pin the expected value at elaboration time; `#eval` belongs to scratch/tooling files outside the library.
+- No top-level `#eval` over `@[expose]`d declarations in library modules.  Exposure marks declarations external, and the interpreter then needs the package's native shared library — which cannot be linked on Windows (DLL export limit of 65,535 symbols; `Mathlib:shared` link fails at ~203k symbols).  Executable checks are `example … := by decide` blocks that pin the expected value at elaboration time; `#eval` belongs to scratch/tooling files outside the library.  Full diagnosis: `docs/status/eval-exposed-decls-debug-report.md`.
 - Do not set `precompileModules`/shared-library facets on `lean_lib` targets: they pull the dependency's shared library into the link and fail the same way.
 
 ### Verification
 
 Before committing, every touched file must pass `lake env lean -DautoImplicit=false -Dpp.unicode.fun=true <file>` with zero errors and zero linter warnings.
+
+For semantic search of Mathlib declarations (finding lemmas/instances by concept rather than by name), prefer the `mathlib-search` skill before falling back to `grep` over `.lake/packages/mathlib`.
+
+For recurring elaboration/tactic pitfalls and their fixes (decidability synthesis, `cases`/`rw` context rules, Lean 4.33 regressions, mathlib API gotchas), see `docs/notes/lean-proof-debug-lessons.md`; extend that file rather than restating lessons inline.
 
 ## Working loop
 
@@ -133,7 +142,7 @@ If no populated compatible worktree exists, run `lake update` once in a
 checkout with network access and rerun the helper.  Do not share the entire
 `.lake` directory between worktrees.
 
-Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs:
+Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs.  During iteration, check each touched file individually, in import order (root module of the change set first, then each importer in turn), until every one exits 0 with zero warnings; the full `lake build` is the acceptance gate, not an iteration step.  Record the real exit code (redirect to a log, then `echo $?`): a pipeline through `head`/`grep` masks compiler failures.
 
 ```bash
 lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/<changed-file>.lean
@@ -143,8 +152,8 @@ python scripts/scan_lean.py STC
 ```
 
 - Use the pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain.
-- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.
+- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.  The CLI single-file check does not reliably refresh `.olean` artifacts — for the fresh `.olean` chain run `lake build <Module.Name>` (staleness diagnosis in the proof/debug notes, §1).
 - `scripts/scan_lean.py` exit codes: 0 = lexical match found (inspect and classify; a comment/string match is not a live declaration), 1 = clean, 2 = scan error.  A clean scan covers current files only, not future code.
-- Keep the Definition Ledger current after each task: edit rows in place using the Blueprint vocabulary (delivery: `planned/in_progress/completed/blocked/deferred`; evidence: `pending/aligned/passed/proved/tested/seam_only/deferred/not_applicable`) and rerun the validator.  
+- Keep the Definition Ledger current after each task: edit rows in place using the vocabulary recorded in the ledger file itself (`delivery_vocabulary`/`evidence_vocabulary` keys in `docs/status/Definition-Ledger.json`) and rerun the validator.
 - Do not rerun `gen_definition_ledger.py` after P0 — it regenerates from its P0 curation tables and would wipe later evidence.
 - Keep commits focused, do not overwrite other agents' work, and report any baseline/hash or namespace mismatch instead of silently normalizing it.
