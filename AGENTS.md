@@ -126,6 +126,8 @@ Before committing, every touched file must pass `lake env lean -DautoImplicit=fa
 
 For semantic search of Mathlib declarations (finding lemmas/instances by concept rather than by name), prefer the `mathlib-search` skill before falling back to `grep` over `.lake/packages/mathlib`.
 
+For recurring elaboration/tactic pitfalls and their fixes (decidability synthesis, `cases`/`rw` context rules, Lean 4.33 regressions, mathlib API gotchas), see `docs/notes/lean-proof-debug-lessons.md`; extend that file rather than restating lessons inline.
+
 ## Working loop
 
 When operating in a newly created Git worktree, initialize its ignored Lake
