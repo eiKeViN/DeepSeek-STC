@@ -113,6 +113,14 @@
 * "two-run read-respect" is read as `ReadRespect`: across two executions,
   the owner's required keys read equal values.
 
+## Amendment (recorded reopen, same lead authority)
+
+* `ComponentSemantics` universe shape repaired: each code family now carries
+  its own universe (`State u / Value v / Action w / Iterator x / Accumulator y
+  / Flight z / Failure x`) so the profile instantiates over the mixed-universe
+  `GlobalState` carrier. The stage/rank laws were already stage-based at
+  `61a0040`; this amendment only widens the structure universes.
+
 ## Proposed ledger deltas (central integration, not applied here)
 
 * None. Rows D43–D50/D58 remain T02-owned; the repair strengthens the

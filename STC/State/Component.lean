@@ -10,7 +10,7 @@ Components contain requirements, provisions, and executable codes only. Their
 denotations and frame laws are supplied by an external interpretation profile.
 -/
 
-universe u v w x
+universe u v w x y z
 
 namespace STC.State
 
@@ -67,9 +67,11 @@ def failure? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failur
 
 end StageResult
 
-/-- External semantic interpretation for a component code. -/
+/-- External semantic interpretation for a component code. Each code family
+carries its own universe so the profile instantiates over mixed-universe
+carriers like `GlobalState`. -/
 structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
-    (Iterator : Type u) (Accumulator : Type v) (Flight : Type u) (Failure : Type v) where
+    (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Failure : Type x) where
   action : Action → State → Option State
   stage : Iterator → State → Option (StageResult State Iterator Accumulator Failure)
   composeInverse : Accumulator → Accumulator → Accumulator
