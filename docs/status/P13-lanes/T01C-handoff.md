@@ -3,12 +3,47 @@
 * Scope: `STC/Foundation/Relation/Transport.lean`,
   `STC/State/Positive.lean`, `STC/State/Observation/Lift.lean`, and the
   prerequisite state example.
-* Result: in-progress relation-map/optional transport, positive cell/context
-  carriers, and independent registry/committed/lifecycle/control/name
-  observations.
-* Evidence: `I K E`; the full L38 join remains open and no runtime refinement is claimed.
+* Result: T01C closed.  The relation-map/optional transport family
+  (`RelMap`/`relMap_id`/`relMap_comp`/`optionRel_map`/`PointwiseMap`/
+  `pointwiseMap_trans`) is the L38-subsuming package; the positive
+  registry-cell-parametric carriers (`PositiveCell`/`PositiveRegistry`/
+  `PositiveContext`) stay free of any state-indexed function, proposition, or
+  iterator; the five-component observation kit
+  (registry/committed/lifecycle/control-edit/names) now carries all five
+  projections plus refl/symm/trans closure lemmas under explicit premises on
+  the three bare relations, exercised by an equality-based kit in
+  `STC/Examples/PrerequisiteState.lean`.
+* Evidence: `I K E`; no runtime refinement claimed.  The "full L38 join" at
+  H04's audited strength is the transport family above (L38 is
+  SUBSUMED/generalization; a blanket "every Section-3.1 equality transports"
+  is not a Lean proposition).
 * Focused gate: `lake build STC.Foundation.Relation.Transport STC.State.Positive
-  STC.State.Observation.Lift STC.Examples.PrerequisiteState`.
+  STC.State.Observation.Lift STC.Examples.PrerequisiteState` + strict per-file
+  `lake env lean -DautoImplicit=false -Dpp.unicode.fun=true` (exit 0, zero
+  warnings); no sorry/admit/axiom/unsafe; full `lake build` green.
+
+## D32/D33 generic interface freeze for T02
+
+The following signatures are the generic interfaces T02 instantiates; no lane
+may change them without a coordinated reopen:
+
+* D32 generic carrier: `PositiveCell (K D Code)`, `PositiveRegistry K D Code :=
+  Finmap (fun _ : K => PositiveCell K D Code)`, `PositiveContext (Ambient K D
+  Code)` with `ambient`/`registry` projections;
+* D33 generic observation kit: `RegistryObservation`, `CommittedObservation`,
+  `ObservationKit` (five components), `liftedStateObs` plus the five
+  projections and the refl/symm/trans closure lemmas;
+* L38 transport family: `RelMap`, `relMap_id`, `relMap_comp`, `optionRel_map`,
+  `PointwiseMap`, `pointwiseMap_trans`.
+
+## Proposed ledger deltas (central integration, not applied here)
+
+* D33 → `completed/proved` (observation kit + closure laws);
+* L38 → `completed/proved` (transport family at the audited generalization
+  strength);
+* D32 remains `in_progress/seam_only` — the generic carrier is frozen here,
+  but the D32 completion evidence (GlobalState representation theorem) belongs
+  to T02 per plan §9.
 
 ## T01C prerequisite check (2026-08-30, post T01A/T01B)
 
