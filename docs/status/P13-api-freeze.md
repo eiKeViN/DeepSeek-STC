@@ -4,7 +4,7 @@
 |---|---|
 | Plan | `DH-P13-GLOBAL-METATHEORY-EXEC-01` |
 | Base | `96b8752` (`P13 plan added`) |
-| Freeze state | T02 checkpoint recorded; T03/T04 checkpoints remain open |
+| Freeze state | T02 + T02R checkpoints recorded; T03/T04 checkpoints remain open |
 | Toolchain | Lean 4.33.0 / Mathlib v4.33.0 |
 
 ## T02 checkpoint (positive state and model API freeze)
@@ -51,6 +51,41 @@
   import-boundary scans exit 1 (no matches); `git diff --check` clean;
   protected-path diffs clean.
 
+## T02R checkpoint (semantic-view/profile repair, lead-ruled)
+
+* Authority: lead decision (2026-09-01) inserting a repair between the
+  T02 freeze and T03; no new ADR, no `FiberCell`/`GlobalState` carrier
+  fields changed. Lane record: `docs/status/P13-lanes/T02R-handoff.md`.
+* Branch: `codex/p13-continuation`; base for this checkpoint: `c247991`;
+  checkpoint commit: `61a0040`.
+* Modules: `STC/State/Component.lean` (stage semantics repair),
+  `STC/State/Global.lean` (view/WF/D48 repair),
+  `STC/Examples/GlobalModel.lean` (fixture on the repaired semantics).
+* SHA-256 (module files):
+  * `STC/State/Component.lean`
+    `ce759d9a2c536c89c48a522c15e7b1271750a993e31460716aa75e0dcacca3d4`
+  * `STC/State/Global.lean`
+    `e6a9c02061221f87e41e1938e184ad564e312ee732af56fcb2c0e5d5c3ccc21f`
+  * `STC/Examples/GlobalModel.lean`
+    `79191db2d8032d2defed68912a8c97b283575e6320cd189fb5b54be1a4c41d08`
+* Superseded T02 surface: `ProvidesNow` is now active ∧ committed-table
+  membership with no retired check; `CommittedProvides` added for
+  teardown views; `TargetViewAt`/`TargetAbsent` replace the
+  `Option (Finset Name)` view as the rule input; `Registered` split from
+  the phase-based `Installed`; `ReliedUpon` gains the distinct/installed/
+  required-key envelope; `Quiescent` aligns active views with targets;
+  `CommittedProvidersClosed` uses `CommittedProvides`; `WellFormed`
+  grows to ten conjuncts (five new data-coherence conditions);
+  `ComponentSemantics.iterator` is replaced by `stage` +
+  `StageResult` + the composition/identity/launch machinery; the D48
+  surface is split into `WriteFrame`/`ReadNoninterference`/
+  `ReadRespect`/`RegistrationFrame`/`CleanupFrame`.
+* Focused checks on the three modules: exit 0, zero warnings.
+* Full build: `lake build` completed successfully (737 targets, exit 0).
+* Gates: scan exit 1 (clean); Ledger validator 82/82 with both frozen
+  H03/H04 hashes OK; forbidden-token and import-boundary scans exit 1;
+  `git diff --check` clean; no cross-lane files touched.
+
 ## Current production surface
 
 The P13 production graph is additive and data-positive:
@@ -75,18 +110,31 @@ the sole union of `orchestrationRule` and `lifecycleRule`; `withdrawRule`,
 
 * `STC.State.GlobalState`, `allocate`, `nextBirth`, `retire?`,
   `updateFiber` + frame laws, `activeNames`, `activeStore`, `stableImage`,
-  `ProvidesNow`, `providersOf` + `_sound/_complete/_unique/_card_le_one`,
+  `ProvidesNow` (table-based), `CommittedProvides`, `providersOf` +
+  `_sound/_complete/_unique/_card_le_one`,
   `targetProviders`, `targetSatisfied`(+`_iff`), `targetView` +
-  `_isSome_iff/_some_iff/_mem/_provides`, `Installed`, `Failed`,
-  `PendingFlight`, `Quiescent`, `WriteFrame`, `ReadNoninterference`,
+  `_isSome_iff/_some_iff/_mem/_provides`, `TargetViewAt`, `TargetAbsent`,
+  `Registered`, `Installed`, `installed_registered`, `Failed`,
+  `PendingFlight`, `Quiescent` (target-aligned), `WriteFrame`,
+  `ReadNoninterference`, `ReadRespect`, `RegistrationFrame`,
+  `CleanupFrame`, `allocate_registrationFrame`, `updateFiber_cleanupFrame`,
+  `retire?_cleanupFrame`, `updateFiber_readRespect`,
   `ReliedUpon`(+`_iff_view`), `ParentStep`, `ParentClosed`,
   `ParentAcyclic`, `TableConfined`, `ProvisionDisjoint`,
-  `CommittedViewClosed`, `CommittedProvidersClosed`, `WellFormedProfile`
-  (lifecycleCoherent/root/declarations), `WellFormed` + nine
-  `wellFormed_*` projections, `FiberData`, `FiberCode`, `toPositiveRegistry`
+  `CommittedViewClosed`, `CommittedProvidersClosed`,
+  `ActiveTableCoherent`, `CommittedViewDomain`, `IncarnationCoherent`,
+  `AllocationCoherent`, `LedgerCoherent`, `DataCoherent`,
+  `WellFormedProfile` (lifecycleCoherent/root/declarations), `WellFormed`
+  (ten conjuncts) + nine retained and five new `wellFormed_*`
+  projections, `FiberData`, `FiberCode`, `toPositiveRegistry`
   + `_entries/_keys`, `toPositive_lookup_some/_none/_isSome_iff`,
   `PositiveCellObs`, `AlphaCodeProfile`, `NameNeutral`,
   `FactorizationProfile`, `ProgressProfile`, `ConfluenceProfile`.
+* `STC.State.ComponentSemantics` (T02R shape): `action`, `stage` +
+  `StageResult` (yield/halt/raise, `state`/`inverse?`/`failure?`),
+  `composeInverse`, `identityAccumulator`, `launch`, `flight`, `failure`,
+  `undo`, `observes`, `writesWithinProvision`, `continuationStable`,
+  `rank`, `accumulatorFrame`, and the checked law fields.
 * `STC.State.Global.Observation`: `GlobalObservation`, `StateObs` + five
   projections + `_refl/_symm/_trans`, `registryObservation`,
   `committedObservation`, `observationKit`, `stateObs_eq_lifted`
