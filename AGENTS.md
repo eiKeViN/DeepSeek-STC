@@ -117,7 +117,7 @@ Every production `.lean` file, top to bottom:
 
 ### Evaluation
 
-- No top-level `#eval` over `@[expose]`d declarations in library modules.  Exposure marks declarations external, and the interpreter then needs the package's native shared library — which cannot be linked on Windows (DLL export limit of 65,535 symbols; `Mathlib:shared` link fails at ~203k symbols).  Executable checks are `example … := by decide` blocks that pin the expected value at elaboration time; `#eval` belongs to scratch/tooling files outside the library.
+- No top-level `#eval` over `@[expose]`d declarations in library modules.  Exposure marks declarations external, and the interpreter then needs the package's native shared library — which cannot be linked on Windows (DLL export limit of 65,535 symbols; `Mathlib:shared` link fails at ~203k symbols).  Executable checks are `example … := by decide` blocks that pin the expected value at elaboration time; `#eval` belongs to scratch/tooling files outside the library.  Full diagnosis: `docs/status/eval-exposed-decls-debug-report.md`.
 - Do not set `precompileModules`/shared-library facets on `lean_lib` targets: they pull the dependency's shared library into the link and fail the same way.
 
 ### Verification
@@ -152,7 +152,7 @@ python scripts/scan_lean.py STC
 ```
 
 - Use the pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain.
-- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.  The CLI single-file check also does not reliably refresh `.olean` artifacts (the IDE language server owns the build directory and stale `.olean.hash` files can fake a passing check); when downstream files need the fresh `.olean` chain, run `lake build <Module.Name>` for that target.
+- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.  The CLI single-file check does not reliably refresh `.olean` artifacts — for the fresh `.olean` chain run `lake build <Module.Name>` (staleness diagnosis in the proof/debug notes, §1).
 - `scripts/scan_lean.py` exit codes: 0 = lexical match found (inspect and classify; a comment/string match is not a live declaration), 1 = clean, 2 = scan error.  A clean scan covers current files only, not future code.
 - Keep the Definition Ledger current after each task: edit rows in place using the vocabulary recorded in the ledger file itself (`delivery_vocabulary`/`evidence_vocabulary` keys in `docs/status/Definition-Ledger.json`) and rerun the validator.
 - Do not rerun `gen_definition_ledger.py` after P0 — it regenerates from its P0 curation tables and would wipe later evidence.

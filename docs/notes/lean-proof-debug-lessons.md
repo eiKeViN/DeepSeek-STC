@@ -9,12 +9,13 @@ transport, the ADR-07..10 spike repairs, P12 Scoped, and P13 T01/T02
 
 ### CLI checks must replicate project options
 
-`lake env lean` does **not** read lakefile `[leanOptions]`; with the default
-`autoImplicit := true`, undeclared identifiers silently auto-bind as implicit
-parameters.  Always run `lake env lean -DautoImplicit=false -Dpp.unicode.fun=true
-<file>` (mirror of the lakefile).  `lake env lean` must run from the **repo
-root**; from a subdirectory it degrades to a bare elan env → `unknown module
-prefix 'Mathlib'`, a false diagnostic.
+The command discipline is in AGENTS (Verification/Working loop).  The why:
+`lake env lean` does **not** read lakefile `[leanOptions]`, and with the
+default `autoImplicit := true` undeclared identifiers silently auto-bind as
+implicit parameters — the file "compiles" while the IDE (which reads the
+options) reports unknown-identifier errors.  `lake env lean` must also run
+from the **repo root**; from a subdirectory it degrades to a bare elan env →
+`unknown module prefix 'Mathlib'`, a false diagnostic.
 
 ### Fix errors in priority order
 
@@ -68,10 +69,10 @@ signatures after a refactor.
 
 ### `@[expose] public section` is mandatory
 
-`theorem t : (f x).1 = x.1 := rfl` fails with `Not a definitional equality:
-the left-hand side` in a `module` file: exported theorems may only unfold
-*exposed* declarations, and plain `public section` marks them public but not
-exposed.  Wrap declarations in `@[expose] public section … end`.
+Convention: AGENTS (Scoping).  Diagnostic: `theorem t : (f x).1 = x.1 := rfl`
+fails with `Not a definitional equality: the left-hand side` in a `module`
+file — exported theorems may only unfold *exposed* declarations, and plain
+`public section` marks them public but not exposed.
 
 `Unknown identifier` for an imported declaration: in `module` files
 declarations default to **private**; only `public section` (+ exposure)
@@ -80,13 +81,10 @@ oleans — build the dependency chain first.
 
 ### `#eval` over exposed declarations fails on Windows
 
-`@[expose]` extern-izes declarations; the interpreter demands compiled native
-symbols, and the package shared library cannot link on Windows (PE export cap
-65,535; mathlib ~203k symbols; `precompileModules` pulls the dependency's
-shared library and fails the same way).  No top-level `#eval` over exposed
-declarations in library modules; pin executable checks with
-`example report = { … } := by decide`.  Full write-up:
-`docs/status/eval-exposed-decls-debug-report.md`.
+Rule and rationale (DLL export cap, `by decide` pinning) live in AGENTS
+(Evaluation section); full diagnosis:
+`docs/status/eval-exposed-decls-debug-report.md`.  Symptom to recognize:
+`Could not find native implementation of external declaration '…._redArg'`.
 
 ### Imports and attribute placement
 
