@@ -107,10 +107,7 @@ theorem runSequence_undo_eq_applyWord_reverse (effects : List (Effect S)) (input
       funext s
       change (e input).undo ((runSequence rest (e input).state).undo s) =
         applyWord (((e input).undo :: inverseWord rest ((e input).state)).reverse) s
-      rw [List.reverse_cons]
-      rw [applyWord_append]
-      rw [ih]
-      simp [applyWord]
+      simp_rw [List.reverse_cons, applyWord_append, ih, applyWord]
 
 /-- The bundle of per-map laws consumed by permuted inverse application. -/
 structure InverseWordLaw (R : RelSpec S) (maps : List (S → S)) : Prop where
