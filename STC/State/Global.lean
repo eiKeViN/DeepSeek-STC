@@ -14,16 +14,19 @@ obligations and never hides a support order.
 ## Main declarations
 
 * `GlobalState`, `allocate`, `nextBirth`, `retire?`, `updateFiber`.
-* `ProvidesNow`, `providersOf` with well-formed-relative soundness/completeness/
+* `ProvidesNow` (active + committed table), `CommittedProvides` (teardown
+  view), `providersOf` with well-formed-relative soundness/completeness/
   uniqueness.
-* `targetProviders`, `targetSatisfied`, `targetView`, `Quiescent`,
-  `stableImage` (D46 target/quiescence views).
-* `WriteFrame`, `ReadNoninterference` (D48 confinement) plus pure state-update
-  frame lemmas.
+* `targetProviders`, `targetSatisfied`, `targetView`, `TargetViewAt`,
+  `TargetAbsent`, `Quiescent`, `stableImage` (D46 target/quiescence views).
+* `Registered`, `Installed`, `Failed`, `PendingFlight` (D49).
+* `WriteFrame`, `ReadNoninterference`, `ReadRespect`, `RegistrationFrame`,
+  `CleanupFrame` (D48 confinement) plus pure state-update frame lemmas.
 * `ReliedUpon` (D50).
 * `ParentClosed`, `ParentAcyclic`, `TableConfined`, `ProvisionDisjoint`,
-  `CommittedViewClosed`, `CommittedProvidersClosed`, `WellFormedProfile`,
-  `WellFormed` (D58).
+  `CommittedViewClosed`, `CommittedProvidersClosed`, `ActiveTableCoherent`,
+  `CommittedViewDomain`, `IncarnationCoherent`, `AllocationCoherent`,
+  `LedgerCoherent`, `WellFormedProfile`, `WellFormed` (D58).
 * `FiberData`, `FiberCode`, `toPositiveRegistry`, `PositiveCellObs`,
   `toPositive_keys`, `toPositive_lookup_some`, `toPositive_lookup_none`,
   `toPositive_lookup_isSome_iff` (D32 representation of the concrete
@@ -76,10 +79,11 @@ local notation "GComponent" => Component Key Value Action Iterator Accumulator F
 /-- The ordered allocation history is an immutable state component. -/
 def issuedInOrder (state : GState) : List Name := state.allocationHistory
 
-/-- Active names are derived by inspecting the positive registry cells. -/
+/-- Active names are derived by inspecting the positive registry cells;
+retirement alone does not remove a name from the active set. -/
 def activeNames (state : GState) : Finset Name :=
   state.registry.keys.filter fun name =>
-    (Option.map (fun fiber : GCell => decide (fiber.phase = .active ∧ fiber.retired = false))
+    (Option.map (fun fiber : GCell => decide (fiber.phase = .active))
       (Finmap.lookup name state.registry)).getD false
 
 /-- A derived active-store view; it does not replace the authoritative registry. -/
@@ -245,19 +249,118 @@ theorem updateFiber_readNoninterference (state : GState) (owner : Name) (fiber :
   | some _ => intro key _; simp [updateFiber]
   | none => trivial
 
+/-- D48 two-run read-respect: across two executions, the owner's required keys
+read the same values. -/
+def ReadRespect (left right : GState) (owner : Name) : Prop :=
+  ∀ cell key, Finmap.lookup owner left.registry = some cell →
+    key ∈ cell.component.requires →
+      Coeffect.lookup key left.coeffects = Coeffect.lookup key right.coeffects
+
+/-- A cell update satisfies the two-run read-respect condition. -/
+theorem updateFiber_readRespect (state : GState) (owner : Name) (fiber : GCell) :
+    ReadRespect state (updateFiber state owner fiber) owner := by
+  unfold ReadRespect
+  intro cell key _hlook _hkey
+  simp [updateFiber]
+
+/-- D48 registration frame: the registry grows only at `fresh` by `cell`, the
+ever-issued ledger only at `fresh`, the allocation history only appends `fresh`,
+and the ambient/coeffect stores and all other cells are fixed. -/
+def RegistrationFrame (state : GState) (fresh : Name) (cell : GCell) (after : GState) : Prop :=
+  (∀ name, name ≠ fresh →
+      Finmap.lookup name state.registry = Finmap.lookup name after.registry) ∧
+    Finmap.lookup fresh state.registry = none ∧
+      Finmap.lookup fresh after.registry = some cell ∧
+        fresh ∉ state.ledger.everIssued ∧
+          after.ledger.everIssued = insert fresh state.ledger.everIssued ∧
+            after.allocationHistory = state.allocationHistory ++ [fresh] ∧
+              after.coeffects = state.coeffects ∧ after.ambient = state.ambient
+
+/-- The D47 allocation primitive satisfies the registration frame. -/
+theorem allocate_registrationFrame (state : GState) {fresh : Name} {cell : GCell}
+    (hfresh : Finmap.lookup fresh state.registry = none)
+    (hledger : fresh ∉ state.ledger.everIssued) :
+    RegistrationFrame state fresh cell (allocate state fresh cell) := by
+  unfold RegistrationFrame
+  constructor
+  · intro name hne
+    exact (allocate_lookup_ne state fresh cell hne).symm
+  · constructor
+    · exact hfresh
+    · constructor
+      · exact allocate_lookup_fresh state fresh cell
+      · constructor
+        · exact hledger
+        · constructor
+          · exact allocate_ledger state fresh cell
+          · constructor
+            · exact allocate_history state fresh cell
+            · constructor
+              · exact allocate_coeffects state fresh cell
+              · exact allocate_ambient state fresh cell
+
+/-- D48 teardown frame: accumulator execution during unload may edit the owner's
+cell and apply recorded child-retirement inverses (flipping a child's retired
+flag), nothing else; the ledger, history, and coeffect store are fixed. -/
+def CleanupFrame (state : GState) (owner : Name) (after : GState) : Prop :=
+  (∀ name, name ≠ owner →
+      Finmap.lookup name state.registry = Finmap.lookup name after.registry ∨
+        ∃ cell, Finmap.lookup name state.registry = some cell ∧ cell.retired = false ∧
+          Finmap.lookup name after.registry = some { cell with retired := true }) ∧
+    state.ledger = after.ledger ∧ state.allocationHistory = after.allocationHistory ∧
+      state.coeffects = after.coeffects
+
+/-- A pure owner-cell update satisfies the teardown frame. -/
+theorem updateFiber_cleanupFrame (state : GState) (owner : Name) (fiber : GCell) :
+    CleanupFrame state owner (updateFiber state owner fiber) := by
+  unfold CleanupFrame
+  constructor
+  · intro name hne
+    left
+    exact (updateFiber_lookup_ne state hne fiber).symm
+  · simp [updateFiber]
+
+/-- Flipping a child's retired flag satisfies the teardown frame of any owner. -/
+theorem retire?_cleanupFrame {state : GState} {owner child : Name} {cell : GCell}
+    (hlook : Finmap.lookup child state.registry = some cell)
+    (hret : cell.retired = false) :
+    CleanupFrame state owner (updateFiber state child { cell with retired := true }) := by
+  unfold CleanupFrame
+  constructor
+  · intro name hne'
+    by_cases hname : name = child
+    · right
+      refine ⟨cell, ?_, hret, ?_⟩
+      · rw [hname]
+        exact hlook
+      · rw [hname]
+        exact updateFiber_lookup_eq state child { cell with retired := true }
+    · left
+      exact (updateFiber_lookup_ne state (by intro h; exact hname h)
+        { cell with retired := true }).symm
+  · simp [updateFiber]
+
 /-! ### D45 provider relation and executable selection -/
 
-/-- Provider relation over a state and a declared requirement key. -/
+/-- D45 provider relation: the provider is active and its committed local table
+actually contains the key. Retirement alone does not stop a binding; only
+leaving the active phase or erasure does. -/
 def ProvidesNow (state : GState) (provider : Name) (key : Key) : Prop :=
   ∃ fiber, Finmap.lookup provider state.registry = some fiber ∧
-    key ∈ fiber.component.provides ∧ fiber.phase = .active ∧ fiber.retired = false
+    key ∈ fiber.committed.entries.keys ∧ fiber.phase = .active
 
-/-- The executable provider set for one requirement key: active, unretired
-registry cells whose component declares the key. -/
+/-- D45 teardown provider relation: active or unloading providers whose
+committed table contains the key; used by old committed views during teardown. -/
+def CommittedProvides (state : GState) (provider : Name) (key : Key) : Prop :=
+  ∃ fiber, Finmap.lookup provider state.registry = some fiber ∧
+    key ∈ fiber.committed.entries.keys ∧ (fiber.phase = .active ∨ fiber.phase = .unloading)
+
+/-- The executable provider set for one requirement key: active registry cells
+whose committed table contains the key. -/
 abbrev providersOf (state : GState) (key : Key) : Finset Name :=
   state.registry.keys.filter fun name =>
     (Option.map (fun fiber : GCell =>
-        decide (key ∈ fiber.component.provides ∧ fiber.phase = .active ∧ fiber.retired = false))
+        decide (key ∈ fiber.committed.entries.keys ∧ fiber.phase = .active))
       (Finmap.lookup name state.registry)).getD false
 
 theorem providersOf_sound (state : GState) {key : Key} {provider : Name}
@@ -266,18 +369,18 @@ theorem providersOf_sound (state : GState) {key : Key} {provider : Name}
   rcases h with ⟨_hkeys, hprov⟩
   rcases hlook : Finmap.lookup provider state.registry with _ | fiber
   · simp [hlook] at hprov
-  · have hdec : key ∈ fiber.component.provides ∧ fiber.phase = .active ∧ fiber.retired = false :=
+  · have hdec : key ∈ fiber.committed.entries.keys ∧ fiber.phase = .active :=
       of_decide_eq_true (by simpa [hlook] using hprov)
-    exact ⟨fiber, hlook, hdec.1, hdec.2.1, hdec.2.2⟩
+    exact ⟨fiber, hlook, hdec.1, hdec.2⟩
 
 theorem providersOf_complete (state : GState) {key : Key} {provider : Name}
     (h : ProvidesNow state provider key) : provider ∈ providersOf state key := by
-  rcases h with ⟨fiber, hlook, hkey, hphase, hret⟩
+  rcases h with ⟨fiber, hlook, hkey, hphase⟩
   rw [Finset.mem_filter]
   constructor
   · rw [Finmap.mem_keys, ← Finmap.lookup_isSome, hlook]
     simp
-  · simp [hlook, hkey, hphase, hret]
+  · simp [hlook, hkey, hphase]
 
 /-! ### D46 target view and quiescence -/
 
@@ -339,7 +442,7 @@ theorem targetView_mem (state : GState) (name : Name) {cell : GCell} {providers 
   · intro ⟨key, hk, hp⟩
     constructor
     · rw [Finmap.mem_keys]
-      rcases providersOf_sound state hp with ⟨fiber, hf, _hpf, _hph, _hpr⟩
+      rcases providersOf_sound state hp with ⟨fiber, hf, _htable, _hphase⟩
       rw [← Finmap.lookup_isSome, hf]
       simp
     · rw [← Finset.nonempty_iff_ne_empty]
@@ -355,11 +458,38 @@ theorem targetView_provides (state : GState) (name : Name) {cell : GCell}
   exact ⟨(targetView_mem state name h hlook).mpr ⟨key, hkey, hprov⟩,
     providersOf_sound state hprov⟩
 
+/-! ### D46 target view at a given committed view -/
+
+/-- D46: `ω` is the exact current target view of `owner`: its domain is exactly
+the owner's required keys and every entry names a current provider of that key.
+This is the precise view the rules consume; the executable `targetView` above is
+a finite projection of it. -/
+def TargetViewAt (state : GState) (owner : Name)
+    (ω : Finmap (fun _ : Key => Name)) : Prop :=
+  ∃ cell, Finmap.lookup owner state.registry = some cell ∧
+    ω.keys = cell.component.requires ∧
+      ∀ key provider, Finmap.lookup key ω = some provider → ProvidesNow state provider key
+
+/-- D46: no view is a target — some required key has no current provider. -/
+def TargetAbsent (state : GState) (owner : Name) : Prop :=
+  ∀ ω, ¬ TargetViewAt state owner ω
+
 /-! ### D49 installed/failed views and quiescence -/
 
-/-- D49 installed predicate: the name has a current registry cell. -/
+/-- The name has a current registry cell, regardless of phase. -/
+def Registered (state : GState) (name : Name) : Prop :=
+  ∃ fiber, Finmap.lookup name state.registry = some fiber
+
+/-- D49 installed predicate: the name's cell is mid-lifecycle or active. -/
 def Installed (state : GState) (name : Name) : Prop :=
-  (Finmap.lookup name state.registry).isSome
+  ∃ fiber, Finmap.lookup name state.registry = some fiber ∧
+    (fiber.phase = .reloading ∨ fiber.phase = .active ∨ fiber.phase = .unloading)
+
+/-- Installed names are registered. -/
+theorem installed_registered (state : GState) {name : Name}
+    (h : Installed state name) : Registered state name := by
+  rcases h with ⟨fiber, hlook, _hphase⟩
+  exact ⟨fiber, hlook⟩
 
 /-- D49 failed predicate: the name's cell is in the failed phase. -/
 def Failed (state : GState) (name : Name) : Prop :=
@@ -369,31 +499,37 @@ def Failed (state : GState) (name : Name) : Prop :=
 def PendingFlight (state : GState) (name : Name) : Prop :=
   ∃ cell, Finmap.lookup name state.registry = some cell ∧ cell.payload.flightCode.isSome
 
-/-- Extended quiescence: no fiber is mid-transition and no flight is pending. -/
+/-- Extended quiescence: no fiber is mid-transition, no flight is pending, and
+every active fiber's committed view is its exact current target. -/
 def Quiescent (state : GState) : Prop :=
   ∀ name fiber, Finmap.lookup name state.registry = some fiber →
-    fiber.phase ≠ .reloading ∧ fiber.phase ≠ .unloading ∧ fiber.payload.flightCode = none
+    fiber.phase ≠ .reloading ∧ fiber.phase ≠ .unloading ∧ fiber.payload.flightCode = none ∧
+      (fiber.phase = .active → TargetViewAt state name fiber.committedView)
 
 /-! ### D50 relied-upon relation -/
 
-/-- D50 relied-upon: `dependent` is bound through its committed provider view
-to `provider` for some dependency key. -/
+/-- D50 relied-upon: a distinct installed dependent is bound through its
+committed provider view to `provider` for some declared requirement key. -/
 def ReliedUpon (state : GState) (dependent provider : Name) : Prop :=
-  ∃ cell key, Finmap.lookup dependent state.registry = some cell ∧
-    Finmap.lookup key cell.committedView = some provider
+  dependent ≠ provider ∧ Installed state dependent ∧
+    ∃ cell key, Finmap.lookup dependent state.registry = some cell ∧
+      key ∈ cell.component.requires ∧
+        Finmap.lookup key cell.committedView = some provider
 
 theorem reliedUpon_iff_view (state : GState) {cell : GCell} {dependent provider : Name}
-    (hlook : Finmap.lookup dependent state.registry = some cell) :
+    (hlook : Finmap.lookup dependent state.registry = some cell)
+    (hinst : Installed state dependent) (hne : dependent ≠ provider) :
     ReliedUpon state dependent provider ↔
-      ∃ key, Finmap.lookup key cell.committedView = some provider := by
+      ∃ key, key ∈ cell.component.requires ∧
+        Finmap.lookup key cell.committedView = some provider := by
   constructor
-  · rintro ⟨c, key, hc, hk⟩
+  · rintro ⟨_hne, _hinst, c, key, hc, hkey, hk⟩
     rw [hlook] at hc
     rcases hc
-    exact ⟨key, hk⟩
+    exact ⟨key, hkey, hk⟩
   · intro h
-    rcases h with ⟨key, hk⟩
-    exact ⟨cell, key, hlook, hk⟩
+    rcases h with ⟨key, hkey, hk⟩
+    exact ⟨hne, hinst, cell, key, hlook, hkey, hk⟩
 
 /-! ### D58 well-formed registry -/
 
@@ -429,11 +565,46 @@ def CommittedViewClosed (state : GState) : Prop :=
     ∀ key provider, Finmap.lookup key cell.committedView = some provider →
       provider ∈ state.registry.keys
 
-/-- Committed provider-view entries name fibers that currently provide the key. -/
+/-- Committed provider-view entries name fibers that currently provide the key,
+including unloading teardown providers. -/
 def CommittedProvidersClosed (state : GState) : Prop :=
   ∀ name cell, Finmap.lookup name state.registry = some cell →
     ∀ key provider, Finmap.lookup key cell.committedView = some provider →
-      ProvidesNow state provider key
+      CommittedProvides state provider key
+
+/-- Active fibers' committed tables are folded into the ambient coeffect store
+domain. -/
+def ActiveTableCoherent (state : GState) : Prop :=
+  ∀ name cell, Finmap.lookup name state.registry = some cell → cell.phase = .active →
+    cell.committed.entries.keys ⊆ state.coeffects.keys
+
+/-- Every committed provider-view entry lies in the fiber's declared
+requirements. -/
+def CommittedViewDomain (state : GState) : Prop :=
+  ∀ name cell, Finmap.lookup name state.registry = some cell →
+    cell.committedView.keys ⊆ cell.component.requires
+
+/-- A cell's incarnation field agrees with its registry key. -/
+def IncarnationCoherent (state : GState) : Prop :=
+  ∀ name cell, Finmap.lookup name state.registry = some cell → cell.incarnation = name
+
+/-- The allocation history is duplicate-free and every cell's birth index points
+at its own name. -/
+def AllocationCoherent (state : GState) : Prop :=
+  state.allocationHistory.Nodup ∧
+    ∀ name cell, Finmap.lookup name state.registry = some cell →
+      cell.birth < state.allocationHistory.length ∧
+        state.allocationHistory[cell.birth]? = some name
+
+/-- Registry and history names are all ever-issued. -/
+def LedgerCoherent (state : GState) : Prop :=
+  state.registry.keys ⊆ state.ledger.everIssued ∧
+    ∀ name, name ∈ state.allocationHistory → name ∈ state.ledger.everIssued
+
+/-- The five data-coherence invariants bundled for `WellFormed`. -/
+def DataCoherent (state : GState) : Prop :=
+  ActiveTableCoherent state ∧ CommittedViewDomain state ∧ IncarnationCoherent state ∧
+    AllocationCoherent state ∧ LedgerCoherent state
 
 /-- The three state-local obligations that depend on the ambient lifecycle
 semantics; every structural invariant is a concrete predicate above. -/
@@ -451,12 +622,13 @@ structure WellFormedProfile
 local notation "WFProfile" =>
   WellFormedProfile Name Key Value Action Iterator Accumulator Flight Failure Ambient
 
-/-- D58 well-formed registry: the six structural invariants plus the three
-semantic profile obligations, each visibly separate. -/
+/-- D58 well-formed registry: the six structural invariants, the five
+data-coherence invariants, and the three semantic profile obligations, each
+visibly separate. -/
 def WellFormed (profile : WFProfile) (state : GState) : Prop :=
   ParentClosed state ∧ ParentAcyclic state ∧ TableConfined state ∧ ProvisionDisjoint state ∧
-    profile.lifecycleCoherent state ∧ CommittedViewClosed state ∧
-      CommittedProvidersClosed state ∧ profile.root state ∧ profile.declarations state
+    CommittedViewClosed state ∧ CommittedProvidersClosed state ∧ DataCoherent state ∧
+      profile.lifecycleCoherent state ∧ profile.root state ∧ profile.declarations state
 
 theorem wellFormed_parentClosed (profile : WFProfile) {state : GState}
     (h : WellFormed profile state) : ParentClosed state := h.1
@@ -470,20 +642,43 @@ theorem wellFormed_tableConfined (profile : WFProfile) {state : GState}
 theorem wellFormed_provisionDisjoint (profile : WFProfile) {state : GState}
     (h : WellFormed profile state) : ProvisionDisjoint state := h.2.2.2.1
 
-theorem wellFormed_lifecycleCoherent (profile : WFProfile) {state : GState}
-    (h : WellFormed profile state) : profile.lifecycleCoherent state := h.2.2.2.2.1
-
 theorem wellFormed_committedViewClosed (profile : WFProfile) {state : GState}
-    (h : WellFormed profile state) : CommittedViewClosed state := h.2.2.2.2.2.1
+    (h : WellFormed profile state) : CommittedViewClosed state := h.2.2.2.2.1
 
 theorem wellFormed_committedProvidersClosed (profile : WFProfile) {state : GState}
-    (h : WellFormed profile state) : CommittedProvidersClosed state := h.2.2.2.2.2.2.1
+    (h : WellFormed profile state) : CommittedProvidersClosed state := h.2.2.2.2.2.1
+
+theorem wellFormed_dataCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : DataCoherent state := h.2.2.2.2.2.2.1
+
+theorem wellFormed_lifecycleCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : profile.lifecycleCoherent state := h.2.2.2.2.2.2.2.1
 
 theorem wellFormed_root (profile : WFProfile) {state : GState}
-    (h : WellFormed profile state) : profile.root state := h.2.2.2.2.2.2.2.1
+    (h : WellFormed profile state) : profile.root state := h.2.2.2.2.2.2.2.2.1
 
 theorem wellFormed_declarations (profile : WFProfile) {state : GState}
-    (h : WellFormed profile state) : profile.declarations state := h.2.2.2.2.2.2.2.2
+    (h : WellFormed profile state) : profile.declarations state := h.2.2.2.2.2.2.2.2.2
+
+theorem wellFormed_activeTableCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : ActiveTableCoherent state :=
+  (wellFormed_dataCoherent profile h).1
+
+theorem wellFormed_committedViewDomain (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : CommittedViewDomain state :=
+  (wellFormed_dataCoherent profile h).2.1
+
+theorem wellFormed_incarnationCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : IncarnationCoherent state :=
+  (wellFormed_dataCoherent profile h).2.2.1
+
+theorem wellFormed_allocationCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : AllocationCoherent state :=
+  (wellFormed_dataCoherent profile h).2.2.2.1
+
+theorem wellFormed_ledgerCoherent (profile : WFProfile) {state : GState}
+    (h : WellFormed profile state) : LedgerCoherent state :=
+  (wellFormed_dataCoherent profile h).2.2.2.2
 
 /-! ### Well-formed-relative provider uniqueness -/
 
@@ -492,11 +687,15 @@ theorem providersOf_unique (profile : WFProfile)
     (hleft : left ∈ providersOf state key) (hright : right ∈ providersOf state key) :
     left = right := by
   by_contra hne
-  rcases providersOf_sound state hleft with ⟨lf, hl, hkl, _hlp, _hlr⟩
-  rcases providersOf_sound state hright with ⟨rf, hr, hkr, _hrp, _hrr⟩
+  rcases providersOf_sound state hleft with ⟨lf, hl, hkl, _hlp⟩
+  rcases providersOf_sound state hright with ⟨rf, hr, hkr, _hrp⟩
+  have hklp : key ∈ lf.component.provides :=
+    (wellFormed_tableConfined profile hWF) left lf hl hkl
+  have hkrp : key ∈ rf.component.provides :=
+    (wellFormed_tableConfined profile hWF) right rf hr hkr
   have hdisj : Disjoint lf.component.provides rf.component.provides :=
     (wellFormed_provisionDisjoint profile hWF) hl hr hne
-  exact (Finset.disjoint_left.mp hdisj hkl) hkr
+  exact (Finset.disjoint_left.mp hdisj hklp) hkrp
 
 theorem providersOf_card_le_one (profile : WFProfile)
     {state : GState} {key : Key} (hWF : WellFormed profile state) :
