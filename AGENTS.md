@@ -144,6 +144,15 @@ python scripts/validate_definition_ledger.py docs/status/Definition-Ledger.json
 python scripts/scan_lean.py STC
 ```
 
+Iteration discipline (2026-09-01):
+
+- Per-file check during iteration; `lake build` is the final acceptance gate, not an iteration step. Fix every touched file until its own check exits 0 with zero warnings before running the full build.
+- When a change touches several modules, work in import order: verify the root module of the change set first, then each importer in turn.
+- Capture real exit codes: never pipe a check through `head`/`grep` before recording the code (`lean ... > log; echo $?`), or the pipeline exit masks compiler failures.
+- The CLI single-file check does not reliably refresh `.olean` artifacts: the IDE language server owns the build directory and stale `.olean.hash` files can fake a passing check. When downstream files need the fresh `.olean` chain, run `lake build <Module.Name>` for that target.
+- Prefer `abbrev` over `def` when proofs would otherwise need explicit `unfold` of the declaration.
+- Split large proofs into per-case lemmas and assemble them in one theorem.
+
 - Use the pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain.
 - `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.
 - `scripts/scan_lean.py` exit codes: 0 = lexical match found (inspect and classify; a comment/string match is not a live declaration), 1 = clean, 2 = scan error.  A clean scan covers current files only, not future code.
