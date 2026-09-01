@@ -11,7 +11,8 @@
 ## Freeze checkpoint
 
 * Freeze record: `docs/status/P13-api-freeze.md` T02 checkpoint (central owner).
-* Base: `8ae8ab5` (T01C close) on `codex/p13-continuation`.
+* Base: `8ae8ab5` (T01C close) on `codex/p13-continuation`;
+  checkpoint commit: `db9d180`.
 * Cross-lane compatibility touches (recorded, minimal, required by the
   `FiberCell.committedView` field addition): `STC/Examples/GlobalRules.lean`
   (`cell0` gains `committedView := ∅`) and `STC/Control/Reachability.lean`

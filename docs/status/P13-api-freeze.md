@@ -10,7 +10,7 @@
 ## T02 checkpoint (positive state and model API freeze)
 
 * Branch: `codex/p13-continuation`; base for this checkpoint: `8ae8ab5`
-  (T01C close); checkpoint commit recorded in the T02 lane handoff.
+  (T01C close); checkpoint commit: `db9d180`.
 * Modules: `STC/State/Component.lean` (unchanged from the review draft),
   `Fiber.lean`, `Global.lean`, `Global/Observation.lean`,
   `Examples/GlobalModel.lean`.
