@@ -43,7 +43,8 @@ structure FiberPayload (Iterator : Type u) (Accumulator : Type v)
   flightCode : Option Flight
   failureData : Option Failure
 
-/-- One incarnation in the global registry. -/
+/-- One incarnation in the global registry.  The committed provider view `ω_n`
+maps each dependency key to the provider name it is bound to. -/
 structure FiberCell (Name : Type u) (Key : Type v) (Value : Type w)
     (Action : Type u) (Iterator : Type v) (Accumulator : Type w)
     (Flight : Type u) (Failure : Type v) where
@@ -52,6 +53,7 @@ structure FiberCell (Name : Type u) (Key : Type v) (Value : Type w)
   birth : Nat
   component : Component Key Value Action Iterator Accumulator Flight Failure
   committed : CommittedData Key Value
+  committedView : Finmap (fun _ : Key => Name)
   retired : Bool
   phase : LifecyclePhase
   payload : FiberPayload Iterator Accumulator Flight Failure

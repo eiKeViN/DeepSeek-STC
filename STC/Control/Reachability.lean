@@ -135,12 +135,16 @@ def RelatedOptionalName (bijection : GrowingBijection Name) : Option Name → Op
   | some left, some right => bijection.forward left right
   | _, _ => False
 
-/-- Insert payloads retain all non-name data and rename both incarnation and parent. -/
+/-- Insert payloads retain all non-name data and rename both incarnation and parent;
+committed provider-view names are compared through the same bijection. -/
 def RelatedCell (bijection : GrowingBijection Name) (left right : GCell) : Prop :=
   bijection.forward left.incarnation right.incarnation ∧
     RelatedOptionalName bijection left.parent right.parent ∧
     left.birth = right.birth ∧ left.component = right.component ∧
-    left.committed = right.committed ∧ left.retired = right.retired ∧
+    left.committed = right.committed ∧
+    (∀ key, RelatedOptionalName bijection (Finmap.lookup key left.committedView)
+      (Finmap.lookup key right.committedView)) ∧
+    left.retired = right.retired ∧
     left.phase = right.phase ∧ left.payload = right.payload
 
 /-- Two orchestration inputs retain their constructor, payload, parent, and renamed actor. -/
@@ -191,7 +195,11 @@ theorem sameResolved_implies_sameInputs {before after : GState} {left right : GT
       · cases label with
         | insert fresh cell =>
             refine ⟨rfl, rfl, ?_⟩
-            cases cell.parent <;> simp [RelatedOptionalName, GrowingBijection.identity]
+            refine ⟨?_, rfl, rfl, rfl, ?_, rfl, rfl, rfl⟩
+            · cases cell.parent <;> simp [RelatedOptionalName, GrowingBijection.identity]
+            · intro key
+              cases Finmap.lookup key cell.committedView <;>
+                simp [RelatedOptionalName, GrowingBijection.identity]
         | retire owner => rfl
         | remove owner => rfl
       · exact ih
