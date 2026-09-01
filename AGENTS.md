@@ -109,6 +109,8 @@ Every production `.lean` file, top to bottom:
 - Section-scoped `variable` replaces repeated per-declaration binders (`{α : Type u}`, `[DecidableEq α]`, explicit parameters exactly as mathlib writes them).  Type-family declarations (`Store (V)`, `PartialMap (α) (β)`, …) keep their explicit parameters.
 - Section variables are auto-included only when used; where Lean over-includes an unused instance, drop it with `omit [Foo] in` (linter `unusedSectionVars`).
 - Notations needed by several sections stay outside sections (precedent: ADR-03 closure spike).
+- Prefer `abbrev` over `def` when proofs would otherwise need explicit `unfold` of the declaration.
+- Split large proofs into per-case lemmas and assemble them in one theorem.
 
 ### Evaluation
 
@@ -135,7 +137,7 @@ If no populated compatible worktree exists, run `lake update` once in a
 checkout with network access and rerun the helper.  Do not share the entire
 `.lake` directory between worktrees.
 
-Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs:
+Before and after each major task or critical checkpoint, run the narrowest applicable checks and record their outputs.  During iteration, check each touched file individually, in import order (root module of the change set first, then each importer in turn), until every one exits 0 with zero warnings; the full `lake build` is the acceptance gate, not an iteration step.  Record the real exit code (redirect to a log, then `echo $?`): a pipeline through `head`/`grep` masks compiler failures.
 
 ```bash
 lake env lean -DautoImplicit=false -Dpp.unicode.fun=true STC/<changed-file>.lean
@@ -144,17 +146,8 @@ python scripts/validate_definition_ledger.py docs/status/Definition-Ledger.json
 python scripts/scan_lean.py STC
 ```
 
-Iteration discipline (2026-09-01):
-
-- Per-file check during iteration; `lake build` is the final acceptance gate, not an iteration step. Fix every touched file until its own check exits 0 with zero warnings before running the full build.
-- When a change touches several modules, work in import order: verify the root module of the change set first, then each importer in turn.
-- Capture real exit codes: never pipe a check through `head`/`grep` before recording the code (`lean ... > log; echo $?`), or the pipeline exit masks compiler failures.
-- The CLI single-file check does not reliably refresh `.olean` artifacts: the IDE language server owns the build directory and stale `.olean.hash` files can fake a passing check. When downstream files need the fresh `.olean` chain, run `lake build <Module.Name>` for that target.
-- Prefer `abbrev` over `def` when proofs would otherwise need explicit `unfold` of the declaration.
-- Split large proofs into per-case lemmas and assemble them in one theorem.
-
 - Use the pinned Lean 4.33.0 / Mathlib v4.33.0 toolchain.
-- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.
+- `lake env lean` does not read lakefile `leanOptions`; pass the `-D` flags above explicitly or single-file checks disagree with the IDE and with `lake build`.  The CLI single-file check also does not reliably refresh `.olean` artifacts (the IDE language server owns the build directory and stale `.olean.hash` files can fake a passing check); when downstream files need the fresh `.olean` chain, run `lake build <Module.Name>` for that target.
 - `scripts/scan_lean.py` exit codes: 0 = lexical match found (inspect and classify; a comment/string match is not a live declaration), 1 = clean, 2 = scan error.  A clean scan covers current files only, not future code.
 - Keep the Definition Ledger current after each task: edit rows in place using the Blueprint vocabulary (delivery: `planned/in_progress/completed/blocked/deferred`; evidence: `pending/aligned/passed/proved/tested/seam_only/deferred/not_applicable`) and rerun the validator.  
 - Do not rerun `gen_definition_ledger.py` after P0 — it regenerates from its P0 curation tables and would wipe later evidence.
