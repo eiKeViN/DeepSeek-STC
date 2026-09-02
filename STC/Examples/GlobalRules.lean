@@ -1921,10 +1921,9 @@ theorem c19_dataCoherent : DataCoherent c19 := by
             rw [c19_lookup_none name hd0 hd1 hd2] at hisome
             simp at hisome
     · intro name hhist
-      simp [c19, c18, c17, c16, c15, c14, c13, c12, c11, c10, c9, c8, c7, c6, c5, c4,
-        c3, c2, c1, allocate, removeState, unloadState, leaveState, divertLandState,
+      simp [allocate, removeState, unloadState, leaveState, divertLandState,
         raiseState, retireState, iterState, finishState, beginState, editCell,
-        updateFiber, iterPayload, beginPayload, rulesSem] at hhist
+        updateFiber, iterPayload] at hhist
       rcases hhist with h3 | h0 | h1 | h2
       all_goals
         subst name; decide

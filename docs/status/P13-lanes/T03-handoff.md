@@ -1,4 +1,4 @@
-# P13-T03 Lane Handoff (DRAFT — in progress)
+# P13-T03 Lane Handoff (complete)
 
 * Scope: `STC/Control/Rules.lean`, `STC/Examples/GlobalRules.lean`.
 * Authority: lead ruling (2026-09-01) — T03 runs on top of the T02R repair
@@ -103,29 +103,54 @@
   right states.
 * `factorization_nonconstant`: two iter SelectedBody witnesses (ambient 6 vs 5).
 
-## Progress and remaining work
+## Result (complete, 2026-09-02)
 
-* Done: Rules.lean (clean); fixture head through `targetViewAt_s5_2` (live
-  prefix, compiles). Frontier recoverable anytime:
-  `python scripts/comment_advance.py STC/Examples/GlobalRules.lean report`.
-* Remaining (fix in order with the 4-step protocol): step_begin2,
-  targetViewAt_s6_2, step_iter2, step_retire2, step_insert3, step_begin3,
-  step_insert4, step_begin4, step_finish4, step_retire1, step_raise1,
-  noProvides10_s15, targetAbsent_s15_3, step_divertAbort3, step_unload3,
-  step_retire3, step_remove3, targetNot_s19_2, step_divertLand2, step_unload2,
-  step_leave4, step_unload4, step_unload1; then the A.async witnesses, the
-  cycle trace (cycleStep_*), the cycle endpoint facts, cycleEndpoint_wellFormed,
-  factorization_nonconstant.
-* Then: T04 draft compatibility edits (Reachability.lean: `actorOf` label
-  shapes, `InitialProfile`/`ReachedFrom`/`ActivationProvenance`/
-  `SameOrderedOrchestrationInputs` gain a `sem` parameter or use
-  `globalTrace sem`; Episode.lean likewise) — recorded as compatibility
-  touches, not T04 completion.
-* Then: T03 gates (focused checks, full build, scan, ledger validate,
-  forbidden/import scans), finish this handoff, api-freeze T03 checkpoint,
-  commit + push.
+* Rules.lean committed `6ad1c70`; the fixture fully repaired and committed
+  `72592ab` (all 226 declarations green, zero warnings); A.async witnesses;
+  the ADR-09 cycle trace; endpoint facts; `cycleEndpoint_wellFormed` split
+  into `c19_parentClosed`/`c19_parentAcyclic`/`c19_tableConfined`/
+  `c19_provisionDisjoint`/`c19_committedViewClosed`/
+  `c19_committedProvidersClosed`/`c19_dataCoherent` lemmas plus the
+  ten-conjunct assembly.
+* Fixture data fixes forced by the authoritative guards (recorded): births
+  `cell3 := 2`, `cell4 := 3` (main trace; the cycle keeps `cellP` birth 0);
+  `cell4.component.iteratorCode := 0` and `cellP`/`cellR` iteratorCode `:= 0`
+  (finish stages a halt, never a yield); cycle `c17 := unloadState c16 3`
+  (the finish no longer composes the halt inverse, so cellP's accumulator
+  stays 0); `cell1unloading`/`cell2begun`/… hoisted as abbrevs.
+* `factorization_nonconstant` restated: the old same-label `m1 ≠ m2` shape
+  is unprovable against the committed `SelectedBody` (every case pins
+  `middle`); the evidence is now cross-label non-constancy (iter at s6,
+  ambient 7, vs iter at s2, ambient 9).
+* The anchor-comment tool (`scripts/comment_advance.py`) was fixed along
+  the way: `advance` moves the opener forward (compiles #n+1), `checkpoint`
+  moves it back; the single-anchor invariant now holds through the whole
+  run.  AGENTS.md command list updated.
+* Incident: the user's IDE buffer once reverted the whole fixture to the
+  122-line pre-T02R file; recovered from VSCode Local History
+  (`AppData/Roaming/Code/User/History/-2b0ad267/IBqV.lean`).  The recovery
+  chain (memory → this file → tool report → git log) again proved out.
 
-## Recorded compatibility touches (final list goes here)
+## Recorded compatibility touches (T04 drafts, not T04 completion)
 
-* (T04 drafts, mechanical, recorded not completed): Reachability.lean,
-  Episode.lean label/rule-parameter updates — to be listed when applied.
+* `STC/Control/Reachability.lean`: `actorOf` rewritten for the rich label
+  shapes; `InitialProfile`/`ReachedFrom`/`Reachable`/`ActivationProvenance`/
+  `RegisteredChildStep`/`SameOrderedOrchestrationInputs`/
+  `SameResolvedSemanticWitnesses` take an explicit `sem` and use
+  `globalTrace sem`; `ActivationProvenance.finished` carries the finish
+  result; all section carriers pinned at ONE universe (the recorded
+  Rules.lean restriction).
+* `STC/Control/Episode.lean`: `episodeLabels`/`episodeOf`/`Factorized`/
+  `episode_endpoint`/`episode_labels`/`episode_closed_status` take `sem`
+  and use `globalTrace sem`; single-universe carriers.
+* Both compile clean under the full build; no new theorems were added.
+
+## Gates (all green)
+
+* `lake build` — 3090 jobs, zero warnings; `lake env lean
+  -DautoImplicit=false STC/Examples/GlobalRules.lean` clean.
+* `scripts/scan_lean.py STC` exit 1 (clean); ledger 82/82, hashes OK;
+  no sorry/admit/axiom in Rules/GlobalRules/Reachability/Episode;
+  `git diff --check` clean.
+* api-freeze T03 checkpoint appended with module SHA-256 prefixes and the
+  signature inventory (see `docs/status/P13-api-freeze.md`).

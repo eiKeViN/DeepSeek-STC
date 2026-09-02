@@ -150,6 +150,44 @@ the sole union of `orchestrationRule` and `lifecycleRule`; `withdrawRule`,
   `DeletionEnvelope`, `CanonicalEnvelope`, `ConfluenceEnvelope`.
 * `STC.Conformance.p13Entries`, `p13Deferred`, and `globalManifestShape`.
 
+
+## T03 checkpoint (2026-09-02, commit 72592ab + follow-ups)
+
+* `STC.Control.Rules` (commit `6ad1c70` + T03): the constructor-indexed
+  authoritative rule surface.  Labels are rich payloads:
+  `GlobalOrchestrationLabel` — `insert (registrar) (fresh) (child)`,
+  `retire (owner) (beforeCell)`, `remove (owner)`;
+  `GlobalLifecycleLabel` — `begin (owner) (ω) (flight)`,
+  `iter (owner) (next) (inverse) (after)`, `finish (owner) (result)`,
+  `divertAbort (owner) (BoundaryEvidence absent|changed)`,
+  `divertLand (owner) (landing) (inverse) (landed)`,
+  `raise (owner) (failure)`, `leave (owner)`, `unload (owner) (middle)`.
+  `OrchestrationRule`/`LifecycleRule sem` with the lead-ruling guards;
+  `fullRule`, `globalControlModel`, `globalStep`, `globalTrace`;
+  per-constructor successors (`allocate`, `retireState`, `beginState`,
+  `iterState`, `finishState`, `divertAbortState`, `divertLandState`,
+  `raiseState`, `leaveState`, `unloadState`, `removeState`);
+  factorization (`SelectedBody`/`ControlEdit`/`BodyClass` +
+  `factor_*`/`fullRule_factorizes`); A.async (`divertAdmissible`);
+  R.base staging (`globalStagingModel`, adequacy, stutter profile);
+  D48 frames per constructor.  ALL section carriers pinned at ONE
+  universe (recorded restriction carried by T04 too).
+* `STC.Examples.GlobalRules` (fixture, commit `72592ab`): inhabits every
+  constructor over the two-fiber main trace plus the ADR-09 three-edge
+  cycle trace, endpoint facts, `cycleEndpoint_wellFormed` (split into
+  `c19_*` per-conjunct lemmas), and `factorization_nonconstant`
+  (cross-label non-constancy; the old same-label m1≠m2 shape is
+  inconsistent with the committed `SelectedBody`, which pins the middle).
+* `STC.Control.Reachability` / `STC.Control.Episode` (T04 drafts,
+  compatibility touches): `actorOf` new label shapes;
+  `InitialProfile`/`ReachedFrom`/`Reachable`/`ActivationProvenance`/
+  `RegisteredChildStep`/`SameOrderedOrchestrationInputs`/
+  `SameResolvedSemanticWitnesses` take an explicit `sem` and use
+  `globalTrace sem`; carriers pinned at one universe; `Episode`
+  single-universe.  Recorded, not T04 completion.
+* Module SHA-256 prefixes: Rules `447c2668…`, GlobalRules `8452d741…`,
+  Reachability `d39c0bc5…`, Episode `ceecf4e1…`.
+
 No frozen upstream file was edited. This inventory is not the final semantic
 freeze: per-rule factorization, write/read frame laws, and activation-provenance
 preservation must close before T05 theorem lanes can rely on these signatures.
