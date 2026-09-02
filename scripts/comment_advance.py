@@ -1,26 +1,36 @@
 #!/usr/bin/env python3
 """Anchor-comment silent-repair tool for Lean files.
 
-Invariant: exactly one open comment region (started by the frontier '/-')
-closed by the single '-/' anchor near the bottom of the file. A declaration is
-live iff it lies outside that region.
+Invariant: exactly one open comment region — the frontier '/- ' prefix sits on
+the declaration line of the last checkpointed (fixed) declaration, closed by
+the single '-/' anchor near the bottom.  A declaration is compiled iff it is
+textually before the opener; the scan's "live" list additionally contains the
+opener line itself (it is recorded before the line's own '/-' is counted).
+
+Two marker states:
+  checkpoint state: opener on the last-fixed decl; report's #n+1 = next to fix.
+  working state:    opener on #n+2; the compiler sees through #n+1.
 
 Protocol (strict — follow every step):
-  1. python scripts/comment_advance.py FILE            # report (#n, #n+1, #n+2)
-  2. fix declaration #n+1 (edits only inside its body; never touch the markers)
-  3. lake env lean FILE                                # ONLY allowed errors: in #n+1
-  4. python scripts/comment_advance.py FILE advance    # silence #n+2, activate #n+1
-  (repeat)
+  1. python scripts/comment_advance.py FILE report       # #n+1 = next to fix
+  2. python scripts/comment_advance.py FILE advance      # compile through #n+1
+  3. fix declaration #n+1 (edits only inside its body; never touch the markers)
+  4. lake env lean FILE                                  # ONLY allowed errors: in #n+1
+  5. python scripts/comment_advance.py FILE checkpoint   # record #n+1 as fixed
+  (repeat from 1; stop only in checkpoint state)
 
 Commands:
   report (default)  print the frontier and the silent-block shape
   check             exit 0 iff the invariant holds, else print the violation
-  advance           verify, then: silence #n+2 (inline '/- ' prefix) and
-                    activate #n+1 (strip its '/- ' prefix); re-verify
+  advance           checkpoint -> working: strip the opener's prefix, prefix
+                    #n+2's line (or, if #n+2 does not exist, remove the anchor
+                    too — the file becomes fully live)
+  checkpoint        working -> checkpoint: strip the opener's prefix, prefix
+                    the just-fixed declaration's line
 
 Opt-in: this tool is used only when the current user asks for the
-silent-repair workflow in natural language; otherwise the file is edited
-normally.
+silent-repair workflow in natural language, or when the file being modified
+exceeds 500 lines (AGENTS.md); otherwise the file is edited normally.
 """
 
 import re
@@ -37,6 +47,13 @@ def read_lines(path):
     return text.splitlines(keepends=True), newline
 
 
+def write_lines(path, lines):
+    _old, nl = read_lines(path)
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        for ln in lines:
+            f.write(ln.rstrip("\r\n") + nl)
+
+
 def scan(path):
     lines, _nl = read_lines(path)
     decls = []  # (line_index, name)
@@ -45,9 +62,13 @@ def scan(path):
     depth = 0
     frontier_open_line = None  # LAST zero->positive transition
     anchor_line = None  # last line that brings depth back to 0
+    total_opens = 0
+    total_closes = 0
     for i, ln in enumerate(lines):
         opens = ln.count("/-")
         closes = ln.count("-/")
+        total_opens += opens
+        total_closes += closes
         m = DECL.match(ln) or COMMENTED_DECL.match(ln)
         if m:
             decls.append((i, m.group(2)))
@@ -64,6 +85,8 @@ def scan(path):
                 frontier_open_line = i
             if depth == 0 and opens == 0:
                 anchor_line = i
+    if total_opens == 0 and total_closes == 0:
+        return lines, decls, list(live), [], None, None  # fully live file
     if depth != 0:
         raise SystemExit(f"FAIL: net comment depth {depth} (unterminated block)")
     if frontier_open_line is None:
@@ -85,9 +108,19 @@ def scan(path):
     return lines, decls, live, silent, frontier_open_line, anchor_line
 
 
+def decl_index(decls, name):
+    for j, (_i, n) in enumerate(decls):
+        if n == name:
+            return j
+    return None
+
+
 def report(path):
     lines, decls, live, silent, frontier_open_line, anchor_line = scan(path)
     print(f"file: {path}")
+    if frontier_open_line is None:
+        print("fully live: no silent region")
+        return
     print(f"frontier opener: line {frontier_open_line + 1}; anchor '-/': line {anchor_line + 1}")
     print(f"declarations: {len(decls)} total, {len(live)} live, {len(silent)} silent")
     if live:
@@ -99,25 +132,31 @@ def report(path):
     if len(silent) > 1:
         i, n = silent[1]
         print(f"  #n+2 (to stay silent): {n}  (line {i + 1})")
-    print(f"  silent region: {len(silent)} declarations (lines {silent[0][0] + 1}..{silent[-1][0] + 1})")
+    if silent:
+        print(f"  silent region: {len(silent)} declarations (lines {silent[0][0] + 1}..{silent[-1][0] + 1})")
+    else:
+        print("  no silent declarations (file fully live)")
 
 
 def advance(path):
+    """checkpoint -> working: strip the opener's prefix, prefix #n+2's line."""
     lines, decls, live, silent, frontier_open_line, anchor_line = scan(path)
+    if frontier_open_line is None:
+        raise SystemExit("FAIL: no silent region — nothing to advance")
     if not silent:
         raise SystemExit("FAIL: nothing silent — nothing to advance")
-    n1_idx, n1_name = silent[0]
-    n2_idx, n2_name = (silent[1] if len(silent) > 1 else (None, None))
-    # activate #n+1: strip the inline '/- ' prefix from its declaration line
-    ln1 = lines[n1_idx]
-    if not COMMENTED_DECL.match(ln1):
+    op_idx, op_name = live[-1]
+    ln_op = lines[op_idx]
+    if not COMMENTED_DECL.match(ln_op):
         raise SystemExit(
-            f"FAIL: {n1_name} (line {n1_idx + 1}) is silent but has no inline '/- ' "
-            "prefix to strip — is the opener a standalone line? (not handled)"
+            f"FAIL: opener line {op_idx + 1} is not a '/- '-prefixed declaration"
         )
-    lines[n1_idx] = COMMENTED_DECL.sub(r"\1 \2", ln1, count=1)
-    # silence #n+2 (if any): prefix its declaration line
-    if n2_idx is not None:
+    n1_idx, n1_name = silent[0]
+    if decl_index(decls, op_name) + 1 != decl_index(decls, n1_name):
+        raise SystemExit("FAIL: opener and #n+1 are not consecutive declarations")
+    lines[op_idx] = COMMENTED_DECL.sub(r"\1 \2", ln_op, count=1)
+    if len(silent) > 1:
+        n2_idx, n2_name = silent[1]
         ln2 = lines[n2_idx]
         if not DECL.match(ln2):
             raise SystemExit(
@@ -125,25 +164,57 @@ def advance(path):
                 "cannot prefix it"
             )
         lines[n2_idx] = "/- " + ln2
-    _old, nl = read_lines(path)
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        for ln in lines:
-            f.write(ln.rstrip("\r\n") + nl)
-    # re-verify
-    lines, decls, live2, silent2, _, _ = scan(path)
-    if live2 and live2[-1][1] == n1_name:
-        print(f"advanced: {n1_name} now live"
-              + (f"; {n2_name} now silent" if n2_name else "; nothing left to silence"))
-        if silent2:
-            i, n = silent2[0]
-            print(f"  next (#n+1): {n} (line {i + 1})")
     else:
-        raise SystemExit("FAIL: post-advance verification failed")
+        # last declaration: remove the anchor too, the file becomes fully live
+        ln_a = lines[anchor_line]
+        lines[anchor_line] = ln_a.replace("-/", "", 1)
+    write_lines(path, lines)
+    lines, decls, live2, silent2, f2, a2 = scan(path)
+    if f2 is None:
+        print(f"advanced: {n1_name} now compiled; no silent region left")
+        return
+    if live2 and live2[-1][1] == silent[1][1] and (
+            len(silent) == 2 or (silent2 and silent2[0][1] == silent[2][1])):
+        print(f"advanced: {n1_name} now compiled (fix it next); opener on {silent[1][1]}")
+        return
+    raise SystemExit("FAIL: post-advance verification failed")
+
+
+def checkpoint(path):
+    """working -> checkpoint: strip the opener's prefix, prefix the just-fixed decl."""
+    lines, decls, live, silent, frontier_open_line, anchor_line = scan(path)
+    if frontier_open_line is None:
+        raise SystemExit("FAIL: no silent region — nothing to checkpoint")
+    if len(live) < 2 or not silent:
+        raise SystemExit("FAIL: working state expected (opener on #n+2)")
+    op_idx, op_name = live[-1]
+    fix_idx, fix_name = live[-2]
+    if not COMMENTED_DECL.match(lines[op_idx]):
+        raise SystemExit(
+            f"FAIL: opener line {op_idx + 1} is not a '/- '-prefixed declaration"
+        )
+    if not DECL.match(lines[fix_idx]):
+        raise SystemExit(
+            f"FAIL: {fix_name} (line {fix_idx + 1}) is not a plain declaration line — "
+            "cannot prefix it"
+        )
+    if decl_index(decls, fix_name) + 1 != decl_index(decls, op_name):
+        raise SystemExit("FAIL: just-fixed decl and opener are not consecutive")
+    if decl_index(decls, op_name) + 1 != decl_index(decls, silent[0][1]):
+        raise SystemExit("FAIL: opener and #n+1 are not consecutive declarations")
+    lines[op_idx] = COMMENTED_DECL.sub(r"\1 \2", lines[op_idx], count=1)
+    lines[fix_idx] = "/- " + lines[fix_idx]
+    write_lines(path, lines)
+    lines, decls, live2, silent2, _, _ = scan(path)
+    if live2 and silent2 and live2[-1][1] == fix_name and silent2[0][1] == op_name:
+        print(f"checkpointed: {fix_name} fixed; next (#n+1): {op_name}")
+        return
+    raise SystemExit("FAIL: post-checkpoint verification failed")
 
 
 def main():
     if len(sys.argv) < 2:
-        raise SystemExit("usage: comment_advance.py FILE [report|check|advance]")
+        raise SystemExit("usage: comment_advance.py FILE [report|check|advance|checkpoint]")
     path = sys.argv[1]
     cmd = sys.argv[2] if len(sys.argv) > 2 else "report"
     if cmd == "report":
@@ -153,6 +224,8 @@ def main():
         print("invariant holds")
     elif cmd == "advance":
         advance(path)
+    elif cmd == "checkpoint":
+        checkpoint(path)
     else:
         raise SystemExit(f"unknown command {cmd}")
 

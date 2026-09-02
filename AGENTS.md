@@ -162,8 +162,8 @@ python scripts/scan_lean.py STC
 
 `scripts/comment_advance.py` implements the single-anchor silent-repair
 discipline for long files fixed declaration-by-declaration (one `/-`
-frontier opener, one bottom `-/` anchor; `report`/`check`/`advance`
-commands; the invariant and the four-step protocol are in the script's
+frontier opener, one bottom `-/` anchor; `report`/`check`/`advance`/
+`checkpoint` commands; the invariant and the protocol are in the script's
 docstring).  Enablement: **if the file being modified exceeds 500 lines,
 enable the tool automatically** (before the first edit run `check` to
 confirm the invariant, then follow the protocol step by step).  The user
