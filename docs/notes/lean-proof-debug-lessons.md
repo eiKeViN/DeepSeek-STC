@@ -1,7 +1,7 @@
 # Lean 4 proof & declaration debugging — reusable lessons
 
 Collected from the P0-P2 formatting sessions, P3-P4 partial/iterator, P6 alpha
-transport, the ADR-07..10 spike repairs, P12 Scoped, and P13 T01/T02
+transport, the ADR-07..10 spike repairs, P12 Scoped, and P13 T01/T02/T02R/T03
 (2026-08/09).  Entry format: symptom → root cause → fix.  Toolchain: Lean
 4.33.0, mathlib v4.33.0.
 
@@ -93,6 +93,36 @@ and `set_option … in` must precede the *docstring* of the declaration they
 modify (the doc comment attaches to the next declaration; `omit` is not one →
 `unexpected token 'omit'; expected 'lemma'`).
 
+### Frozen `STC.StageResult` shadows `STC.State.StageResult`
+
+Symptom: in a file with `open STC STC.State STC.Control`, `StageResult S N N
+Unit` elaborates as a *3-parameter* type (P10's `STC.StageResult (S E Q :
+Type u)`) and `Option (StageResult …)` fails with "Function expected at".  The
+`open STC` brings the top-level frozen declaration, which wins over the T02R
+`STC.State.StageResult` (4 parameters).  Fix: qualify `State.StageResult`
+everywhere in the fixture; the 4-parameter one then elaborates.
+
+### Frozen single-universe `StagingModel` forces one section universe
+
+Symptom: instantiating `StagingModel` with mixed-universe carriers (e.g.
+`GlobalState` with `Ambient : Type x` while the orchestration labels live at
+`max u v w`) gives "stuck at solving universe constraint"; ULift with explicit
+levels, ascription-based ULift, and pinned-universe `abbrev`s all fail with a
+stuck `DecidableEq ?m` (the annotation changes the section-variable capture
+order).  Root cause: the frozen `StagingModel` takes all six parameters in
+*one* universe.  Fix: pin all section carriers at one universe
+(`{Name : Type u} {Key : Type u} … {Ambient : Type u}`) — the concrete
+Section-4 instantiations are single-universe anyway; record the restriction.
+
+### Incremental comment-block discipline for fixing one declaration at a time
+
+For a long file being repaired head-first: place ONE `-/` terminator right
+before the section ending (the anchor), and silence a declaration by putting
+`/-` in front of it (block comments nest).  Advance by: insert `/-` before
+declaration #n+2, delete the `/-` before #n+1, fix #n+1.  Invariant: a single
+active prefix; everything after it sits in one comment block closed by the
+bottom anchor.
+
 ## 3. Decidability & typeclass synthesis
 
 ### `Decidable` synthesis does not unfold `def`s
@@ -161,6 +191,40 @@ on every field.  Fix: put instance params first
 (`CounterState = Nat × Nat`); finite carriers (`Fin n` + Fintype) do.  For
 concrete instances construct directly: `exact isTrue (by …)` /
 `exact isFalse (by intro h; cases h)` — or prefer data-level `Bool` checks.
+
+### Fixture data defs: make them `abbrev` to unlock `rfl`/`decide`
+
+Symptom: closed computations over a chain of fixture state/cell `def`s
+(`Finmap.lookup n s8.registry = some …`) need ever-growing `simp` sets and
+`congr`; `rfl`/`decide` stall.  Fix: convert the pure-data fixture defs
+(states, cells, view maps) to `abbrev` — the kernel and `decide` then unfold
+the whole chain, the lookup lemmas collapse to `congr`, and rule guards like
+`hlook`/`hstage`/`hrank`/freshness become `rfl` or `by decide`.  `simp` args
+that the linter reports unused afterwards are exactly the ones the
+reducibility made obsolete — trim them.  Keep `def` only for declarations
+with proof bodies (`rulesSem`) and for the stage/accumulator helpers (their
+`if`/arithmetic needs the tactic-level control).
+
+### `simp` cannot reduce `if`-conditions over Quot-blocked chains
+
+Symptom: `unfold fixtureStage; simp` on a goal
+`(if 0 < s3.ambient then …) = …` leaves the `if` intact — `s3.ambient` goes
+through `editCell`'s `match Finmap.lookup …` whose scrutinee is Quot-based and
+not definitionally reducible.  Fix: give the simp set the state-chain defs
+*and* the payload helpers and the cells (`[s3, s2, s1, iterState, beginState,
+editCell, updateFiber, allocate, iterPayload, beginPayload, rulesSem, cell1]`)
+so the lookups are rewritten by the `updateFiber`/`allocate` lemmas; the
+linter's unused-arg hints trim the set.  Where the head is a structure
+projection (`rulesSem.stage …`), `change fixtureStage … = …` first pins the
+reduced form (see §5).
+
+### `decide`/`omega` over stuck projections
+
+Symptom: `omega`/`decide` on a goal mentioning
+`(State.StageResult.halt {…} 1).state.ambient + 1` reports "No usable
+constraints" — the `StageResult.state` match-def projection is not unfolded.
+Fix: `simp [State.StageResult.state]` (and `State.StageResult.inverse?`/
+`.failure?` for hypotheses) before the arithmetic tactic.
 
 ### `unusedSectionVars` linter
 
@@ -248,6 +312,56 @@ with `local notation "GState" => GlobalState Name Key …` fails with a stuck
 expansion in structure headers).  Expand the notation manually in the field
 types; the structure's own `[DecidableEq …]` binders must stay (section
 instances are shadowed by the structure params and do not apply).
+
+### Inductive constructor headers: expand notations, use arrow form
+
+Symptom (constructor-indexed rules): `| insert {before : GState} {child :
+GCell} : (hfresh : …) → … : Result` with section-level local notations fails
+with "Unknown identifier hfresh"/"unexpected token ':'" — the same
+notation-in-header elaboration bug as structures.  Fix: expand `GState`/
+`GCell` manually in the constructor *binder* types (the result type may keep
+the notation).  Second: a colon-form constructor whose premise chain includes
+a multi-line `∀ (x : T) (y : T), …` premise fails to parse ("unexpected token
+':'"); write every premise line ending in `→` and the result last, with no
+trailing colon.  Third: `∀ name cell', P` breaks under `autoImplicit=false`
+in constructor premises too — bind explicitly `∀ (name : Name) (cell' : GCell)`.
+
+### Named case patterns on fixed-index constructors bind explicit fields only
+
+Symptom: `cases h with | iter hlook hphase htarget hstage hrank =>` works and
+binds the explicit fields in order, but the constructor's *implicit* fields
+(cell, the stage-result state) appear as `cell✝`/`after✝` — names that cannot
+be written in source; `rcases`/`⟨⟩` patterns over such fixed-index
+constructors shift unpredictably ("hreal unknown", wrong bindings).  Fixes:
+(a) carry the needed data in the label payloads instead (the stage/landing
+result, accumulator middle, launch token — also mandated by the rich-label
+convention), so label `cases` bind them by name; (b) for equalities like
+`hlook : lookup n s.registry = some c`, `cases hlook with | refl` substitutes
+`c` by name — but only when the motive does not force the Quot-reduction;
+(c) `Option.some.inj`-style: `have hcell := (Option.some.inj hlook).symm; rw
+[hcell]; simp` closes projections over the record without naming its base.
+
+### Multi-line record *updates* are parse poison everywhere
+
+Symptom: `{ cell with phase := …,
+ committedView := … }` spanning lines
+fails with "unexpected identifier; expected '}'" — as a def body, inside
+`change` targets, and inside tactic terms.  A multi-line structure *literal*
+after `:=` in a def is fine, but an *inline* multi-line literal inside a
+field (`component := { key := 1, …,
+ iteratorCode := … }`) is not.  Fix:
+single-line every record update and every inline literal; for the larger
+updates hoist helpers (`beginPayload sem cell flight`, `iterPayload …`) whose
+body is a single-line update.
+
+### `if` binders under `autoImplicit=false`
+
+Symptom: `if _ : P then …` mis-elaborates; and `split at h with hpos` fails
+to parse ("unexpected token 'with'").  Fix: name the binder in the def
+(`if _hpos : P then …` silences the unused-binder linter too).  In proofs,
+avoid `split` on the `if` (its branch hypotheses get unreferable `h✝` names):
+use `by_cases hpos : P` then `rw [dif_pos hpos] at h` / `rw [dif_neg hpos] at h`
+to reduce the conditional — the named hypothesis then feeds `omega`.
 
 ### `autoImplicit=false` breaks membership-∀ `fun` binders
 
@@ -368,6 +482,43 @@ underlying def: `simp [toyModel, toyBaseOrch] at h`.
 `ext <;> omega` fails with counterexamples mentioning raw def terms — insert
 `simp [def]` before `omega`.
 
+### `congr` over-decomposes arithmetic values
+
+Symptom: on `some {before with ambient := before.ambient + (a+b)} = some
+{before with ambient := (before.ambient + b) + a}`, `congr 1` (twice) or bare
+`congr` descends into the ambient *value*, producing nonsense subgoals like
+`before.ambient = before.ambient + b` ("e_ambient.e_a").  Fix: prefer
+rewriting the arithmetic side to definitional equality and let `rfl` close:
+`rw [Nat.add_assoc, Nat.add_comm b a]`, `rw [Nat.sub_add_cancel hpos]`,
+`rw [Nat.add_zero]`; alternatively `grind only` closes the whole
+record-with-arithmetic equality.
+
+### `unfold` of a def under a structure-projection head
+
+Symptom: `unfold fixtureStage at hstage` on a hypothesis/goal headed by
+`rulesSem.stage …` (the literal's field) fails ("did not unfold").  Fix:
+`change fixtureStage <args> = …` first to pin the reduced form, or include
+the structure literal (`rulesSem`) in the simp set.
+
+### `simpa using h` direction
+
+When `simpa […] using h` reports a type mismatch and the simplified `h` is
+`A = cell'` while the goal is `cell' = A`, use `using h.symm`.
+
+### Data-conjunct guards: simp + decide, birth via a `congr` history lemma
+
+For guards like `CanonicalInitialCell s (some 1) 2 cell2`, the data conjuncts
+close with `simp [CanonicalInitialCell, Registered, <state-chain defs>,
+Finmap.lookup_insert]; decide` — the `∃ fiber, lookup 1 s.registry = some
+fiber` needs `Finmap.lookup_insert` in the set.  The birth clause
+(`1 = nextBirth s`) survives because the history projection goes through the
+Quot-blocked `editCell` match: prove a separate `s4_history : s4.allocationHistory
+= [1] := by congr` and `rw [s4_history]`.  Disjointness guards (`∀ name cell',
+lookup … → Disjoint …`) need `by_cases hname : name = 1`: the positive branch
+recovers the cell via `simpa […, Finmap.lookup_insert] using h.symm` + `subst`,
+the negative branch closes by `rw [Finmap.lookup_insert_of_ne (a := 1) (a' :=
+name) (s := s0.registry) hname, Finmap.lookup_empty] at h; cases h`.
+
 ### Dot-notation `.mp` and explicit parameter annotations
 
 `Equiv.apply_eq_iff_eq.mp` fails ("unknown constant") because the theorem's
@@ -428,7 +579,10 @@ lookup a' (insert a b s) = lookup a' s` — the **queried key is `a'`**, the
 inserted key is `a`.  To rewrite `lookup key (insert 10 1 ∅)`, pass the
 hypothesis directly (`hkey : key ≠ 10`), not `Ne.symm hkey`.  `rw`'s argument
 unification can still pick the wrong instantiation — pin with a `show`-wrapped
-statement (or test in a scratch file first).
+statement (or test in a scratch file first).  With *named* arguments the same
+trap returns in a new shape: for the query `name` over `insert 1 …` use
+`(a := 1) (a' := name)` — writing `(a := name) (a' := 1)` yields the premise
+type `1 ≠ name` and an "Application type mismatch" against `hname : name ≠ 1`.
 
 ### `Option.ne_none_iff_exists` has the reversed `∃`
 
