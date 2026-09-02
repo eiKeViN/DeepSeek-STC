@@ -23,7 +23,8 @@ abbrev Cell := FiberCell Nat Nat Nat Unit Unit Unit Unit Unit
 abbrev State := GlobalState Nat Nat Nat Unit Unit Unit Unit Unit Unit
 
 def empty : State :=
-  { ambient := (), registry := ∅, coeffects := ∅,
+  { ambient := (), registry := ∅,
+    coeffects := Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat)),
     ledger := { everIssued := ∅ }, allocationHistory := [] }
 
 theorem empty_history : empty.allocationHistory = [] := rfl
@@ -41,7 +42,8 @@ def consumerComponent : Component Nat Nat Unit Unit Unit Unit Unit :=
 
 def providerCell : Cell :=
   { incarnation := 1, parent := none, birth := 0, component := providerComponent,
-    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    committed := { entries := Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat)) },
+    committedView := ∅, retired := false, phase := .inactive,
     payload :=
       { iteratorCode := (), accumulatorCode := (), flightCode := none, failureData := none } }
 
@@ -83,7 +85,7 @@ theorem state2_keys : state2.registry.keys = ({1, 2} : Finset Nat) := by
 theorem bound_consumer_keys : boundConsumer.registry.keys = ({1, 2} : Finset Nat) := by
   grind [boundConsumer, updateFiber_keys, boundProvider, updateFiber_keys, state2_keys]
 
-theorem allocation_static : state1.coeffects = ∅ ∧ state1.ledger.everIssued = {1} := by
+theorem allocation_static : state1.coeffects = empty.coeffects ∧ state1.ledger.everIssued = {1} := by
   constructor
   · rw [state1, allocate_coeffects]
     rfl
@@ -104,8 +106,10 @@ theorem lookup_bound_consumer : Finmap.lookup 2 boundConsumer.registry = some bo
   simp [boundConsumer, boundProvider, boundConsumerCell, consumerCell, updateFiber]
 
 theorem bound_consumer_provides : ProvidesNow boundConsumer 1 10 := by
-  refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, rfl, rfl⟩
-  simp [boundProviderCell, providerCell, providerComponent]
+  refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, rfl⟩
+  change 10 ∈ (Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys
+  rw [Finmap.mem_keys, Finmap.mem_insert]
+  simp
 
 theorem bound_consumer_provides_mem : 1 ∈ providersOf boundConsumer 10 :=
   providersOf_complete boundConsumer bound_consumer_provides
@@ -120,9 +124,13 @@ theorem activate_readNoninterference : ReadNoninterference state2 1 boundProvide
 
 /-! ### D50 relied-upon -/
 
+theorem bound_consumer_installed : Installed boundConsumer 2 :=
+  ⟨boundConsumerCell, lookup_bound_consumer, by decide⟩
+
 theorem bound_consumer_reliedUpon : ReliedUpon boundConsumer 2 1 := by
-  refine ⟨boundConsumerCell, 10, lookup_bound_consumer, ?_⟩
-  exact Finmap.lookup_insert (∅ : Finmap (fun _ : Nat => Nat))
+  refine ⟨by decide, bound_consumer_installed, boundConsumerCell, 10, lookup_bound_consumer, ?_, ?_⟩
+  · simp [boundConsumerCell, consumerCell, consumerComponent]
+  · exact Finmap.lookup_insert (∅ : Finmap (fun _ : Nat => Nat))
 
 /-! ### D58 well-formed registry -/
 
@@ -202,11 +210,19 @@ theorem model_tableConfined : TableConfined boundConsumer := by
   · have hcell := provider_cell_of_lookup h h1
     subst cell
     intro key hkey
-    simp [boundProviderCell, providerCell, Finmap.keys_empty] at hkey
+    change key ∈ (Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def] at hkey
+    change key = 10 ∨ key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
+    subst key
+    simp [boundProviderCell, providerCell, providerComponent]
   · have hcell := consumer_cell_of_lookup h h2
     subst cell
     intro key hkey
-    simp [boundConsumerCell, consumerCell, Finmap.keys_empty] at hkey
+    change key ∈ (∅ : Finmap (fun _ : Nat => Nat)).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_def] at hkey
+    change key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
 
 theorem model_provisionDisjoint : ProvisionDisjoint boundConsumer := by
   intro a b ca cb ha hb hab
@@ -277,7 +293,12 @@ theorem model_committedProvidersClosed : CommittedProvidersClosed boundConsumer 
       rw [Finmap.lookup_insert] at hkv
       have hp : provider = 1 := (Option.some.inj hkv).symm
       subst provider
-      exact bound_consumer_provides
+      unfold CommittedProvides
+      refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, ?_⟩
+      · change 10 ∈ (Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys
+        rw [Finmap.mem_keys, Finmap.mem_insert]
+        simp
+      · decide
     · rw [boundConsumerCell] at hkv
       change Finmap.lookup key (Finmap.insert 10 (1 : Nat) (∅ : Finmap (fun _ : Nat => Nat))) =
           some provider at hkv
@@ -285,9 +306,105 @@ theorem model_committedProvidersClosed : CommittedProvidersClosed boundConsumer 
           Finmap.lookup_empty] at hkv
       cases hkv
 
+/-! ### D58 data-coherence invariants -/
+
+theorem model_activeTableCoherent : ActiveTableCoherent boundConsumer := by
+  intro name cell h hactive
+  have hk := mem_bound_consumer_keys (mem_keys_of_lookup h)
+  rcases hk with h1 | h2
+  · have hcell := provider_cell_of_lookup h h1
+    subst cell
+    intro key hkey
+    change key ∈ (Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def] at hkey
+    change key = 10 ∨ key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
+    subst key
+    change 10 ∈ (Finmap.insert 10 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def]
+    simp
+  · have hcell := consumer_cell_of_lookup h h2
+    subst cell
+    intro key hkey
+    change key ∈ (∅ : Finmap (fun _ : Nat => Nat)).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_def] at hkey
+    change key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
+
+theorem model_committedViewDomain : CommittedViewDomain boundConsumer := by
+  intro name cell h
+  have hk := mem_bound_consumer_keys (mem_keys_of_lookup h)
+  rcases hk with h1 | h2
+  · have hcell := provider_cell_of_lookup h h1
+    subst cell
+    intro key hkey
+    change key ∈ (∅ : Finmap (fun _ : Nat => Nat)).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_def] at hkey
+    change key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
+  · have hcell := consumer_cell_of_lookup h h2
+    subst cell
+    intro key hkey
+    change key ∈ (Finmap.insert 10 (1 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys at hkey
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def] at hkey
+    change key = 10 ∨ key ∈ (∅ : Multiset Nat) at hkey
+    simp at hkey
+    subst key
+    simp [boundConsumerCell, consumerCell, consumerComponent]
+
+theorem model_incarnationCoherent : IncarnationCoherent boundConsumer := by
+  intro name cell h
+  have hk := mem_bound_consumer_keys (mem_keys_of_lookup h)
+  rcases hk with h1 | h2
+  · have hcell := provider_cell_of_lookup h h1
+    subst cell
+    subst name
+    rfl
+  · have hcell := consumer_cell_of_lookup h h2
+    subst cell
+    subst name
+    rfl
+
+theorem model_allocationCoherent : AllocationCoherent boundConsumer := by
+  constructor
+  · decide
+  · intro name cell h
+    have hk := mem_bound_consumer_keys (mem_keys_of_lookup h)
+    rcases hk with h1 | h2
+    · have hcell := provider_cell_of_lookup h h1
+      subst cell
+      subst name
+      exact ⟨by decide, rfl⟩
+    · have hcell := consumer_cell_of_lookup h h2
+      subst cell
+      subst name
+      exact ⟨by decide, rfl⟩
+
+theorem model_ledgerCoherent : LedgerCoherent boundConsumer := by
+  constructor
+  · intro name hkey
+    rw [bound_consumer_keys] at hkey
+    simp [Finset.mem_insert, Finset.mem_singleton] at hkey
+    rcases hkey with rfl | rfl
+    · simp [boundConsumer, boundProvider, state2, state1, state0, empty, updateFiber_ledger,
+        allocate_ledger, Finset.mem_insert]
+    · simp [boundConsumer, boundProvider, state2, state1, state0, empty, updateFiber_ledger,
+        allocate_ledger, Finset.mem_insert]
+  · intro name hhist
+    simp [boundConsumer, boundProvider, state2, state1, state0, empty, updateFiber_history,
+      allocate_history] at hhist
+    rcases hhist with rfl | rfl
+    · simp [boundConsumer, boundProvider, state2, state1, state0, empty, updateFiber_ledger,
+        allocate_ledger, Finset.mem_insert]
+    · simp [boundConsumer, boundProvider, state2, state1, state0, empty, updateFiber_ledger,
+        allocate_ledger, Finset.mem_insert]
+
 theorem model_wellFormed : WellFormed modelProfile boundConsumer := by
   refine ⟨model_parentClosed, model_parentAcyclic, model_tableConfined, model_provisionDisjoint,
-    trivial, model_committedViewClosed, model_committedProvidersClosed, trivial, trivial⟩
+    model_committedViewClosed, model_committedProvidersClosed, ?_, trivial, trivial, trivial⟩
+  unfold DataCoherent
+  refine ⟨model_activeTableCoherent, model_committedViewDomain, model_incarnationCoherent,
+    model_allocationCoherent, model_ledgerCoherent⟩
 
 /-! ### D46 target view and quiescence -/
 
@@ -329,11 +446,45 @@ theorem bound_consumer_quiescent : Quiescent boundConsumer := by
   · rw [lookup_bound_provider_in_consumer] at h
     have hf : fiber = boundProviderCell := (Option.some.inj h).symm
     subst fiber
-    exact ⟨by decide, by decide, rfl⟩
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · decide
+    · decide
+    · rfl
+    · intro _hactive
+      refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, ?_⟩
+      · change (∅ : Finmap (fun _ : Nat => Nat)).keys = ∅
+        rw [Finmap.keys_empty]
+      · intro key provider hkv
+        change Finmap.lookup key (∅ : Finmap (fun _ : Nat => Nat)) = some provider at hkv
+        rw [Finmap.lookup_empty] at hkv
+        cases hkv
   · rw [lookup_bound_consumer] at h
     have hf : fiber = boundConsumerCell := (Option.some.inj h).symm
     subst fiber
-    exact ⟨by decide, by decide, rfl⟩
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · decide
+    · decide
+    · rfl
+    · intro _hactive
+      refine ⟨boundConsumerCell, lookup_bound_consumer, ?_, ?_⟩
+      · change (Finmap.insert 10 (1 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys = ({10} : Finset Nat)
+        apply Finset.ext
+        intro key
+        rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def, Finset.mem_singleton]
+        change (key = 10 ∨ key ∈ (∅ : Multiset Nat)) ↔ key = 10
+        by_cases hkey : key = 10 <;> simp [hkey]
+      · intro key provider hkv
+        change Finmap.lookup key (Finmap.insert 10 (1 : Nat) (∅ : Finmap (fun _ : Nat => Nat))) =
+            some provider at hkv
+        by_cases hkey : key = 10
+        · subst key
+          rw [Finmap.lookup_insert] at hkv
+          have hp : provider = 1 := (Option.some.inj hkv).symm
+          subst provider
+          exact bound_consumer_provides
+        · rw [Finmap.lookup_insert_of_ne (∅ : Finmap (fun _ : Nat => Nat)) hkey,
+            Finmap.lookup_empty] at hkv
+          cases hkv
 
 /-! ### D32 positive representation -/
 

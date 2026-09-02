@@ -157,3 +157,16 @@ python scripts/scan_lean.py STC
 - Keep the Definition Ledger current after each task: edit rows in place using the vocabulary recorded in the ledger file itself (`delivery_vocabulary`/`evidence_vocabulary` keys in `docs/status/Definition-Ledger.json`) and rerun the validator.
 - Do not rerun `gen_definition_ledger.py` after P0 — it regenerates from its P0 curation tables and would wipe later evidence.
 - Keep commits focused, do not overwrite other agents' work, and report any baseline/hash or namespace mismatch instead of silently normalizing it.
+
+### Optional anchor-comment repair tool
+
+`scripts/comment_advance.py` implements the single-anchor silent-repair
+discipline for long files fixed declaration-by-declaration (one `/-`
+frontier opener, one bottom `-/` anchor; `report`/`check`/`advance`/
+`checkpoint` commands; the invariant and the protocol are in the script's
+docstring).  Enablement: **if the file being modified exceeds 500 lines,
+enable the tool automatically** (before the first edit run `check` to
+confirm the invariant, then follow the protocol step by step).  The user
+may disable or re-enable it in natural language at any time ("不用了，直接改"
+/ "开启静默修复").  For shorter files edit normally unless the user asks
+for the tool.

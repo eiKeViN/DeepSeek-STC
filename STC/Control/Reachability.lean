@@ -5,12 +5,12 @@ public import STC.Control.Rules
 /-!
 # Reachability and semantic episodes
 
-Reachability is exactly existence of a typed `Control.Trace`. Episodes and
+Reachability is exactly existence of a typed `globalTrace`. Episodes and
 observations are separate relations; no preservation, termination, or support
 certificate is bundled into the reachable predicate.
 -/
 
-universe u v w x
+universe u
 
 namespace STC.Control
 
@@ -20,17 +20,19 @@ open STC STC.State
 
 section Reachability
 
-variable {Name : Type u} {Key : Type v} {Value : Type w}
-variable {Action : Type u} {Iterator : Type v} {Accumulator : Type w}
-variable {Flight : Type u} {Failure : Type v} {Ambient : Type x}
+variable {Name : Type u} {Key : Type u} {Value : Type u}
+variable {Action : Type u} {Iterator : Type u} {Accumulator : Type u}
+variable {Flight : Type u} {Failure : Type u} {Ambient : Type u}
 variable [DecidableEq Name] [DecidableEq Key]
 
 local notation "GState" =>
   GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
 local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Failure
+local notation "GSem" =>
+  ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
-local notation "LLabel" => GlobalLifecycleLabel Name Failure
-local notation "GTrace" => Trace orchestrationRule lifecycleRule
+local notation "LLabel" =>
+  GlobalLifecycleLabel Name Key GState Iterator Accumulator Flight Failure
 
 /-- The initial-state profile is explicit; nonempty initial active fibers need a
 valid commit certificate. -/
@@ -47,27 +49,28 @@ local notation "IProfile" => InitialProfile (Name := Name) (Key := Key) (Value :
   (Flight := Flight) (Failure := Failure) (Ambient := Ambient)
 
 /-- Reached state means an initial state followed by an actual typed trace. -/
-def ReachedFrom (profile : IProfile) (before after : GState) : Prop :=
-  profile.initial before ∧ profile.wellFormed before ∧ Nonempty (GTrace before after)
+def ReachedFrom (sem : GSem) (profile : IProfile) (before after : GState) : Prop :=
+  profile.initial before ∧ profile.wellFormed before ∧ Nonempty (globalTrace sem before after)
 
-def Reachable (profile : IProfile) (state : GState) : Prop :=
-  ∃ source, ReachedFrom profile source state
+def Reachable (sem : GSem) (profile : IProfile) (state : GState) : Prop :=
+  ∃ source, ReachedFrom sem profile source state
 
-theorem reached_trace (profile : IProfile) {before after : GState}
-    (h : ReachedFrom profile before after) : Nonempty (GTrace before after) := h.2.2
+theorem reached_trace (sem : GSem) (profile : IProfile) {before after : GState}
+    (h : ReachedFrom sem profile before after) : Nonempty (globalTrace sem before after) := h.2.2
 
 /-- The actor selected by one concrete label. -/
 def actorOf : Sum OLabel LLabel → Name
-  | .inl (.insert fresh _) => fresh
-  | .inl (.retire owner) => owner
+  | .inl (.insert _ fresh _) => fresh
+  | .inl (.retire owner _) => owner
   | .inl (.remove owner) => owner
-  | .inr (.begin owner) => owner
-  | .inr (.iter owner) => owner
-  | .inr (.finish owner) => owner
-  | .inr (.divert owner _) => owner
+  | .inr (.begin owner _ _) => owner
+  | .inr (.iter owner _ _ _) => owner
+  | .inr (.finish owner _) => owner
+  | .inr (.divertAbort owner _) => owner
+  | .inr (.divertLand owner _ _ _) => owner
   | .inr (.raise owner _) => owner
   | .inr (.leave owner) => owner
-  | .inr (.unload owner) => owner
+  | .inr (.unload owner _) => owner
 
 /-- A replayable, nonconstant factorization witness for a labelled step. -/
 structure Factorization (before after : GState) where
@@ -83,7 +86,7 @@ inductive EpisodeStatus where
   | closed
   deriving DecidableEq, Repr
 
-structure Episode (State : Type u) (Name : Type v) (OL : Type w) (LL : Type x) where
+structure Episode (State : Type u) (Name : Type u) (OL : Type u) (LL : Type u) where
   actor : Name
   start : State
   finish : State
@@ -99,19 +102,20 @@ def EpisodeEq (obs : GState → GState → Prop)
 
 /-- A selected lifecycle step registered a child episode exactly when it is an
 orchestration insertion whose parent points at an existing owner. -/
-def RegisteredChildStep {before after : GState}
+def RegisteredChildStep (_sem : GSem) {before after : GState}
     (label : Sum OLabel LLabel) : Prop :=
-  ∃ fresh cell parent parentCell, label = .inl (.insert fresh cell) ∧
+  ∃ fresh registrar cell parent parentCell, label = .inl (.insert registrar fresh cell) ∧
     cell.parent = some parent ∧ Finmap.lookup parent before.registry = some parentCell ∧
-      orchestrationRule (.insert fresh cell) before after
+      OrchestrationRule (.insert registrar fresh cell) before after
 
 /-- Activation provenance records either an initial commit certificate or a
 trace-local successful finish. -/
-inductive ActivationProvenance (profile : IProfile) (owner : Name) : GState → Prop
+inductive ActivationProvenance (sem : GSem) (profile : IProfile) (owner : Name) : GState → Prop
   | initial {state} : profile.activationCommit owner state →
-      ActivationProvenance profile owner state
-  | finished {before after : GState} :
-      lifecycleRule (.finish owner) before after → ActivationProvenance profile owner after
+      ActivationProvenance sem profile owner state
+  | finished {before after result : GState} :
+      LifecycleRule sem (.finish owner result) before after →
+        ActivationProvenance sem profile owner after
 
 /-- A partial bijection that can grow as fresh names are allocated. -/
 structure GrowingBijection (Name : Type u) where
@@ -147,11 +151,12 @@ def RelatedCell (bijection : GrowingBijection Name) (left right : GCell) : Prop 
     left.retired = right.retired ∧
     left.phase = right.phase ∧ left.payload = right.payload
 
-/-- Two orchestration inputs retain their constructor, payload, parent, and renamed actor. -/
+/-- Two orchestration inputs retain their constructor, registrar, payload,
+parent, and renamed actor. -/
 def RelatedOrchestrationInput (bijection : GrowingBijection Name) : OLabel → OLabel → Prop
-  | .insert fresh left, .insert fresh' right =>
-      bijection.forward fresh fresh' ∧ RelatedCell bijection left right
-  | .retire left, .retire right => bijection.forward left right
+  | .insert registrar fresh left, .insert registrar' fresh' right =>
+      registrar = registrar' ∧ bijection.forward fresh fresh' ∧ RelatedCell bijection left right
+  | .retire left _, .retire right _ => bijection.forward left right
   | .remove left, .remove right => bijection.forward left right
   | _, _ => False
 
@@ -161,31 +166,33 @@ def orchestrationInputs : List (Sum OLabel LLabel) → List OLabel
   | .inl label :: rest => label :: orchestrationInputs rest
   | .inr _ :: rest => orchestrationInputs rest
 
-def SameOrderedOrchestrationInputs {before after : GState}
-    (left right : GTrace before after) : Prop :=
+def SameOrderedOrchestrationInputs (sem : GSem) {before after : GState}
+    (left right : globalTrace sem before after) : Prop :=
   ∃ bijection : GrowingBijection Name,
     List.Forall₂ (RelatedOrchestrationInput bijection)
       (orchestrationInputs left.labels) (orchestrationInputs right.labels)
 
 /-- A stronger internal relation retaining resolved action/iterator/landing
 witnesses. -/
-def SameResolvedSemanticWitnesses {before after : GState}
-    (left right : GTrace before after) : Prop :=
+def SameResolvedSemanticWitnesses (sem : GSem) {before after : GState}
+    (left right : globalTrace sem before after) : Prop :=
   left.labels = right.labels
 
-theorem trace_append_reached (profile : IProfile) {a b c : GState}
-    (h : ReachedFrom profile a b) (tail : GTrace b c) : ReachedFrom profile a c := by
+theorem trace_append_reached (sem : GSem) (profile : IProfile) {a b c : GState}
+    (h : ReachedFrom sem profile a b) (tail : globalTrace sem b c) : ReachedFrom sem profile a c := by
   rcases h.2.2 with ⟨tr⟩
   exact ⟨h.1, h.2.1, Nonempty.intro (Trace.append tr tail)⟩
 
-theorem trace_split {before after : GState} (trace : GTrace before after) (middle : GState)
-    (left : GTrace before middle) (right : GTrace middle after)
+theorem trace_split (sem : GSem) {before after : GState} (trace : globalTrace sem before after)
+    (middle : GState) (left : globalTrace sem before middle) (right : globalTrace sem middle after)
     (h : Trace.append left right = trace) :
     trace.labels = left.labels ++ right.labels := by
   simpa [h] using Trace.append_labels left right
 
-theorem sameResolved_implies_sameInputs {before after : GState} {left right : GTrace before after}
-    (h : SameResolvedSemanticWitnesses left right) : SameOrderedOrchestrationInputs left right := by
+theorem sameResolved_implies_sameInputs (sem : GSem) {before after : GState}
+    {left right : globalTrace sem before after}
+    (h : SameResolvedSemanticWitnesses sem left right) :
+    SameOrderedOrchestrationInputs sem left right := by
   refine ⟨GrowingBijection.identity Name, ?_⟩
   rw [h]
   induction orchestrationInputs right.labels with
@@ -193,14 +200,14 @@ theorem sameResolved_implies_sameInputs {before after : GState} {left right : GT
   | cons label labels ih =>
       apply List.Forall₂.cons
       · cases label with
-        | insert fresh cell =>
+        | insert registrar fresh cell =>
             refine ⟨rfl, rfl, ?_⟩
-            refine ⟨?_, rfl, rfl, rfl, ?_, rfl, rfl, rfl⟩
+            refine ⟨rfl, ?_, rfl, rfl, rfl, ?_, rfl, rfl, rfl⟩
             · cases cell.parent <;> simp [RelatedOptionalName, GrowingBijection.identity]
             · intro key
               cases Finmap.lookup key cell.committedView <;>
                 simp [RelatedOptionalName, GrowingBijection.identity]
-        | retire owner => rfl
+        | retire owner _ => rfl
         | remove owner => rfl
       · exact ih
 
