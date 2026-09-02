@@ -164,6 +164,9 @@ python scripts/scan_lean.py STC
 discipline for long files fixed declaration-by-declaration (one `/-`
 frontier opener, one bottom `-/` anchor; `report`/`check`/`advance`
 commands; the invariant and the four-step protocol are in the script's
-docstring).  It is opt-in: use it only when the current user asks for it
-in natural language (e.g. "用注释锚点法修"/"开启静默修复" — to stop:
-"关闭/不用了，直接改"); otherwise edit files normally.
+docstring).  Enablement: **if the file being modified exceeds 500 lines,
+enable the tool automatically** (before the first edit run `check` to
+confirm the invariant, then follow the protocol step by step).  The user
+may disable or re-enable it in natural language at any time ("不用了，直接改"
+/ "开启静默修复").  For shorter files edit normally unless the user asks
+for the tool.
