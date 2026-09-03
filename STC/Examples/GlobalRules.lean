@@ -1193,13 +1193,13 @@ theorem noProvides10_s18 : ∀ p, ¬ ProvidesNow s18 p 10 := by
       rw [lookup_s18_2] at hlook
       cases hlook with | refl
       change 10 ∈ cell2itered.committed.entries.keys at htable
-      simp [cell2itered, cell2, Finmap.mem_keys, Finmap.mem_insert] at htable
+      simp at htable
     · by_cases hp3 : p = 3
       · subst p
         rw [lookup_s18_3] at hlook
         cases hlook with | refl
         change 10 ∈ cell3begun.committed.entries.keys at htable
-        simp [cell3begun, cell3, Finmap.mem_keys, Finmap.mem_insert] at htable
+        simp at htable
       · by_cases hp4 : p = 4
         · subst p
           rw [lookup_s18_4] at hlook
@@ -1213,9 +1213,9 @@ theorem noProvides10_s18 : ∀ p, ¬ ProvidesNow s18 p 10 := by
             cases hlook with | refl
             simp at hphase
           · have hnone : Finmap.lookup p s18.registry = none := by
-              simp [s18, s17, s16, s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0,
+              simp [s18, s17, s16, s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, 
                 leaveState, retireState, unloadState, raiseState, beginState, finishState, iterState,
-                editCell, updateFiber, allocate, beginPayload, iterPayload, rulesSem,
+                editCell, allocate, beginPayload, iterPayload, rulesSem,
                 Finmap.lookup_insert, Finmap.lookup_insert_of_ne, Finmap.lookup_empty,
                 hp1, hp2, hp3, hp4, hp5]
             simp [hnone] at hlook
@@ -1320,11 +1320,35 @@ theorem lookup_s22_none_of_ne {name : Nat} (h1 : name ≠ 1) (h2 : name ≠ 2) (
 
 /-! ### The main trace witnesses -/
 
+/-- A name outside {1..5} is absent from the s24 registry (same chain as the
+s22 lemma plus the leave/divertLand control edits). -/
+theorem lookup_s24_none_of_ne {name : Nat} (h1 : name ≠ 1) (h2 : name ≠ 2) (h3 : name ≠ 3)
+    (h4 : name ≠ 4) (h5 : name ≠ 5) :
+    Finmap.lookup name s24.registry = none := by
+  change Finmap.lookup name (editCell s23 4 (fun cell => { cell with phase := .unloading })).registry = none
+  rw [editCell_lookup_ne s23 4 _ h4]
+  change Finmap.lookup name (editCell { s22 with ambient := s22.ambient + 1 } 2 (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := rulesSem.composeInverse cell.payload.accumulatorCode [], flightCode := none } })).registry = none
+  rw [editCell_lookup_ne { s22 with ambient := s22.ambient + 1 } 2 _ h2]
+  change Finmap.lookup name { s22 with ambient := s22.ambient + 1 }.registry = none
+  change Finmap.lookup name s22.registry = none
+  exact lookup_s22_none_of_ne h1 h2 h3 h4 h5
+
+/-- A name outside {1..5} is absent from the s26 registry (unload of 2, unload
+of 4, then the s24 chain). -/
+theorem lookup_s26_none_of_ne {name : Nat} (h1 : name ≠ 1) (h2 : name ≠ 2) (h3 : name ≠ 3)
+    (h4 : name ≠ 4) (h5 : name ≠ 5) :
+    Finmap.lookup name s26.registry = none := by
+  change Finmap.lookup name (editCell s25 2 (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
+  rw [editCell_lookup_ne s25 2 _ h2]
+  change Finmap.lookup name (editCell s24 4 (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
+  rw [editCell_lookup_ne s24 4 _ h4]
+  exact lookup_s24_none_of_ne h1 h2 h3 h4 h5
+
 theorem step_insert1 : OrchestrationRule (.insert none 1 cell1) s0 s1 := by
   exact OrchestrationRule.insert (registrar := none) (fresh := 1) (child := cell1)
-    (by simp [s0]) (by decide)
-    (by simp [CanonicalInitialCell, s0, nextBirth])
-    (by intro name cell' h; simp [s0] at h)
+    (by simp []) (by decide)
+    (by simp [CanonicalInitialCell, nextBirth])
+    (by intro name cell' h; simp at h)
 
 theorem step_begin1 : LifecycleRule rulesSem (.begin 1 ∅) s1 s2 := by
   exact LifecycleRule.begin (sem := rulesSem) (cell := cell1)
@@ -1339,10 +1363,10 @@ theorem step_begin1 : LifecycleRule rulesSem (.begin 1 ∅) s1 s2 := by
 
 theorem step_insert2 : OrchestrationRule (.insert (some 1) 2 cell2) s2 s3 := by
   exact OrchestrationRule.insert (registrar := some 1) (fresh := 2) (child := cell2)
-    (by simp [s2, s1, s0, beginState, editCell, updateFiber, allocate, Finmap.lookup_insert])
-    (by simp [s2, s1, s0, beginState, editCell, updateFiber, allocate, Finmap.mem_insert])
+    (by simp [s2, s1, beginState, editCell, allocate, Finmap.lookup_insert])
+    (by simp [s2, s1, beginState, editCell, allocate, ])
     (by
-      simp [CanonicalInitialCell, Registered, s2, s1, s0, nextBirth, beginState, editCell, updateFiber,
+      simp [CanonicalInitialCell, Registered, s2, s1, nextBirth, beginState, editCell, 
         allocate, beginPayload, rulesSem, Finmap.lookup_insert])
     (by intro name cell' h
         apply Finset.disjoint_left.mpr
@@ -1352,10 +1376,10 @@ theorem step_insert2 : OrchestrationRule (.insert (some 1) 2 cell2) s2 s3 := by
           rw [lookup_s2_1] at h
           cases h with | refl
           change key ∈ cell2.component.provides at hkey
-          simp [cell1, cell2] at hkey
+          simp at hkey
           subst key
-          simp [cell1]
-        · simp [s2, s1, s0, beginState, editCell, updateFiber, allocate, beginPayload, rulesSem,
+          simp []
+        · simp [s2, s1, beginState, editCell, allocate, beginPayload, rulesSem,
             Finmap.lookup_insert, hname] at h)
 
 theorem step_iter1 : LifecycleRule rulesSem (.iter 1 0) s3 s4 := by
@@ -1411,13 +1435,13 @@ theorem step_iter2 : LifecycleRule rulesSem (.iter 2 2) s6 s7 := by
 
 theorem step_insert3 : OrchestrationRule (.insert none 3 cell3) s7 s8 := by
   exact OrchestrationRule.insert (registrar := none) (fresh := 3) (child := cell3)
-    (by simp [s7, s6, s5, s4, s3, s2, s1, s0, iterState, beginState, finishState, editCell, updateFiber,
+    (by simp [s7, s6, s5, s4, s3, s2, s1, iterState, beginState, finishState, editCell, 
         allocate, beginPayload, iterPayload, rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne])
-    (by simp [s7, s6, s5, s4, s3, s2, s1, s0, iterState, beginState, finishState, editCell, updateFiber,
-        allocate, beginPayload, iterPayload, rulesSem, Finmap.mem_insert])
+    (by simp [s7, s6, s5, s4, s3, s2, s1, iterState, beginState, finishState, editCell, 
+        allocate, beginPayload, iterPayload, rulesSem, ])
     (by
-      simp [CanonicalInitialCell, s7, s6, s5, s4, s3, s2, s1, s0, nextBirth, iterState, beginState,
-        finishState, editCell, updateFiber, allocate, beginPayload, iterPayload, rulesSem,
+      simp [CanonicalInitialCell, s7, s6, s5, s4, s3, s2, s1, nextBirth, iterState, beginState,
+        finishState, editCell, allocate, beginPayload, iterPayload, rulesSem,
         Finmap.lookup_insert])
     (by intro name cell' h
         apply Finset.disjoint_left.mpr
@@ -1432,14 +1456,14 @@ theorem step_begin3 : LifecycleRule rulesSem (.begin 3 view101) s8 s9 := by
 
 theorem step_insert4 : OrchestrationRule (.insert none 4 cell4) s9 s10 := by
   exact OrchestrationRule.insert (registrar := none) (fresh := 4) (child := cell4)
-    (by simp [s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, beginState, iterState, finishState, editCell,
-        updateFiber, allocate, beginPayload, iterPayload, rulesSem, Finmap.lookup_insert,
+    (by simp [s9, s8, s7, s6, s5, s4, s3, s2, s1, beginState, iterState, finishState, editCell,
+        allocate, beginPayload, iterPayload, rulesSem, Finmap.lookup_insert,
         Finmap.lookup_insert_of_ne])
-    (by simp [s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, beginState, iterState, finishState, editCell,
-        updateFiber, allocate, beginPayload, iterPayload, rulesSem, Finmap.mem_insert])
+    (by simp [s9, s8, s7, s6, s5, s4, s3, s2, s1, beginState, iterState, finishState, editCell,
+        allocate, beginPayload, iterPayload, rulesSem, ])
     (by
-      simp [CanonicalInitialCell, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, nextBirth, beginState,
-        iterState, finishState, editCell, updateFiber, allocate, beginPayload, iterPayload, rulesSem,
+      simp [CanonicalInitialCell, s9, s8, s7, s6, s5, s4, s3, s2, s1, nextBirth, beginState,
+        iterState, finishState, editCell, allocate, beginPayload, iterPayload, rulesSem,
         Finmap.lookup_insert])
     (by intro name cell' h
         apply Finset.disjoint_left.mpr
@@ -1465,14 +1489,14 @@ theorem step_finish4 : LifecycleRule rulesSem (.finish 4) s11 s12 := by
 
 theorem step_insert5 : OrchestrationRule (.insert none 5 cell5) s12 s13 := by
   exact OrchestrationRule.insert (registrar := none) (fresh := 5) (child := cell5)
-    (by simp [s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, finishState, beginState, iterState,
-        editCell, updateFiber, allocate, beginPayload, iterPayload, rulesSem, Finmap.lookup_insert,
+    (by simp [s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, finishState, beginState, iterState,
+        editCell, allocate, beginPayload, iterPayload, rulesSem, Finmap.lookup_insert,
         Finmap.lookup_insert_of_ne])
-    (by simp [s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, finishState, beginState, iterState,
-        editCell, updateFiber, allocate, beginPayload, iterPayload, rulesSem, Finmap.mem_insert])
+    (by simp [s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, finishState, beginState, iterState,
+        editCell, allocate, beginPayload, iterPayload, rulesSem, ])
     (by
-      simp [CanonicalInitialCell, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0, nextBirth,
-        finishState, beginState, iterState, editCell, updateFiber, allocate, beginPayload, iterPayload,
+      simp [CanonicalInitialCell, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, nextBirth,
+        finishState, beginState, iterState, editCell, allocate, beginPayload, iterPayload,
         rulesSem, Finmap.lookup_insert])
     (by intro name cell' h
         apply Finset.disjoint_left.mpr
@@ -1545,8 +1569,8 @@ theorem step_unload5 : LifecycleRule rulesSem (.unload 5) s15 s16 := by
               · subst dependent
                 exact (hne rfl).elim
               · have hnone : Finmap.lookup dependent s15.registry = none := by
-                  simp [s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0,
-                    raiseState, beginState, finishState, iterState, editCell, updateFiber, allocate,
+                  simp [s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, 
+                    raiseState, beginState, finishState, iterState, editCell, allocate,
                     beginPayload, iterPayload, rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne,
                     Finmap.lookup_empty, hd1, hd2, hd3, hd4, hd5]
                 rw [hnone] at hlook
@@ -1620,8 +1644,8 @@ theorem step_unload3 : LifecycleRule rulesSem (.unload 3) s19 s20 := by
                 cases hkv
               · have hnone : Finmap.lookup dependent s19.registry = none := by
                   simp [s19, s18, s17, s16, s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3,
-                    s2, s1, s0, divertAbortState, leaveState, retireState, unloadState, raiseState,
-                    beginState, finishState, iterState, editCell, updateFiber, allocate, beginPayload,
+                    s2, s1, divertAbortState, leaveState, retireState, unloadState, raiseState,
+                    beginState, finishState, iterState, editCell, allocate, beginPayload,
                     iterPayload, rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne,
                     Finmap.lookup_empty, hd1, hd2, hd3, hd4, hd5]
                 rw [hnone] at hlook
@@ -1654,7 +1678,7 @@ theorem step_remove3 : OrchestrationRule (.remove 3) s21 s22 := by
           · subst name
             rw [lookup_s21_3] at h
             cases h with | refl
-            simp [cell3retired, cell3inactive, cell3] at hparent
+            simp at hparent
           · by_cases hn4 : name = 4
             · subst name
               rw [lookup_s21_4] at h
@@ -1667,8 +1691,8 @@ theorem step_remove3 : OrchestrationRule (.remove 3) s21 s22 := by
                 cases hparent
               · have hnone : Finmap.lookup name s21.registry = none := by
                   simp [s21, s20, s19, s18, s17, s16, s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5,
-                    s4, s3, s2, s1, s0, retireState, unloadState, divertAbortState, leaveState, raiseState,
-                    beginState, finishState, iterState, editCell, updateFiber, allocate, beginPayload,
+                    s4, s3, s2, s1, retireState, unloadState, divertAbortState, leaveState, raiseState,
+                    beginState, finishState, iterState, editCell, allocate, beginPayload,
                     iterPayload, rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne,
                     Finmap.lookup_empty, hn1, hn2, hn3, hn4, hn5]
                 rw [hnone] at h
@@ -1794,19 +1818,11 @@ theorem step_unload2 : LifecycleRule rulesSem (.unload 2) s25 s26 := by
                 rw [Finmap.lookup_empty] at hkv
                 cases hkv
               · have hnone : Finmap.lookup dependent s25.registry = none := by
-                  change Finmap.lookup dependent (editCell s24 4 (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
+                  change Finmap.lookup dependent (editCell s24 4 (fun cell => { cell with phase := (if cell.payload.failureData.isSome = true then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
                   rw [editCell_lookup_ne s24 4 _ (by intro h; exact hd4 h)]
-                  change Finmap.lookup dependent (editCell s23 4 (fun cell => { cell with phase := .unloading })).registry = none
-                  rw [editCell_lookup_ne s23 4 _ (by intro h; exact hd4 h)]
-                  change Finmap.lookup dependent (editCell { s22 with ambient := s22.ambient + 1 } 2 (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := rulesSem.composeInverse cell.payload.accumulatorCode [], flightCode := none } })).registry = none
-                  rw [editCell_lookup_ne { s22 with ambient := s22.ambient + 1 } 2 _ (by intro h; exact hd2 h)]
-                  change Finmap.lookup dependent { s22 with ambient := s22.ambient + 1 }.registry = none
-                  change Finmap.lookup dependent s22.registry = none
-                  exact lookup_s22_none_of_ne (by intro h; exact hd1 h) (by intro h; exact hd2 h)
+                  exact lookup_s24_none_of_ne (by intro h; exact hd1 h) (by intro h; exact hd2 h)
                     (by intro h; exact hd3 h) (by intro h; exact hd4 h) (by intro h; exact hd5 h)
-              have hbad : Finmap.lookup dependent s25.registry = some cell := hlook
-              rw [hnone] at hbad
-              cases hbad)
+                simp [hnone] at hlook)
     (haccumulator := by
       change fixtureAccumulator [] s25 = some s25
       rfl)
@@ -1856,17 +1872,10 @@ theorem step_unload1 : LifecycleRule rulesSem (.unload 1) s26 s27 := by
                 cases hlook with | refl
                 rw [Finmap.lookup_empty] at hkv
                 cases hkv
-              · have hnone : Finmap.lookup dependent s26.registry = none := by
-                change Finmap.lookup dependent (editCell s25 2 (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
-                rw [editCell_lookup_ne s25 2 _ (by intro h; exact hd2 h)]
-                change Finmap.lookup dependent (editCell s24 4 (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } })).registry = none
-                rw [editCell_lookup_ne s24 4 _ (by intro h; exact hd4 h)]
-                change Finmap.lookup dependent s24.registry = none
-                exact lookup_s24_none_of_ne (by intro h; exact hd1 h) (by intro h; exact hd2 h)
-                  (by intro h; exact hd3 h) (by intro h; exact hd4 h) (by intro h; exact hd5 h)
-              have hbad : Finmap.lookup dependent s26.registry = some cell := hlook
-              rw [hnone] at hbad
-              cases hbad)
+              · have hnone : Finmap.lookup dependent s26.registry = none :=
+                  lookup_s26_none_of_ne (by intro h; exact hd1 h) (by intro h; exact hd2 h)
+                    (by intro h; exact hd3 h) (by intro h; exact hd4 h) (by intro h; exact hd5 h)
+                simp [hnone] at hlook)
     (haccumulator := by
       change fixtureAccumulator [2] s26 = some (foldRetire [2] s26)
       rfl)
