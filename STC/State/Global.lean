@@ -460,13 +460,15 @@ theorem targetView_provides (state : GState) (name : Name) {cell : GCell}
 
 /-! ### D46 target view at a given committed view -/
 
-/-- D46: `ω` is the exact current target view of `owner`: its domain is exactly
-the owner's required keys and every entry names a current provider of that key.
-This is the precise view the rules consume; the executable `targetView` above is
-a finite projection of it. -/
+/-- D46: `ω` is the exact current target view of `owner`: the owner itself is a
+currently eligible, non-retired fiber, its domain is exactly the owner's
+required keys, and every entry names a current provider of that key.  A
+retired Active provider may still satisfy a dependent's committed binding
+(`ProvidesNow` does not check retirement), but the retired fiber itself has
+no current target. -/
 def TargetViewAt (state : GState) (owner : Name)
     (ω : Finmap (fun _ : Key => Name)) : Prop :=
-  ∃ cell, Finmap.lookup owner state.registry = some cell ∧
+  ∃ cell, Finmap.lookup owner state.registry = some cell ∧ cell.retired = false ∧
     ω.keys = cell.component.requires ∧
       ∀ key provider, Finmap.lookup key ω = some provider → ProvidesNow state provider key
 
@@ -499,12 +501,16 @@ def Failed (state : GState) (name : Name) : Prop :=
 def PendingFlight (state : GState) (name : Name) : Prop :=
   ∃ cell, Finmap.lookup name state.registry = some cell ∧ cell.payload.flightCode.isSome
 
-/-- Extended quiescence: no fiber is mid-transition, no flight is pending, and
-every active fiber's committed view is its exact current target. -/
+/-- Extended quiescence reflects lifecycle/target agreement: no fiber is
+mid-transition, no flight is pending, every active fiber's committed view is
+its exact current target, and a normal non-retired inactive fiber has no
+available target (L-Begin would be enabled).  A retired inactive fiber may be
+terminal and a failed fiber is terminal under the failure policy. -/
 def Quiescent (state : GState) : Prop :=
   ∀ name fiber, Finmap.lookup name state.registry = some fiber →
     fiber.phase ≠ .reloading ∧ fiber.phase ≠ .unloading ∧ fiber.payload.flightCode = none ∧
-      (fiber.phase = .active → TargetViewAt state name fiber.committedView)
+      (fiber.phase = .active → TargetViewAt state name fiber.committedView) ∧
+        (fiber.phase = .inactive → fiber.retired = true ∨ TargetAbsent state name)
 
 /-! ### D50 relied-upon relation -/
 
