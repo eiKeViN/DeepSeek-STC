@@ -282,30 +282,27 @@ theorem allocate_registrationFrame (state : GState) {fresh : Name} {cell : GCell
     (hledger : fresh ∉ state.ledger.everIssued) :
     RegistrationFrame state fresh cell (allocate state fresh cell) := by
   unfold RegistrationFrame
-  constructor
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro name hne
     exact (allocate_lookup_ne state fresh cell hne).symm
-  · constructor
-    · exact hfresh
-    · constructor
-      · exact allocate_lookup_fresh state fresh cell
-      · constructor
-        · exact hledger
-        · constructor
-          · exact allocate_ledger state fresh cell
-          · constructor
-            · exact allocate_history state fresh cell
-            · constructor
-              · exact allocate_coeffects state fresh cell
-              · exact allocate_ambient state fresh cell
+  · exact hfresh
+  · exact allocate_lookup_fresh state fresh cell
+  · exact hledger
+  · exact allocate_ledger state fresh cell
+  · exact allocate_history state fresh cell
+  · exact allocate_coeffects state fresh cell
+  · exact allocate_ambient state fresh cell
 
 /-- D48 teardown frame: accumulator execution during unload may edit the owner's
-cell and apply recorded child-retirement inverses (flipping a child's retired
-flag), nothing else; the ledger, history, and coeffect store are fixed. -/
+cell and apply recorded child-retirement inverses (flipping a recorded child's
+retired flag), nothing else; the ledger, history, and coeffect store are fixed.
+Child retirement is the only admitted foreign edit — the edited foreign fiber
+must name `owner` as its parent. -/
 def CleanupFrame (state : GState) (owner : Name) (after : GState) : Prop :=
   (∀ name, name ≠ owner →
       Finmap.lookup name state.registry = Finmap.lookup name after.registry ∨
         ∃ cell, Finmap.lookup name state.registry = some cell ∧ cell.retired = false ∧
+          cell.parent = some owner ∧
           Finmap.lookup name after.registry = some { cell with retired := true }) ∧
     state.ledger = after.ledger ∧ state.allocationHistory = after.allocationHistory ∧
       state.coeffects = after.coeffects
@@ -320,17 +317,18 @@ theorem updateFiber_cleanupFrame (state : GState) (owner : Name) (fiber : GCell)
     exact (updateFiber_lookup_ne state hne fiber).symm
   · simp [updateFiber]
 
-/-- Flipping a child's retired flag satisfies the teardown frame of any owner. -/
+/-- Flipping a recorded child's retired flag satisfies the teardown frame of
+its parent owner. -/
 theorem retire?_cleanupFrame {state : GState} {owner child : Name} {cell : GCell}
     (hlook : Finmap.lookup child state.registry = some cell)
-    (hret : cell.retired = false) :
+    (hret : cell.retired = false) (hparent : cell.parent = some owner) :
     CleanupFrame state owner (updateFiber state child { cell with retired := true }) := by
   unfold CleanupFrame
   constructor
   · intro name hne'
     by_cases hname : name = child
     · right
-      refine ⟨cell, ?_, hret, ?_⟩
+      refine ⟨cell, ?_, hret, hparent, ?_⟩
       · rw [hname]
         exact hlook
       · rw [hname]

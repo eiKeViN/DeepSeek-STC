@@ -98,11 +98,13 @@ carries its own universe so the profile instantiates over mixed-universe
 carriers like `GlobalState`.  The frame relations are abstract here and are
 instantiated non-vacuously in the fixtures: `observes` (reads respect the
 owner's required/coeffect window), `writesWithinProvision` (writes stay in
-the acting provision envelope), `registryFrame` (foreign fibers and static
-declarations unchanged), `allocationFrame` (ledger and allocation history
-unchanged), `accumulatorFrame` (the explicit owner/recorded-child cleanup
-frame). -/
-structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
+the given provision envelope), `registryFrame` (foreign fibers and static
+declarations unchanged — stage/landing bodies only), `domainFrame` (registry
+keys unchanged — the accumulator may retire recorded children but never
+allocates), `allocationFrame` (ledger and allocation history unchanged),
+`accumulatorFrame` (the explicit owner/recorded-child cleanup frame).  Every
+code family declares its own provision envelope via the `*Envelope` fields. -/
+structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (Action : Type w)
     (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Failure : Type x) where
   action : Action → State → Option (ActionResult State Accumulator)
   stage : Iterator → State → Option (StageResult State Iterator Accumulator Failure)
@@ -114,14 +116,19 @@ structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
   failureBridge : Failure → State → Accumulator → Failure → Prop
   undo : State → Option State
   observes : State → State → Prop
-  writesWithinProvision : State → State → Prop
+  writesWithinProvision : Finset Key → State → State → Prop
   continuationStable : State → State → Prop
   registryFrame : State → State → Prop
+  domainFrame : State → State → Prop
   allocationFrame : State → State → Prop
   rank : Iterator → Nat
   accumulatorFrame : Accumulator → State → State → Prop
-  noWriteOutside : ∀ {code before result}, action code before = some result →
-    writesWithinProvision before result.state
+  stageEnvelope : Iterator → Finset Key
+  landingEnvelope : Flight → Finset Key
+  accumulatorEnvelope : Accumulator → Finset Key
+  actionEnvelope : Action → Finset Key
+  action_writesWithinProvision : ∀ {code before result}, action code before = some result →
+    writesWithinProvision (actionEnvelope code) before result.state
   action_frame : ∀ {code before result}, action code before = some result →
     observes before result.state
   action_registryFrame : ∀ {code before result}, action code before = some result →
@@ -134,7 +141,7 @@ structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
     result.state? = some after → observes before after
   stage_writesWithinProvision : ∀ {code before result after},
     stage code before = some result → result.state? = some after →
-      writesWithinProvision before after
+      writesWithinProvision (stageEnvelope code) before after
   stage_registryFrame : ∀ {code before result after}, stage code before = some result →
     result.state? = some after → registryFrame before after
   stage_allocationFrame : ∀ {code before result after}, stage code before = some result →
@@ -153,7 +160,7 @@ structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
     outcome.state? = some after → observes before after
   landing_writesWithinProvision : ∀ {token before outcome after},
     landing token before = some outcome → outcome.state? = some after →
-      writesWithinProvision before after
+      writesWithinProvision (landingEnvelope token) before after
   landing_registryFrame : ∀ {token before outcome after},
     landing token before = some outcome → outcome.state? = some after →
       registryFrame before after
@@ -169,11 +176,14 @@ structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
   accumulator_frame : ∀ {code before after}, accumulator code before = some after →
     accumulatorFrame code before after
   accumulator_writesWithinProvision : ∀ {code before after},
-    accumulator code before = some after → writesWithinProvision before after
-  accumulator_registryFrame : ∀ {code before after}, accumulator code before = some after →
-    registryFrame before after
+    accumulator code before = some after →
+      writesWithinProvision (accumulatorEnvelope code) before after
+  accumulator_domainFrame : ∀ {code before after}, accumulator code before = some after →
+    domainFrame before after
   accumulator_allocationFrame : ∀ {code before after}, accumulator code before = some after →
     allocationFrame before after
+  accumulator_observes : ∀ {code before after}, accumulator code before = some after →
+    observes before after
 
 /-- A component's declared provisions are disjoint from foreign writes under a
 supplied local footprint relation. -/

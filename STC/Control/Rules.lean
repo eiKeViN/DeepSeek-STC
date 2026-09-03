@@ -40,6 +40,12 @@ Unload = Leave·Unload).
 * `SelectedBody`/`ControlEdit`/`BodyClass` factorization with ONE resolved
   witness threading both sides, `fullRule_factorizes`; the nonconstant
   fixed-operation replay evidence lives in the fixture.
+* Envelope-guarded effectful constructors (iter/finish/divertLand/unload
+  with `*Envelope ⊆ provides` guards); `BodyFrameAdequacy` interpreting the
+  parameterized provision envelope, the read window, the accumulator
+  domain frame, and the strengthened cleanup frame; per-constructor
+  `*_full_writeFrame`/`*_full_readNoninterference` discharges,
+  `unload_full_cleanupFrame`, `unload_noAllocation`.
 * `divertAdmissible` (A.async) with landing-witness and boundary-abort
   theorems.
 * `globalStagingModel`, `baseOrchestrationRule`, `baseLifecycleRule`,
@@ -71,7 +77,7 @@ local notation "GState" =>
 local notation "GCell" =>
   FiberCell Name Key Value Action Iterator Accumulator Flight Failure
 local notation "GSem" =>
-  ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
 
 /-! ### Printed cases and boundary evidence -/
 
@@ -409,12 +415,14 @@ inductive LifecycleRule (sem : GSem) : LLabel → GState → GState → Prop whe
       (htarget : TargetViewAt before owner cell.committedView) →
       (hstage : sem.stage cell.payload.iteratorCode before = some (.yield after inverse next)) →
       (hrank : sem.rank next < sem.rank cell.payload.iteratorCode) →
+      (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides) →
       LifecycleRule sem (.iter owner next) before (iterState sem after owner inverse next)
   | finish {before after : GState} {owner : Name} {cell : GCell} {finalInverse : Accumulator} :
       (hlook : Finmap.lookup owner before.registry = some cell) →
       (hphase : cell.phase = .reloading) →
       (htarget : TargetViewAt before owner cell.committedView) →
       (hstage : sem.stage cell.payload.iteratorCode before = some (.halt after finalInverse)) →
+      (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides) →
       LifecycleRule sem (.finish owner) before (finishState sem after owner finalInverse)
   | divertAbort {before : GState} {owner : Name} {boundary : BoundaryEvidence Key Name}
       {cell : GCell} :
@@ -429,6 +437,7 @@ inductive LifecycleRule (sem : GSem) : LLabel → GState → GState → Prop whe
       (htoken : cell.payload.flightCode = some landing) →
       (hchanged : ¬ TargetViewAt before owner cell.committedView) →
       (hland : sem.landing landing before = some (.landed after inverse)) →
+      (henvelope : sem.landingEnvelope landing ⊆ cell.component.provides) →
       LifecycleRule sem (.divertLand owner landing) before (divertLandState sem after owner inverse)
   | raise {before : GState} {owner : Name} {cell : GCell} {error : Failure}
       {failure : Failure} :
@@ -447,6 +456,7 @@ inductive LifecycleRule (sem : GSem) : LLabel → GState → GState → Prop whe
       (hphase : cell.phase = .unloading) →
       (hfree : ¬ ∃ dependent, ReliedUpon before dependent owner) →
       (haccumulator : sem.accumulator cell.payload.accumulatorCode before = some middle) →
+      (henvelope : sem.accumulatorEnvelope cell.payload.accumulatorCode ⊆ cell.component.provides) →
       LifecycleRule sem (.unload owner) before (unloadState middle owner)
 
 /-- The authoritative O-Retire step realizes exactly the canonical retire
@@ -574,9 +584,13 @@ def bodyClassOf : Sum OLabel LLabel → BodyClass
 /-! ### Body-frame adequacy profile -/
 
 /-- Interprets the abstract body-frame relations concretely over `GState`:
-the registry relation means the registry value is preserved, the allocation
-relation means ledger and history are preserved, and the provision relation
-means coeffects outside the acting envelope are preserved. Instances prove
+the registry relation means the registry value is preserved (stage/landing
+bodies), the domain relation means only the registry keys are preserved (the
+accumulator may retire recorded children), the allocation relation means
+ledger and history are preserved, the provision relation means coeffects
+outside the acting envelope are preserved, the observes relation means the
+owner's required keys read the same coeffect values, and the accumulator
+frame relation means the strengthened D48 cleanup frame. Instances prove
 this non-vacuously (see the fixture). -/
 structure BodyFrameAdequacy (sem : GSem) : Prop where
   registry_total : ∀ {before after}, sem.registryFrame before after →
@@ -584,8 +598,17 @@ structure BodyFrameAdequacy (sem : GSem) : Prop where
   allocation_noAllocation : ∀ {before after}, sem.allocationFrame before after →
     after.ledger = before.ledger ∧ after.allocationHistory = before.allocationHistory
   provision_coeffectFrame : ∀ {before after} {provides : Finset Key},
-    sem.writesWithinProvision before after →
+    sem.writesWithinProvision provides before after →
       ∀ key, key ∉ provides → Coeffect.lookup key before.coeffects = Coeffect.lookup key after.coeffects
+  observes_readRespect : ∀ {before after}, sem.observes before after →
+    ∀ (owner : Name) (key : Key),
+      (∃ cell, Finmap.lookup owner before.registry = some cell ∧ key ∈ cell.component.requires) →
+        Coeffect.lookup key before.coeffects = Coeffect.lookup key after.coeffects
+  accumulator_domain_total : ∀ {before after}, sem.domainFrame before after →
+    before.registry.keys = after.registry.keys
+  accumulator_cleanupFrame : ∀ {owner code before after},
+    sem.accumulator code before = some after →
+      sem.accumulatorFrame code before after → CleanupFrame before owner after
 
 /-! ### Frame and confinement theorems -/
 
@@ -791,13 +814,53 @@ theorem unload_controlEdit_cleanupFrame (middle : GState) (owner : Name) :
     | none => simp
     | some _ => simp
 
+/-- The D48 teardown frame composes: a recorded-child retirement followed by
+another retirement of the same cell is impossible (the flag is already set),
+so body and control edit chain into one cleanup frame. -/
+theorem cleanupFrame_trans {before middle after : GState} {owner : Name}
+    (hbody : CleanupFrame before owner middle) (hedit : CleanupFrame middle owner after) :
+    CleanupFrame before owner after := by
+  unfold CleanupFrame at hbody hedit ⊢
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro name hne
+    have hb := hbody.1 name hne
+    have he := hedit.1 name hne
+    rcases hb with hb | hb
+    · rcases he with he | he
+      · left
+        exact hb.trans he
+      · rcases he with ⟨cell, hlookm, hret, hparent, hlooka⟩
+        right
+        refine ⟨cell, ?_, hret, hparent, ?_⟩
+        · rw [hb]
+          exact hlookm
+        · exact hlooka
+    · rcases he with he | he
+      · right
+        rcases hb with ⟨cell, hlookb, hret, hparent, hlookm⟩
+        refine ⟨cell, hlookb, hret, hparent, ?_⟩
+        · rw [← he]
+          exact hlookm
+      · rcases hb with ⟨cell, hlookb, _hret, _hparent, hlookm⟩
+        rcases he with ⟨cell', hlookm', hret', _hparent', _hlooka⟩
+        have hcell' : cell' = { cell with retired := true } :=
+          (Option.some.inj (hlookm ▸ hlookm')).symm
+        rw [hcell'] at hret'
+        cases hret'
+  · exact hbody.2.1.trans hedit.2.1
+  · exact hbody.2.2.1.trans hedit.2.2.1
+  · exact hbody.2.2.2.trans hedit.2.2.2
+
 /-- The full lifecycle step satisfies the D48 write frame when the body-frame
 adequacy profile holds: the body preserves the registry and writes within the
-provision envelope, the control edit writes only the owner cell. -/
+acting provision envelope (which the rule guard confines to the owner's
+provisions), the control edit writes only the owner cell. -/
 theorem bodyEdit_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
-    {before middle after : GState} {owner : Name}
+    {before middle after : GState} {owner : Name} {cell : GCell} {provides : Finset Key}
+    (hlook : Finmap.lookup owner before.registry = some cell)
     (hreg : sem.registryFrame before middle)
-    (hprov : sem.writesWithinProvision before middle)
+    (hprov : sem.writesWithinProvision provides before middle)
+    (henvelope : provides ⊆ cell.component.provides)
     (halloc : sem.allocationFrame before middle)
     (hedit : WriteFrame middle owner after) :
     WriteFrame before owner after := by
@@ -810,69 +873,187 @@ theorem bodyEdit_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
       rw [hreg']
     exact h1.trans (hedit.1 name hne)
   · constructor
-    · rw [hreg']
-      cases howner : Finmap.lookup owner middle.registry with
-      | none => trivial
-      | some cell =>
-          intro key hkey
-          have hcoef := hadq.provision_coeffectFrame hprov key hkey
-          have hmid : Coeffect.lookup key middle.coeffects = Coeffect.lookup key after.coeffects := by
-            simp [WriteFrame, howner] at hedit
-            exact hedit.2.1 key hkey
-          exact hcoef.trans hmid
+    · rw [hlook]
+      intro key hkey
+      have hcoef := hadq.provision_coeffectFrame hprov key (by intro hmem; exact hkey (henvelope hmem))
+      have hlookM : Finmap.lookup owner middle.registry = some cell := by
+        rw [← hreg']
+        exact hlook
+      have hmid : Coeffect.lookup key middle.coeffects = Coeffect.lookup key after.coeffects := by
+        simp [WriteFrame, hlookM] at hedit
+        exact hedit.2.1 key hkey
+      exact hcoef.trans hmid
     · exact ⟨hled.symm.trans hedit.2.2.1, hhist.symm.trans hedit.2.2.2⟩
 
 /-- The full iter step satisfies the D48 write frame: the stage body preserves
-the registry and writes within the provision envelope, the control edit writes
-only the owner cell. -/
+the registry and writes within the envelope guard's provision set, the control
+edit writes only the owner cell. -/
 theorem iter_full_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
     {owner : Name} {next : Iterator} {cell : GCell} {inverse : Accumulator}
     {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
     (hstage : sem.stage cell.payload.iteratorCode before = some (.yield middle inverse next))
+    (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides)
     (hedit : after = iterState sem middle owner inverse next) :
     WriteFrame before owner after := by
   rw [hedit]
-  exact bodyEdit_writeFrame sem hadq (sem.stage_registryFrame hstage rfl)
-    (sem.stage_writesWithinProvision hstage rfl) (sem.stage_allocationFrame hstage rfl)
+  exact bodyEdit_writeFrame sem hadq hlook (sem.stage_registryFrame hstage rfl)
+    (sem.stage_writesWithinProvision hstage rfl) henvelope
+    (sem.stage_allocationFrame hstage rfl)
     (iter_controlEdit_writeFrame sem middle owner inverse next)
 
 /-- The full finish step satisfies the D48 write frame. -/
 theorem finish_full_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
     {owner : Name} {cell : GCell} {finalInverse : Accumulator}
     {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
     (hstage : sem.stage cell.payload.iteratorCode before = some (.halt middle finalInverse))
+    (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides)
     (hedit : after = finishState sem middle owner finalInverse) :
     WriteFrame before owner after := by
   rw [hedit]
-  exact bodyEdit_writeFrame sem hadq (sem.stage_registryFrame hstage rfl)
-    (sem.stage_writesWithinProvision hstage rfl) (sem.stage_allocationFrame hstage rfl)
+  exact bodyEdit_writeFrame sem hadq hlook (sem.stage_registryFrame hstage rfl)
+    (sem.stage_writesWithinProvision hstage rfl) henvelope
+    (sem.stage_allocationFrame hstage rfl)
     (finish_controlEdit_writeFrame sem middle owner finalInverse)
 
 /-- The full divertLand step satisfies the D48 write frame. -/
 theorem divertLand_full_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
-    {owner : Name} {landing : Flight} {_cell : GCell} {inverse : Accumulator}
+    {owner : Name} {landing : Flight} {cell : GCell} {inverse : Accumulator}
     {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
     (hland : sem.landing landing before = some (.landed middle inverse))
+    (henvelope : sem.landingEnvelope landing ⊆ cell.component.provides)
     (hedit : after = divertLandState sem middle owner inverse) :
     WriteFrame before owner after := by
   rw [hedit]
-  exact bodyEdit_writeFrame sem hadq (sem.landing_registryFrame hland rfl)
-    (sem.landing_writesWithinProvision hland rfl) (sem.landing_allocationFrame hland rfl)
+  exact bodyEdit_writeFrame sem hadq hlook (sem.landing_registryFrame hland rfl)
+    (sem.landing_writesWithinProvision hland rfl) henvelope
+    (sem.landing_allocationFrame hland rfl)
     (divertLand_controlEdit_writeFrame sem middle owner inverse)
 
-/-- The full unload step satisfies the D48 write frame. -/
-theorem unload_full_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
+/-- The full unload step satisfies the D48 teardown frame: the accumulator body
+fulfills the strengthened cleanup frame (foreign edits are recorded-child
+retirements only) and the control edit writes only the owner cell.  The
+unload body may retire recorded children, so no full write frame is claimed. -/
+theorem unload_full_cleanupFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
     {owner : Name} {before middle after : GState}
     (haccumulator : ∃ cell : GCell,
       sem.accumulator cell.payload.accumulatorCode before = some middle)
     (hedit : after = unloadState middle owner) :
-    WriteFrame before owner after := by
+    CleanupFrame before owner after := by
   rcases haccumulator with ⟨cell, hacc⟩
   rw [hedit]
-  exact bodyEdit_writeFrame sem hadq (sem.accumulator_registryFrame hacc)
-    (sem.accumulator_writesWithinProvision hacc)
-    (sem.accumulator_allocationFrame hacc)
-    (editCell_writeFrame middle owner (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } }))
+  exact cleanupFrame_trans (hadq.accumulator_cleanupFrame hacc (sem.accumulator_frame hacc))
+    (unload_controlEdit_cleanupFrame middle owner)
+
+/-- The pure control edit never touches the coeffect store. -/
+theorem editCell_coeffects (state : GState) (owner : Name) (edit : GCell → GCell) :
+    ∀ key, Coeffect.lookup key (editCell state owner edit).coeffects =
+      Coeffect.lookup key state.coeffects := by
+  intro key
+  rfl
+
+/-- The body-edit chain preserves the D48 read window: the body observes the
+owner's required keys and the control edit never touches coeffects. -/
+theorem bodyEdit_readNoninterference (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {before middle after : GState} {owner : Name} {cell : GCell}
+    (hobs : sem.observes before middle)
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (hcoef : ∀ key, Coeffect.lookup key middle.coeffects = Coeffect.lookup key after.coeffects) :
+    ReadNoninterference before owner after := by
+  unfold ReadNoninterference
+  rw [hlook]
+  intro key hkey
+  have hobs' := hadq.observes_readRespect hobs owner key ⟨cell, hlook, hkey⟩
+  exact hobs'.trans (hcoef key)
+
+/-- The full iter step preserves the D48 read window: the stage body observes
+the owner's required keys, the control edit never touches coeffects. -/
+theorem iter_full_readNoninterference (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {owner : Name} {next : Iterator} {cell : GCell} {inverse : Accumulator}
+    {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (hstage : sem.stage cell.payload.iteratorCode before = some (.yield middle inverse next))
+    (hedit : after = iterState sem middle owner inverse next) :
+    ReadNoninterference before owner after := by
+  rw [hedit]
+  exact bodyEdit_readNoninterference sem hadq (sem.stage_frame hstage rfl) hlook
+    (by intro key; exact (editCell_coeffects middle owner
+      (fun cell => { cell with payload := iterPayload sem cell inverse next }) key).symm)
+
+/-- The full finish step preserves the D48 read window. -/
+theorem finish_full_readNoninterference (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {owner : Name} {cell : GCell} {finalInverse : Accumulator}
+    {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (hstage : sem.stage cell.payload.iteratorCode before = some (.halt middle finalInverse))
+    (hedit : after = finishState sem middle owner finalInverse) :
+    ReadNoninterference before owner after := by
+  rw [hedit]
+  exact bodyEdit_readNoninterference sem hadq (sem.stage_frame hstage rfl) hlook
+    (by intro key; exact (editCell_coeffects middle owner
+      (fun cell => { cell with phase := .active, committed := { entries := commitProjection middle cell.component.provides }, payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode finalInverse, flightCode := none, failureData := none } }) key).symm)
+
+/-- The full divertLand step preserves the D48 read window. -/
+theorem divertLand_full_readNoninterference (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {owner : Name} {landing : Flight} {cell : GCell} {inverse : Accumulator}
+    {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (hland : sem.landing landing before = some (.landed middle inverse))
+    (hedit : after = divertLandState sem middle owner inverse) :
+    ReadNoninterference before owner after := by
+  rw [hedit]
+  exact bodyEdit_readNoninterference sem hadq (sem.landing_frame hland rfl) hlook
+    (by intro key; exact (editCell_coeffects middle owner
+      (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode inverse, flightCode := none } }) key).symm)
+
+/-- The full unload step preserves the D48 read window: the accumulator body
+observes the owner's required keys (the cleanup frame holds the coeffect store
+fixed in particular), the control edit never touches coeffects. -/
+theorem unload_full_readNoninterference (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {owner : Name} {cell : GCell} {before middle after : GState}
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (haccumulator : sem.accumulator cell.payload.accumulatorCode before = some middle)
+    (hedit : after = unloadState middle owner) :
+    ReadNoninterference before owner after := by
+  rw [hedit]
+  exact bodyEdit_readNoninterference sem hadq (sem.accumulator_observes haccumulator) hlook
+    (by intro key; exact (editCell_coeffects middle owner
+      (fun cell => { cell with phase := (if cell.payload.failureData.isSome then .failed else .inactive), committedView := ∅, payload := { cell.payload with flightCode := none } }) key).symm)
+
+/-- The unload step never allocates a name: the accumulator body preserves the
+registry keys (domain frame — it may still retire recorded children) and the
+ledger/history, and the control edit erases nothing. -/
+theorem unload_noAllocation (sem : GSem) (hadq : BodyFrameAdequacy sem)
+    {before middle : GState} {owner : Name} {cell : GCell}
+    (hlook : Finmap.lookup owner before.registry = some cell)
+    (_hphase : cell.phase = .unloading)
+    (_hfree : ¬ ∃ dependent, ReliedUpon before dependent owner)
+    (haccumulator : sem.accumulator cell.payload.accumulatorCode before = some middle)
+    (_henvelope : sem.accumulatorEnvelope cell.payload.accumulatorCode ⊆ cell.component.provides) :
+    (unloadState middle owner).registry.keys = before.registry.keys ∧
+      (unloadState middle owner).ledger = before.ledger ∧
+        (unloadState middle owner).allocationHistory = before.allocationHistory := by
+  have hkeys := (hadq.accumulator_domain_total (sem.accumulator_domainFrame haccumulator)).symm
+  have hledger := (hadq.allocation_noAllocation (sem.accumulator_allocationFrame haccumulator)).1
+  have hhistory := (hadq.allocation_noAllocation (sem.accumulator_allocationFrame haccumulator)).2
+  have hmemMid : owner ∈ middle.registry.keys := by
+    rw [hkeys]
+    rw [Finmap.mem_keys, ← Finmap.lookup_isSome, hlook]
+    rfl
+  have hlookMid : ∃ cell, Finmap.lookup owner middle.registry = some cell :=
+    Finmap.mem_iff.mp hmemMid
+  rcases hlookMid with ⟨cell', hlookMid⟩
+  unfold unloadState
+  rw [editCell_keys hlookMid]
+  unfold editCell
+  rw [hlookMid]
+  simp
+  refine ⟨?_, ?_, ?_⟩
+  · rw [hkeys]
+  · exact hledger
+  · exact hhistory
 
 /-- Identity-body lifecycle rules never allocate a name: the registry domain,
 the ledger, and the allocation history are unchanged. -/
@@ -887,7 +1068,7 @@ theorem lifecycle_noAllocation (sem : GSem) (hadq : BodyFrameAdequacy sem)
       unfold editCell
       rw [hlook]
       simp
-  | iter hlook _hphase _htarget hstage _hrank =>
+  | iter hlook _hphase _htarget hstage _hrank _henvelope =>
       have hreg := (hadq.registry_total (sem.stage_registryFrame hstage rfl)).symm
       have hledger := (hadq.allocation_noAllocation (sem.stage_allocationFrame hstage rfl)).1
       have hhistory := (hadq.allocation_noAllocation (sem.stage_allocationFrame hstage rfl)).2
@@ -902,7 +1083,7 @@ theorem lifecycle_noAllocation (sem : GSem) (hadq : BodyFrameAdequacy sem)
       · rw [hreg]
       · exact hledger
       · exact hhistory
-  | finish hlook _hphase _htarget hstage =>
+  | finish hlook _hphase _htarget hstage _henvelope =>
       have hreg := (hadq.registry_total (sem.stage_registryFrame hstage rfl)).symm
       have hledger := (hadq.allocation_noAllocation (sem.stage_allocationFrame hstage rfl)).1
       have hhistory := (hadq.allocation_noAllocation (sem.stage_allocationFrame hstage rfl)).2
@@ -922,7 +1103,7 @@ theorem lifecycle_noAllocation (sem : GSem) (hadq : BodyFrameAdequacy sem)
       unfold editCell
       rw [hlook]
       simp
-  | divertLand hlook _hphase _htoken _hchanged hland =>
+  | divertLand hlook _hphase _htoken _hchanged hland _henvelope =>
       have hreg := (hadq.registry_total (sem.landing_registryFrame hland rfl)).symm
       have hledger := (hadq.allocation_noAllocation (sem.landing_allocationFrame hland rfl)).1
       have hhistory := (hadq.allocation_noAllocation (sem.landing_allocationFrame hland rfl)).2
@@ -947,21 +1128,8 @@ theorem lifecycle_noAllocation (sem : GSem) (hadq : BodyFrameAdequacy sem)
       unfold editCell
       rw [hlook]
       simp
-  | unload hlook _hphase _hfree haccumulator =>
-      have hreg := (hadq.registry_total (sem.accumulator_registryFrame haccumulator)).symm
-      have hledger := (hadq.allocation_noAllocation (sem.accumulator_allocationFrame haccumulator)).1
-      have hhistory := (hadq.allocation_noAllocation (sem.accumulator_allocationFrame haccumulator)).2
-      have hlookMid : ∃ cell, Finmap.lookup _ _ = some cell := ⟨_, hreg ▸ hlook⟩
-      rcases hlookMid with ⟨cell, hlookMid⟩
-      unfold unloadState
-      rw [editCell_keys hlookMid]
-      unfold editCell
-      rw [hlookMid]
-      simp
-      refine ⟨?_, ?_, ?_⟩
-      · rw [hreg]
-      · exact hledger
-      · exact hhistory
+  | unload hlook _hphase _hfree haccumulator _henvelope =>
+      simpa using (unload_noAllocation sem hadq hlook _hphase _hfree haccumulator _henvelope)
 
 /-- The iter control edit preserves the registry domain of the stage result. -/
 theorem iter_controlEdit_domain (sem : GSem) (state : GState) (owner : Name)
@@ -1279,11 +1447,13 @@ def SelectedBody (sem : GSem) : Sum OLabel LLabel → GState → GState → Accu
       ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧ TargetViewAt before owner cell.committedView ∧
           sem.stage cell.payload.iteratorCode before = some (.yield middle inverse next) ∧
-            sem.rank next < sem.rank cell.payload.iteratorCode
+            sem.rank next < sem.rank cell.payload.iteratorCode ∧
+              sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides
   | .inr (.finish owner), before, middle, finalInverse =>
       ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧ TargetViewAt before owner cell.committedView ∧
-          sem.stage cell.payload.iteratorCode before = some (.halt middle finalInverse)
+          sem.stage cell.payload.iteratorCode before = some (.halt middle finalInverse) ∧
+            sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides
   | .inr (.divertAbort owner boundary), before, middle, _ =>
       middle = before ∧ ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧ boundaryRealizes before owner cell boundary
@@ -1291,7 +1461,8 @@ def SelectedBody (sem : GSem) : Sum OLabel LLabel → GState → GState → Accu
       ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧ cell.payload.flightCode = some landing ∧
           ¬ TargetViewAt before owner cell.committedView ∧
-            sem.landing landing before = some (.landed middle inverse)
+            sem.landing landing before = some (.landed middle inverse) ∧
+              sem.landingEnvelope landing ⊆ cell.component.provides
   | .inr (.raise owner failure), before, middle, _ =>
       middle = before ∧ ∃ cell error, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧
@@ -1303,7 +1474,8 @@ def SelectedBody (sem : GSem) : Sum OLabel LLabel → GState → GState → Accu
   | .inr (.unload owner), before, middle, _ =>
       ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .unloading ∧ (¬ ∃ dependent, ReliedUpon before dependent owner) ∧
-          sem.accumulator cell.payload.accumulatorCode before = some middle
+          sem.accumulator cell.payload.accumulatorCode before = some middle ∧
+            sem.accumulatorEnvelope cell.payload.accumulatorCode ⊆ cell.component.provides
 
 /-- The control edit: the exact successor equation applied to the body result,
 consuming the SAME resolved witness. -/
@@ -1406,10 +1578,11 @@ theorem factor_iter_of (sem : GSem) {owner : Name} {next : Iterator} {cell : GCe
     (htarget : TargetViewAt before owner cell.committedView)
     (hstage : sem.stage cell.payload.iteratorCode before = some (.yield middle inverse next))
     (hrank : sem.rank next < sem.rank cell.payload.iteratorCode)
+    (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides)
     (hedit : after = iterState sem middle owner inverse next) :
     ∃ middle' inverse', SelectedBody sem (.inr (.iter owner next)) before middle' inverse' ∧
       ControlEdit sem (.inr (.iter owner next)) middle' inverse' after := by
-  exact ⟨middle, inverse, ⟨cell, hlook, hphase, htarget, hstage, hrank⟩, hedit⟩
+  exact ⟨middle, inverse, ⟨cell, hlook, hphase, htarget, hstage, hrank, henvelope⟩, hedit⟩
 
 /-- L-Iter factorizes with one witness: the stage-produced middle and inverse
 are exactly the ones the control edit consumes. -/
@@ -1420,13 +1593,13 @@ theorem factor_iter (sem : GSem) {owner : Name} {next : Iterator} {before after 
   constructor
   · intro h
     cases h with
-    | iter hlook hphase htarget hstage hrank =>
-        exact factor_iter_of sem hlook hphase htarget hstage hrank rfl
+    | iter hlook hphase htarget hstage hrank henvelope =>
+        exact factor_iter_of sem hlook hphase htarget hstage hrank henvelope rfl
   · intro h
     rcases h with ⟨middle, inverse, hbody, hedit⟩
-    rcases hbody with ⟨cell, hlook, hphase, htarget, hstage, hrank⟩
+    rcases hbody with ⟨cell, hlook, hphase, htarget, hstage, hrank, henvelope⟩
     rw [hedit]
-    exact LifecycleRule.iter hlook hphase htarget hstage hrank
+    exact LifecycleRule.iter hlook hphase htarget hstage hrank henvelope
 /-- The finish body and edit for one explicitly witnessed halt execution. -/
 theorem factor_finish_of (sem : GSem) {owner : Name} {cell : GCell}
     {finalInverse : Accumulator} {before middle after : GState}
@@ -1434,10 +1607,11 @@ theorem factor_finish_of (sem : GSem) {owner : Name} {cell : GCell}
     (hphase : cell.phase = .reloading)
     (htarget : TargetViewAt before owner cell.committedView)
     (hstage : sem.stage cell.payload.iteratorCode before = some (.halt middle finalInverse))
+    (henvelope : sem.stageEnvelope cell.payload.iteratorCode ⊆ cell.component.provides)
     (hedit : after = finishState sem middle owner finalInverse) :
     ∃ middle' finalInverse', SelectedBody sem (.inr (.finish owner)) before middle' finalInverse' ∧
       ControlEdit sem (.inr (.finish owner)) middle' finalInverse' after := by
-  exact ⟨middle, finalInverse, ⟨cell, hlook, hphase, htarget, hstage⟩, hedit⟩
+  exact ⟨middle, finalInverse, ⟨cell, hlook, hphase, htarget, hstage, henvelope⟩, hedit⟩
 
 /-- L-Finish factorizes with one witness: the halt result and the final
 inverse thread both sides. -/
@@ -1448,13 +1622,13 @@ theorem factor_finish (sem : GSem) {owner : Name} {before after : GState} :
   constructor
   · intro h
     cases h with
-    | finish hlook hphase htarget hstage =>
-        exact factor_finish_of sem hlook hphase htarget hstage rfl
+    | finish hlook hphase htarget hstage henvelope =>
+        exact factor_finish_of sem hlook hphase htarget hstage henvelope rfl
   · intro h
     rcases h with ⟨middle, finalInverse, hbody, hedit⟩
-    rcases hbody with ⟨cell, hlook, hphase, htarget, hstage⟩
+    rcases hbody with ⟨cell, hlook, hphase, htarget, hstage, henvelope⟩
     rw [hedit]
-    exact LifecycleRule.finish hlook hphase htarget hstage
+    exact LifecycleRule.finish hlook hphase htarget hstage henvelope
 
 /-- L-DivertAbort factorizes into its identity body and teardown edit. -/
 theorem factor_divertAbort (sem : GSem) {owner : Name} {boundary : BoundaryEvidence Key Name}
@@ -1483,10 +1657,11 @@ theorem factor_divertLand_of (sem : GSem) {owner : Name} {landing : Flight} {cel
     (htoken : cell.payload.flightCode = some landing)
     (hchanged : ¬ TargetViewAt before owner cell.committedView)
     (hland : sem.landing landing before = some (.landed middle inverse))
+    (henvelope : sem.landingEnvelope landing ⊆ cell.component.provides)
     (hedit : after = divertLandState sem middle owner inverse) :
     ∃ middle' inverse', SelectedBody sem (.inr (.divertLand owner landing)) before middle' inverse' ∧
       ControlEdit sem (.inr (.divertLand owner landing)) middle' inverse' after := by
-  exact ⟨middle, inverse, ⟨cell, hlook, hphase, htoken, hchanged, hland⟩, hedit⟩
+  exact ⟨middle, inverse, ⟨cell, hlook, hphase, htoken, hchanged, hland, henvelope⟩, hedit⟩
 
 /-- L-DivertLand factorizes with one witness: the landed state and the landing
 inverse thread both sides. -/
@@ -1498,13 +1673,13 @@ theorem factor_divertLand (sem : GSem) {owner : Name} {landing : Flight}
   constructor
   · intro h
     cases h with
-    | divertLand hlook hphase htoken hchanged hland =>
-        exact factor_divertLand_of sem hlook hphase htoken hchanged hland rfl
+    | divertLand hlook hphase htoken hchanged hland henvelope =>
+        exact factor_divertLand_of sem hlook hphase htoken hchanged hland henvelope rfl
   · intro h
     rcases h with ⟨middle, inverse, hbody, hedit⟩
-    rcases hbody with ⟨cell, hlook, hphase, htoken, hchanged, hland⟩
+    rcases hbody with ⟨cell, hlook, hphase, htoken, hchanged, hland, henvelope⟩
     rw [hedit]
-    exact LifecycleRule.divertLand hlook hphase htoken hchanged hland
+    exact LifecycleRule.divertLand hlook hphase htoken hchanged hland henvelope
 
 /-- L-Raise factorizes into its identity body and failure-recording edit. -/
 theorem factor_raise (sem : GSem) {owner : Name} {failure : Failure} {before after : GState} :
@@ -1549,10 +1724,11 @@ theorem factor_unload_of (sem : GSem) {owner : Name} {cell : GCell}
     (hphase : cell.phase = .unloading)
     (hfree : ¬ ∃ dependent, ReliedUpon before dependent owner)
     (haccumulator : sem.accumulator cell.payload.accumulatorCode before = some middle)
+    (henvelope : sem.accumulatorEnvelope cell.payload.accumulatorCode ⊆ cell.component.provides)
     (hedit : after = unloadState middle owner) :
     ∃ middle' inverse', SelectedBody sem (.inr (.unload owner)) before middle' inverse' ∧
       ControlEdit sem (.inr (.unload owner)) middle' inverse' after := by
-  exact ⟨middle, sem.identityAccumulator, ⟨cell, hlook, hphase, hfree, haccumulator⟩, hedit⟩
+  exact ⟨middle, sem.identityAccumulator, ⟨cell, hlook, hphase, hfree, haccumulator, henvelope⟩, hedit⟩
 
 /-- L-Unload factorizes with one witness: the accumulator middle threads both
 sides. -/
@@ -1563,13 +1739,13 @@ theorem factor_unload (sem : GSem) {owner : Name} {before after : GState} :
   constructor
   · intro h
     cases h with
-    | unload hlook hphase hfree haccumulator =>
-        exact factor_unload_of sem hlook hphase hfree haccumulator rfl
+    | unload hlook hphase hfree haccumulator henvelope =>
+        exact factor_unload_of sem hlook hphase hfree haccumulator henvelope rfl
   · intro h
     rcases h with ⟨middle, _inverse, hbody, hedit⟩
-    rcases hbody with ⟨cell, hlook, hphase, hfree, haccumulator⟩
+    rcases hbody with ⟨cell, hlook, hphase, hfree, haccumulator, henvelope⟩
     rw [hedit]
-    exact LifecycleRule.unload hlook hphase hfree haccumulator
+    exact LifecycleRule.unload hlook hphase hfree haccumulator henvelope
 
 /-- Every authoritative step factorizes into its selected body and control
 edit with one resolved witness. -/
@@ -1638,7 +1814,7 @@ theorem divertLand_not_active (sem : GSem) (hadq : BodyFrameAdequacy sem)
     (h : LifecycleRule sem (.divertLand owner landing) before after) :
     ∃ cell, Finmap.lookup owner after.registry = some cell ∧ cell.phase = .unloading := by
   cases h with
-  | divertLand hlook _hphase _htoken _hchanged hland =>
+  | divertLand hlook _hphase _htoken _hchanged hland _henvelope =>
       have hreg := hadq.registry_total (sem.landing_registryFrame hland rfl)
       have hlookMid : ∃ cell, Finmap.lookup owner _ = some cell := ⟨_, hreg ▸ hlook⟩
       rcases hlookMid with ⟨cell, hlookMid⟩

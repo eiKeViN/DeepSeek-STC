@@ -27,7 +27,7 @@ variable [DecidableEq Name] [DecidableEq Key]
 local notation "GState" =>
   GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
 local notation "GSem" =>
-  ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
 local notation "OLabel" => GlobalOrchestrationLabel Name (FiberCell Name Key Value Action Iterator Accumulator Flight Failure)
 local notation "LLabel" =>
   GlobalLifecycleLabel Name Key Iterator Flight Failure

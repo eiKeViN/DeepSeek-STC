@@ -29,7 +29,7 @@ local notation "GState" =>
   GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
 local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Failure
 local notation "GSem" =>
-  ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
 local notation "LLabel" =>
   GlobalLifecycleLabel Name Key Iterator Flight Failure
