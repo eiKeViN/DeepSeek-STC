@@ -29,9 +29,9 @@ Unload = Leave·Unload).
   the landing token, raise with the complete failure, leave, unload).
 * `OrchestrationRule`, `LifecycleRule` (constructor-indexed), `fullRule`,
   `globalControlModel`, `globalStep`, `globalTrace`.
-* `RegistrationUndo`/`RegistrationResult`/`registrationInverse` and
-  `RetireInverseAdequate`/`RegistrationInverseAdequate` (nested-registration
-  inverse linkage).
+* `RegistrationUndo`/`RegistrationResult`/`registrationInverse`/
+  `RetireInverseAdequate` and the non-vacuous `NestedRegistrationWitness`
+  with its adequacy/fold projections (nested-registration inverse linkage).
 * `printedCaseOf` and the Divert-to-printed-case mapping.
 * `withdrawRule`, `iterationRule`, `failureRule` subfamily views with
   guard/frame theorems.
@@ -342,13 +342,30 @@ def RetireInverseAdequate (sem : GSem) (inverse : Accumulator) (fresh : Name) : 
   ∀ (state : GState) (cell : GCell), Finmap.lookup fresh state.registry = some cell →
     sem.accumulator inverse state = some (retireState state fresh)
 
-/-- The inverse returned by an action token is the canonical retirement inverse
-of `fresh` — the bridge a nested-registration witness uses; a generic `Action`
-may only claim to be registration through this relation. -/
-def RegistrationInverseAdequate (sem : GSem) (action : Action) (fresh : Name) : Prop :=
-  ∀ (before : GState) (result : ActionResult GState Accumulator),
-    sem.action action before = some result →
-      ∃ inverse, result.inverse? = some inverse ∧ RetireInverseAdequate sem inverse fresh
+/-- The nested-registration fold: the parent records a returned inverse by
+composing it LIFO onto its own accumulator — `composeInverse old inverse`
+executes the retirement inverse before the earlier prefix. -/
+def foldInverseState (sem : GSem) (state : GState) (parent : Name) (inverse : Accumulator) :
+    GState :=
+  editCell state parent (fun cell =>
+    { cell with payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode inverse } })
+
+/-- The fold's owner-cell equation for a witnessed parent cell. -/
+theorem foldInverseState_lookup (sem : GSem) (state : GState) (parent : Name)
+    (inverse : Accumulator) {cell : GCell} (hlook : Finmap.lookup parent state.registry = some cell) :
+    Finmap.lookup parent (foldInverseState sem state parent inverse).registry =
+      some { cell with payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode inverse } } := by
+  unfold foldInverseState editCell
+  rw [hlook]
+  rw [Finmap.lookup_insert]
+
+/-- The fold evidence at a witnessed parent cell: the parent's accumulator
+becomes the LIFO composition of the recorded inverse over the earlier prefix. -/
+theorem foldInverseState_accumulator (sem : GSem) (state : GState) (parent : Name)
+    (inverse : Accumulator) {cell : GCell} (hlook : Finmap.lookup parent state.registry = some cell) :
+    ∃ cell', Finmap.lookup parent (foldInverseState sem state parent inverse).registry = some cell' ∧
+      cell'.payload.accumulatorCode = sem.composeInverse cell.payload.accumulatorCode inverse := by
+  refine ⟨{ cell with payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode inverse } }, foldInverseState_lookup sem state parent inverse hlook, rfl⟩
 
 /-! ### Canonical initial cells -/
 
@@ -1419,6 +1436,61 @@ theorem insert_dataCoherent {before after : GState} {registrar : Option Name}
   · exact insert_incarnationCoherent h hbefore.2.2.1
   · exact insert_allocationCoherent h hbefore.2.2.2.1 hbefore.2.2.2.2
   · exact insert_ledgerCoherent h hbefore.2.2.2.2
+
+/-! ### Nested-registration witness -/
+
+/-- The non-vacuous nested-registration witness: a real action execution at
+the parent state returns the fresh incarnation's retirement inverse, its
+result state IS the O-Insert successor, the returned inverse is
+retire-adequate for `fresh`, and folding it onto the parent accumulator
+yields the LIFO composition (see `nestedRegistration_foldInverse`).  A
+generic `Action` may only claim to be registration through this witness. -/
+structure NestedRegistrationWitness (sem : GSem) where
+  actionCode : Action
+  parent : Name
+  fresh : Name
+  child : GCell
+  parentBefore : GState
+  parentAfter : GState
+  result : ActionResult GState Accumulator
+  inverse : Accumulator
+  parentCell : GCell
+  parent_lookup : Finmap.lookup parent parentBefore.registry = some parentCell
+  action_run : sem.action actionCode parentBefore = some result
+  insert_step : OrchestrationRule (.insert (some parent) fresh child) parentBefore parentAfter
+  endpoint_link : result.state = parentAfter
+  returns_inverse : result.inverse? = some inverse
+  retire_adequate : RetireInverseAdequate sem inverse fresh
+
+/-- A nested-registration witness always returns a retire-adequate inverse —
+the derived projection replacing the vacuous `RegistrationInverseAdequate`
+bridge. -/
+theorem nestedRegistration_inverseAdequate (sem : GSem) (w : NestedRegistrationWitness sem) :
+    ∃ inverse, RetireInverseAdequate sem inverse w.fresh :=
+  ⟨w.inverse, w.retire_adequate⟩
+
+/-- The fold evidence: after the nested-registration step, folding the
+returned inverse onto the parent's accumulator yields the LIFO composition
+`composeInverse old inverse` — the retirement inverse runs before the
+earlier prefix. -/
+theorem nestedRegistration_foldInverse (sem : GSem) (w : NestedRegistrationWitness sem) :
+    ∃ cell, Finmap.lookup w.parent (foldInverseState sem w.parentAfter w.parent w.inverse).registry = some cell ∧
+      cell.payload.accumulatorCode = sem.composeInverse w.parentCell.payload.accumulatorCode w.inverse := by
+  rcases w with ⟨_actionCode, parent, fresh, _child, parentBefore, parentAfter, _result, inverse,
+    parentCell, hlook, _hrun, hstep, _hendpoint, _hreturns, _hretire⟩
+  have hne : parent ≠ fresh := by
+    intro h
+    cases hstep with
+    | insert hfresh _hledger hcanonical _hdisjoint =>
+        rw [← h] at hfresh
+        rcases hcanonical.2.2.1 with ⟨_fiber, hparent⟩
+        rw [hparent] at hfresh
+        cases hfresh
+  have hlookAfter : Finmap.lookup parent parentAfter.registry = some parentCell := by
+    have hframe := insert_registrationFrame hstep
+    rw [← hframe.1 parent hne]
+    exact hlook
+  exact foldInverseState_accumulator sem parentAfter parent inverse hlookAfter
 
 /-! ### Factorization into selected body and control edit -/
 
