@@ -33,36 +33,44 @@ structure Component (Key : Type u) (Value : Type v) (Action : Type w)
   flightCode : Flight
   failureCode : Failure
 
+/-- The complete retained failure evidence: the current stage error, the
+boundary state where the iterator raised, and the successful-prefix undo (the
+accumulated accumulator code before the failing stage). -/
+structure FailureEvidence (State : Type u) (Error : Type v) (Accumulator : Type w) where
+  error : Error
+  boundary : State
+  prefixUndo : Accumulator
+
 /-- One executed iterator stage. `yield` carries the after-state, the yielded
 inverse, and the continuation; `halt` the after-state and the final inverse;
 `raise` carries only the current error — the boundary and the accumulated
-prefix are supplied by the `FailureFromStage` bridge of the semantics, never
-by the stage itself. -/
+prefix are supplied by the `FailureFromStage` bridge of the rules, never by
+the stage itself. -/
 inductive StageResult (State : Type u) (Iterator : Type v) (Accumulator : Type w)
-    (Failure : Type x) where
+    (Error : Type x) where
   | yield (after : State) (inverse : Accumulator) (next : Iterator)
   | halt (after : State) (inverse : Accumulator)
-  | raise (error : Failure)
+  | raise (error : Error)
 
 namespace StageResult
 
 /-- The state reached by a successful stage; `none` for a raise. -/
-def state? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → Option State
+def state? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option State
   | .yield after _ _ => some after
   | .halt after _ => some after
   | .raise _ => none
 
 /-- The yielded/final inverse, present exactly for non-raising stages. -/
-def inverse? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → Option Accumulator
+def inverse? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option Accumulator
   | .yield _ inverse _ => some inverse
   | .halt _ inverse => some inverse
   | .raise _ => none
 
 /-- The failure payload, present exactly for raising stages. -/
-def failure? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → Option Failure
+def failure? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option Error
   | .yield _ _ _ => none
   | .halt _ _ => none
   | .raise error => some error
@@ -105,15 +113,14 @@ allocates), `allocationFrame` (ledger and allocation history unchanged),
 `accumulatorFrame` (the explicit owner/recorded-child cleanup frame).  Every
 code family declares its own provision envelope via the `*Envelope` fields. -/
 structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (Action : Type w)
-    (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Failure : Type x) where
+    (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Error : Type x) where
   action : Action → State → Option (ActionResult State Accumulator)
-  stage : Iterator → State → Option (StageResult State Iterator Accumulator Failure)
+  stage : Iterator → State → Option (StageResult State Iterator Accumulator Error)
   composeInverse : Accumulator → Accumulator → Accumulator
   identityAccumulator : Accumulator
   accumulator : Accumulator → State → Option State
   launch : State → Option Flight
-  landing : Flight → State → Option (LandingOutcome State Accumulator Failure)
-  failureBridge : Failure → State → Accumulator → Failure → Prop
+  landing : Flight → State → Option (LandingOutcome State Accumulator Error)
   undo : State → Option State
   observes : State → State → Prop
   writesWithinProvision : Finset Key → State → State → Prop
@@ -167,9 +174,6 @@ structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (A
   landing_allocationFrame : ∀ {token before outcome after},
     landing token before = some outcome → outcome.state? = some after →
       allocationFrame before after
-  failureBridge_law : ∀ {error before accPrefix failure failure'},
-    failureBridge error before accPrefix failure → failureBridge error before accPrefix failure' →
-      failure = failure'
   composeInverse_law : ∀ {a b before mid after}, accumulator b before = some mid →
     accumulator a mid = some after → accumulator (composeInverse a b) before = some after
   identityAccumulator_law : ∀ state, accumulator identityAccumulator state = some state

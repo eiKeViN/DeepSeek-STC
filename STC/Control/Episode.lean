@@ -21,16 +21,16 @@ section Episodes
 
 variable {Name : Type u} {Key : Type u} {Value : Type u}
 variable {Action : Type u} {Iterator : Type u} {Accumulator : Type u}
-variable {Flight : Type u} {Failure : Type u} {Ambient : Type u}
+variable {Flight : Type u} {Error : Type u} {Ambient : Type u}
 variable [DecidableEq Name] [DecidableEq Key]
 
 local notation "GState" =>
-  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
+  GlobalState Name Key Value Action Iterator Accumulator Flight Error Ambient
 local notation "GSem" =>
-  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
-local notation "OLabel" => GlobalOrchestrationLabel Name (FiberCell Name Key Value Action Iterator Accumulator Flight Failure)
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Error
+local notation "OLabel" => GlobalOrchestrationLabel Name (FiberCell Name Key Value Action Iterator Accumulator Flight Error)
 local notation "LLabel" =>
-  GlobalLifecycleLabel Name Key Iterator Flight Failure
+  GlobalLifecycleLabel Name Key Iterator Flight (FailureEvidence GState Error Accumulator)
 /-- Extract the labels from a trace. -/
 def episodeLabels (sem : GSem) {before after : GState} :
     globalTrace sem before after → List (Sum OLabel LLabel) :=

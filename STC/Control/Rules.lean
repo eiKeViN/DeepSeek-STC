@@ -69,15 +69,15 @@ section GlobalRules
 
 variable {Name : Type u} {Key : Type u} {Value : Type u}
 variable {Action : Type u} {Iterator : Type u} {Accumulator : Type u}
-variable {Flight : Type u} {Failure : Type u} {Ambient : Type u}
+variable {Flight : Type u} {Error : Type u} {Ambient : Type u}
 variable [DecidableEq Name] [DecidableEq Key]
 
 local notation "GState" =>
-  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
+  GlobalState Name Key Value Action Iterator Accumulator Flight Error Ambient
 local notation "GCell" =>
-  FiberCell Name Key Value Action Iterator Accumulator Flight Failure
+  FiberCell Name Key Value Action Iterator Accumulator Flight Error
 local notation "GSem" =>
-  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Error
 
 /-! ### Printed cases and boundary evidence -/
 
@@ -127,7 +127,8 @@ inductive GlobalLifecycleLabel (Name : Type u) (Key : Type v) (Iterator : Type w
   | unload (owner : Name)
 
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
-local notation "LLabel" => GlobalLifecycleLabel Name Key Iterator Flight Failure
+local notation "LLabel" =>
+  GlobalLifecycleLabel Name Key Iterator Flight (FailureEvidence GState Error Accumulator)
 
 /-- The printed case of a concrete label. -/
 def printedCaseOf : Sum OLabel LLabel → PrintedCase
@@ -143,17 +144,15 @@ def printedCaseOf : Sum OLabel LLabel → PrintedCase
   | .inr (.leave _) => .leave
   | .inr (.unload _) => .unload
 
-omit [DecidableEq Name] [DecidableEq Key] in
 theorem printedCaseOf_divertAbort (owner : Name) (boundary : BoundaryEvidence Key Name) :
     printedCaseOf (Name := Name) (Key := Key) (Value := Value) (Action := Action)
       (Iterator := Iterator) (Accumulator := Accumulator) (Flight := Flight)
-      (Failure := Failure) (.inr (.divertAbort owner boundary : LLabel)) = .divert := rfl
+      (Error := Error) (.inr (.divertAbort owner boundary : LLabel)) = .divert := rfl
 
-omit [DecidableEq Name] [DecidableEq Key] in
 theorem printedCaseOf_divertLand (owner : Name) (landing : Flight) :
     printedCaseOf (Name := Name) (Key := Key) (Value := Value) (Action := Action)
       (Iterator := Iterator) (Accumulator := Accumulator) (Flight := Flight)
-      (Failure := Failure) (.inr (.divertLand owner landing : LLabel)) = .divert := rfl
+      (Error := Error) (.inr (.divertLand owner landing : LLabel)) = .divert := rfl
 
 /-- The acting owner of a concrete lifecycle label. -/
 def ownerOf : LLabel → Name
@@ -297,11 +296,19 @@ def divertLandState (sem : GSem) (state : GState) (owner : Name) (inverse : Accu
     GState :=
   editCell state owner (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode inverse, flightCode := none } })
 
-/-- L-Raise: the failure bridge has built the complete retained failure; the
-control edit records it and enters teardown, never failing directly. -/
-def raiseState (state : GState) (owner : Name) (failure : Failure) : GState :=
+/-- L-Raise: the control edit records the stage error and enters teardown,
+never failing directly; the fiber stores the error only — the boundary and
+the prefix undo live in the label's `FailureEvidence`, never in the state. -/
+def raiseState (state : GState) (owner : Name) (error : Error) : GState :=
   editCell state owner (fun cell =>
-    { cell with phase := .unloading, payload := { cell.payload with failureData := some failure } })
+    { cell with phase := .unloading, payload := { cell.payload with failureData := some error } })
+
+/-- The D3 bridge: the retained failure evidence built from the failing
+stage's error — the boundary is the raise state and the prefix undo is the
+accumulated accumulator code. -/
+def FailureFromStage (_sem : GSem) (cell : GCell) (before : GState) (error : Error)
+    (failure : FailureEvidence GState Error Accumulator) : Prop :=
+  failure = { error := error, boundary := before, prefixUndo := cell.payload.accumulatorCode }
 
 /-- L-Leave: the control edit enters teardown. -/
 def leaveState (state : GState) (owner : Name) : GState :=
@@ -456,13 +463,13 @@ inductive LifecycleRule (sem : GSem) : LLabel → GState → GState → Prop whe
       (hland : sem.landing landing before = some (.landed after inverse)) →
       (henvelope : sem.landingEnvelope landing ⊆ cell.component.provides) →
       LifecycleRule sem (.divertLand owner landing) before (divertLandState sem after owner inverse)
-  | raise {before : GState} {owner : Name} {cell : GCell} {error : Failure}
-      {failure : Failure} :
+  | raise {before : GState} {owner : Name} {cell : GCell} {error : Error}
+      {failure : FailureEvidence GState Error Accumulator} :
       (hlook : Finmap.lookup owner before.registry = some cell) →
       (hphase : cell.phase = .reloading) →
       (hstage : sem.stage cell.payload.iteratorCode before = some (.raise error)) →
-      (hbridge : sem.failureBridge error before cell.payload.accumulatorCode failure) →
-      LifecycleRule sem (.raise owner failure) before (raiseState before owner failure)
+      (hbridge : FailureFromStage sem cell before error failure) →
+      LifecycleRule sem (.raise owner failure) before (raiseState before owner error)
   | leave {before : GState} {owner : Name} {cell : GCell} :
       (hlook : Finmap.lookup owner before.registry = some cell) →
       (hphase : cell.phase = .active) →
@@ -482,7 +489,7 @@ theorem retire_successor_equation (state : GState) (owner : Name) (cell : GCell)
     (hlook : Finmap.lookup owner state.registry = some cell) :
     OrchestrationRule (Name := Name) (Key := Key) (Value := Value) (Action := Action)
       (Iterator := Iterator) (Accumulator := Accumulator) (Flight := Flight)
-      (Failure := Failure) (Ambient := Ambient) (.retire owner) state (retireState state owner) := by
+      (Error := Error) (Ambient := Ambient) (.retire owner) state (retireState state owner) := by
   exact (OrchestrationRule.retire hlook)
 
 
@@ -564,7 +571,7 @@ theorem failureRule_subfamily (sem : GSem) (label : LLabel) (before after : GSta
 
 /-- Every failure step enters teardown: the successor phase is unloading. -/
 theorem failureRule_enters_teardown (sem : GSem) {label : LLabel} {before after : GState}
-    {owner : Name} {failure : Failure}
+    {owner : Name} {failure : FailureEvidence GState Error Accumulator}
     (h : failureRule sem label before after) (hlabel : label = .raise owner failure) :
     ∃ cell, Finmap.lookup owner after.registry = some cell ∧ cell.phase = .unloading := by
   subst label
@@ -1539,7 +1546,7 @@ def SelectedBody (sem : GSem) : Sum OLabel LLabel → GState → GState → Accu
       middle = before ∧ ∃ cell error, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .reloading ∧
           sem.stage cell.payload.iteratorCode before = some (.raise error) ∧
-            sem.failureBridge error before cell.payload.accumulatorCode failure
+            FailureFromStage sem cell before error failure
   | .inr (.leave owner), before, middle, _ =>
       middle = before ∧ ∃ cell, Finmap.lookup owner before.registry = some cell ∧
         cell.phase = .active ∧ ¬ TargetViewAt before owner cell.committedView
@@ -1561,7 +1568,7 @@ def ControlEdit (sem : GSem) : Sum OLabel LLabel → GState → Accumulator → 
   | .inr (.finish owner), middle, finalInverse, after => after = finishState sem middle owner finalInverse
   | .inr (.divertAbort owner _boundary), middle, _, after => after = divertAbortState middle owner
   | .inr (.divertLand owner _landing), middle, inverse, after => after = divertLandState sem middle owner inverse
-  | .inr (.raise owner failure), middle, _, after => after = raiseState middle owner failure
+  | .inr (.raise owner failure), middle, _, after => after = raiseState middle owner failure.error
   | .inr (.leave owner), middle, _, after => after = leaveState middle owner
   | .inr (.unload owner), middle, _, after => after = unloadState middle owner
 
@@ -1753,8 +1760,10 @@ theorem factor_divertLand (sem : GSem) {owner : Name} {landing : Flight}
     rw [hedit]
     exact LifecycleRule.divertLand hlook hphase htoken hchanged hland henvelope
 
-/-- L-Raise factorizes into its identity body and failure-recording edit. -/
-theorem factor_raise (sem : GSem) {owner : Name} {failure : Failure} {before after : GState} :
+/-- L-Raise factorizes into its identity body and failure-recording edit; the
+complete evidence's error is exactly what the control edit records. -/
+theorem factor_raise (sem : GSem) {owner : Name} {failure : FailureEvidence GState Error Accumulator}
+    {before after : GState} :
     LifecycleRule sem (.raise owner failure) before after ↔
       ∃ middle inverse, SelectedBody sem (.inr (.raise owner failure)) before middle inverse ∧
         ControlEdit sem (.inr (.raise owner failure)) middle inverse after := by
@@ -1764,11 +1773,14 @@ theorem factor_raise (sem : GSem) {owner : Name} {failure : Failure} {before aft
     | raise hlook hphase hstage hbridge =>
         refine ⟨before, sem.identityAccumulator, ?_, ?_⟩
         · exact ⟨rfl, ⟨_, _, hlook, hphase, hstage, hbridge⟩⟩
-        · rfl
+        · simp [ControlEdit, FailureFromStage] at hbridge ⊢
+          simp [hbridge]
   · intro h
     rcases h with ⟨middle, _inverse, hbody, hedit⟩
     rcases hbody with ⟨hmiddle, ⟨cell, error, hlook, hphase, hstage, hbridge⟩⟩
     rw [hedit, hmiddle]
+    simp only [FailureFromStage] at hbridge
+    rw [congrArg FailureEvidence.error hbridge]
     exact LifecycleRule.raise hlook hphase hstage hbridge
 
 /-- L-Leave factorizes into its identity body and teardown edit. -/
@@ -1896,17 +1908,18 @@ theorem divertLand_not_active (sem : GSem) (hadq : BodyFrameAdequacy sem)
       simp
 
 /-- A raise step never fails directly: its successor phase is unloading with
-the complete retained failure. -/
-theorem raise_not_failed (sem : GSem) {owner : Name} {failure : Failure} {before after : GState}
-    (h : LifecycleRule sem (.raise owner failure) before after) :
+the stage error retained — the complete evidence lives in the label. -/
+theorem raise_not_failed (sem : GSem) {owner : Name} {failure : FailureEvidence GState Error Accumulator}
+    {before after : GState} (h : LifecycleRule sem (.raise owner failure) before after) :
     ∃ cell, Finmap.lookup owner after.registry = some cell ∧ cell.phase = .unloading ∧
-      cell.payload.failureData = some failure := by
+      cell.payload.failureData = some failure.error := by
   cases h with
-  | raise hlook _hphase _hstage _hbridge =>
+  | raise hlook _hphase _hstage hbridge =>
       rw [raiseState]
       unfold editCell
       rw [hlook]
-      simp
+      simp [FailureFromStage] at hbridge ⊢
+      simp [hbridge]
 
 /-! ### R.base: the Staging macro view -/
 

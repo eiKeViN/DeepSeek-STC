@@ -22,17 +22,17 @@ section Reachability
 
 variable {Name : Type u} {Key : Type u} {Value : Type u}
 variable {Action : Type u} {Iterator : Type u} {Accumulator : Type u}
-variable {Flight : Type u} {Failure : Type u} {Ambient : Type u}
+variable {Flight : Type u} {Error : Type u} {Ambient : Type u}
 variable [DecidableEq Name] [DecidableEq Key]
 
 local notation "GState" =>
-  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
-local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Failure
+  GlobalState Name Key Value Action Iterator Accumulator Flight Error Ambient
+local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Error
 local notation "GSem" =>
-  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Error
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
 local notation "LLabel" =>
-  GlobalLifecycleLabel Name Key Iterator Flight Failure
+  GlobalLifecycleLabel Name Key Iterator Flight (FailureEvidence GState Error Accumulator)
 
 /-- The initial-state profile is explicit; nonempty initial active fibers need a
 valid commit certificate. -/
@@ -46,7 +46,7 @@ structure InitialProfile where
 
 local notation "IProfile" => InitialProfile (Name := Name) (Key := Key) (Value := Value)
   (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
-  (Flight := Flight) (Failure := Failure) (Ambient := Ambient)
+  (Flight := Flight) (Error := Error) (Ambient := Ambient)
 
 /-- Reached state means an initial state followed by an actual typed trace. -/
 def ReachedFrom (sem : GSem) (profile : IProfile) (before after : GState) : Prop :=
