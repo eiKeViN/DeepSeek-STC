@@ -30,7 +30,7 @@ local notation "GSem" =>
   ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
 local notation "OLabel" => GlobalOrchestrationLabel Name (FiberCell Name Key Value Action Iterator Accumulator Flight Failure)
 local notation "LLabel" =>
-  GlobalLifecycleLabel Name Key GState Iterator Accumulator Flight Failure
+  GlobalLifecycleLabel Name Key Iterator Flight Failure
 /-- Extract the labels from a trace. -/
 def episodeLabels (sem : GSem) {before after : GState} :
     globalTrace sem before after → List (Sum OLabel LLabel) :=

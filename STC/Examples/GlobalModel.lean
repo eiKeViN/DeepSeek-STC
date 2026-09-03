@@ -446,27 +446,31 @@ theorem bound_consumer_quiescent : Quiescent boundConsumer := by
   · rw [lookup_bound_provider_in_consumer] at h
     have hf : fiber = boundProviderCell := (Option.some.inj h).symm
     subst fiber
-    refine ⟨?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
     · decide
     · decide
     · rfl
     · intro _hactive
-      refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, ?_⟩
+      refine ⟨boundProviderCell, lookup_bound_provider_in_consumer, ?_, ?_, ?_⟩
+      · decide
       · change (∅ : Finmap (fun _ : Nat => Nat)).keys = ∅
         rw [Finmap.keys_empty]
       · intro key provider hkv
         change Finmap.lookup key (∅ : Finmap (fun _ : Nat => Nat)) = some provider at hkv
         rw [Finmap.lookup_empty] at hkv
         cases hkv
+    · intro hinactive
+      cases hinactive
   · rw [lookup_bound_consumer] at h
     have hf : fiber = boundConsumerCell := (Option.some.inj h).symm
     subst fiber
-    refine ⟨?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
     · decide
     · decide
     · rfl
     · intro _hactive
-      refine ⟨boundConsumerCell, lookup_bound_consumer, ?_, ?_⟩
+      refine ⟨boundConsumerCell, lookup_bound_consumer, ?_, ?_, ?_⟩
+      · decide
       · change (Finmap.insert 10 (1 : Nat) (∅ : Finmap (fun _ : Nat => Nat))).keys = ({10} : Finset Nat)
         apply Finset.ext
         intro key
@@ -485,6 +489,8 @@ theorem bound_consumer_quiescent : Quiescent boundConsumer := by
         · rw [Finmap.lookup_insert_of_ne (∅ : Finmap (fun _ : Nat => Nat)) hkey,
             Finmap.lookup_empty] at hkv
           cases hkv
+    · intro hinactive
+      cases hinactive
 
 /-! ### D32 positive representation -/
 

@@ -32,7 +32,7 @@ local notation "GSem" =>
   ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
 local notation "LLabel" =>
-  GlobalLifecycleLabel Name Key GState Iterator Accumulator Flight Failure
+  GlobalLifecycleLabel Name Key Iterator Flight Failure
 
 /-- The initial-state profile is explicit; nonempty initial active fibers need a
 valid commit certificate. -/
@@ -61,16 +61,16 @@ theorem reached_trace (sem : GSem) (profile : IProfile) {before after : GState}
 /-- The actor selected by one concrete label. -/
 def actorOf : Sum OLabel LLabel → Name
   | .inl (.insert _ fresh _) => fresh
-  | .inl (.retire owner _) => owner
+  | .inl (.retire owner) => owner
   | .inl (.remove owner) => owner
-  | .inr (.begin owner _ _) => owner
-  | .inr (.iter owner _ _ _) => owner
-  | .inr (.finish owner _) => owner
+  | .inr (.begin owner _) => owner
+  | .inr (.iter owner _) => owner
+  | .inr (.finish owner) => owner
   | .inr (.divertAbort owner _) => owner
-  | .inr (.divertLand owner _ _ _) => owner
+  | .inr (.divertLand owner _) => owner
   | .inr (.raise owner _) => owner
   | .inr (.leave owner) => owner
-  | .inr (.unload owner _) => owner
+  | .inr (.unload owner) => owner
 
 /-- A replayable, nonconstant factorization witness for a labelled step. -/
 structure Factorization (before after : GState) where
@@ -113,8 +113,8 @@ trace-local successful finish. -/
 inductive ActivationProvenance (sem : GSem) (profile : IProfile) (owner : Name) : GState → Prop
   | initial {state} : profile.activationCommit owner state →
       ActivationProvenance sem profile owner state
-  | finished {before after result : GState} :
-      LifecycleRule sem (.finish owner result) before after →
+  | finished {before after : GState} :
+      LifecycleRule sem (.finish owner) before after →
         ActivationProvenance sem profile owner after
 
 /-- A partial bijection that can grow as fresh names are allocated. -/
@@ -156,7 +156,7 @@ parent, and renamed actor. -/
 def RelatedOrchestrationInput (bijection : GrowingBijection Name) : OLabel → OLabel → Prop
   | .insert registrar fresh left, .insert registrar' fresh' right =>
       registrar = registrar' ∧ bijection.forward fresh fresh' ∧ RelatedCell bijection left right
-  | .retire left _, .retire right _ => bijection.forward left right
+  | .retire left, .retire right => bijection.forward left right
   | .remove left, .remove right => bijection.forward left right
   | _, _ => False
 
@@ -207,7 +207,7 @@ theorem sameResolved_implies_sameInputs (sem : GSem) {before after : GState}
             · intro key
               cases Finmap.lookup key cell.committedView <;>
                 simp [RelatedOptionalName, GrowingBijection.identity]
-        | retire owner _ => rfl
+        | retire owner => rfl
         | remove owner => rfl
       · exact ih
 
