@@ -116,7 +116,11 @@ Actions carry NO no-change frame laws: an action is the nested-registration
 primitive and its effect IS the registration delta, pinned by the
 `NestedRegistrationWitness` O-Insert linkage — only the read window
 (`action_frame`), the provision envelope (`action_writesWithinProvision`),
-and the undo inverse (`inverse_law`) are axiomatized. -/
+and the undo inverse (`inverse_law`) are axiomatized.  Stage inverses carry
+no undo law either: a yielded inverse is data recorded by the control edit
+(a registration retirement inverse, say) — its semantics is the
+`RetireInverseAdequate` interpretation, never a stage-undo, which the
+retirement accumulator cannot realize. -/
 structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (Action : Type w)
     (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Error : Type x) where
   action : Action → State → Option (ActionResult State Accumulator)
@@ -154,9 +158,6 @@ structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (A
     result.state? = some after → registryFrame before after
   stage_allocationFrame : ∀ {code before result after}, stage code before = some result →
     result.state? = some after → allocationFrame before after
-  stage_inverse : ∀ {code before result inverse after}, stage code before = some result →
-    result.inverse? = some inverse → result.state? = some after →
-      accumulator inverse after = some before
   relation_respect : ∀ {code left right left' right'}, observes left right →
     action code left = some left' → action code right = some right' →
       observes left'.state right'.state
