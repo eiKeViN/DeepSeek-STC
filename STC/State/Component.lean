@@ -111,7 +111,12 @@ declarations unchanged — stage/landing bodies only), `domainFrame` (registry
 keys unchanged — the accumulator may retire recorded children but never
 allocates), `allocationFrame` (ledger and allocation history unchanged),
 `accumulatorFrame` (the explicit owner/recorded-child cleanup frame).  Every
-code family declares its own provision envelope via the `*Envelope` fields. -/
+code family declares its own provision envelope via the `*Envelope` fields.
+Actions carry NO no-change frame laws: an action is the nested-registration
+primitive and its effect IS the registration delta, pinned by the
+`NestedRegistrationWitness` O-Insert linkage — only the read window
+(`action_frame`), the provision envelope (`action_writesWithinProvision`),
+and the undo inverse (`inverse_law`) are axiomatized. -/
 structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (Action : Type w)
     (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Error : Type x) where
   action : Action → State → Option (ActionResult State Accumulator)
@@ -138,10 +143,6 @@ structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (A
     writesWithinProvision (actionEnvelope code) before result.state
   action_frame : ∀ {code before result}, action code before = some result →
     observes before result.state
-  action_registryFrame : ∀ {code before result}, action code before = some result →
-    registryFrame before result.state
-  action_allocationFrame : ∀ {code before result}, action code before = some result →
-    allocationFrame before result.state
   inverse_law : ∀ {code before result}, action code before = some result →
     undo result.state = some before
   stage_frame : ∀ {code before result after}, stage code before = some result →
