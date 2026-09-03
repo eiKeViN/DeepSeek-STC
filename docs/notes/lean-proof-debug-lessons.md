@@ -572,6 +572,15 @@ direction decide the relation order, don't guess `R.symm`.
 
 ## 7. Mathlib / core API gotchas
 
+### `Finmap.insert` carries `[DecidableEq]` — `exact Finmap.lookup_insert` sticks
+
+`exact Finmap.lookup_insert` on a goal `Finmap.lookup a (Finmap.insert a b s) = some b`
+fails with `typeclass instance problem is stuck: DecidableEq ?m` even though the
+goal's insert elaborated fine: elaborating the bare theorem constant with `a` as a
+metavariable must elaborate `insert a b s`, which needs `[DecidableEq ?m]`.  `rw
+[Finmap.lookup_insert]` works — the rewrite tactic elaborates the lemma against the
+goal, pinning `a` first.  Same family as the instance-elaboration-order trap above.
+
 ### `Finmap.lookup_insert_of_ne` binder order
 
 The actual signature: `{a a'} {b : β a} (s) (h : a' ≠ a) :

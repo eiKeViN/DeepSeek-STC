@@ -35,6 +35,8 @@ Unload = Leave·Unload).
 * `printedCaseOf` and the Divert-to-printed-case mapping.
 * `withdrawRule`, `iterationRule`, `failureRule` subfamily views with
   guard/frame theorems.
+* `commitProjection`/`commitProjection_keys_subset`/`finish_tableConfined`
+  (provision-confined finish commit).
 * `SelectedBody`/`ControlEdit`/`BodyClass` factorization with ONE resolved
   witness threading both sides, `fullRule_factorizes`; the nonconstant
   fixed-operation replay evidence lives in the fixture.
@@ -199,13 +201,84 @@ def iterState (sem : GSem) (state : GState) (owner : Name) (inverse : Accumulato
   editCell state owner (fun cell =>
     { cell with payload := iterPayload sem cell inverse next })
 
+/-- The committed-table projection: the coeffect store restricted to the
+declared provision envelope. A multi-key global store must never be committed
+in full — only the acting fiber's provided keys enter its committed table. -/
+def commitProjection (state : GState) (provides : Finset Key) :
+    Finmap (fun _ : Key => Value) :=
+  { entries := state.coeffects.entries.filter (fun entry => entry.1 ∈ provides)
+    nodupKeys := by
+      exact Quot.inductionOn state.coeffects.entries
+        (fun l =>
+          List.NodupKeys.sublist
+            (List.filter_sublist (p := fun (a : Sigma (fun _ : Key => Value)) =>
+              decide (a.1 ∈ provides))))
+        state.coeffects.nodupKeys }
+
+/-- The committed-table projection stays inside the declared provision envelope. -/
+theorem commitProjection_keys_subset (state : GState) (provides : Finset Key) :
+    (commitProjection state provides).keys ⊆ provides := by
+  intro key hk
+  rw [Finmap.mem_keys] at hk
+  rw [Finmap.mem_def] at hk
+  change key ∈ Multiset.map Sigma.fst
+    (Multiset.filter (fun entry => entry.1 ∈ provides) state.coeffects.entries) at hk
+  rw [Multiset.mem_map] at hk
+  rcases hk with ⟨entry, hmem, hfst⟩
+  rw [Multiset.mem_filter] at hmem
+  exact hfst ▸ hmem.2
+
 /-- L-Finish: the stage has already executed; the control edit composes the
-final inverse, commits the result's coeffect store as the committed table,
-activates, and clears flight and failure. -/
+final inverse, commits the coeffect store projected to the owner's provision
+envelope as the committed table, activates, and clears flight and failure. -/
 def finishState (sem : GSem) (state : GState) (owner : Name) (finalInverse : Accumulator) :
     GState :=
   editCell state owner (fun cell =>
-    { cell with phase := .active, committed := { entries := state.coeffects }, payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode finalInverse, flightCode := none, failureData := none } })
+    { cell with phase := .active, committed := { entries := commitProjection state cell.component.provides }, payload := { cell.payload with accumulatorCode := sem.composeInverse cell.payload.accumulatorCode finalInverse, flightCode := none, failureData := none } })
+
+/-- The finish control edit's owner-cell equation for a witnessed source cell. -/
+theorem finish_lookup_owner (sem : GSem) (state : GState) (owner : Name) (finalInverse : Accumulator)
+    {ownerCell : GCell} (hlook : Finmap.lookup owner state.registry = some ownerCell) :
+    Finmap.lookup owner (finishState sem state owner finalInverse).registry =
+      some { ownerCell with phase := .active, committed := { entries := commitProjection state ownerCell.component.provides }, payload := { ownerCell.payload with accumulatorCode := sem.composeInverse ownerCell.payload.accumulatorCode finalInverse, flightCode := none, failureData := none } } := by
+  unfold finishState editCell
+  rw [hlook]
+  rw [Finmap.lookup_insert]
+
+/-- The finish control edit never touches a foreign cell. -/
+theorem finish_lookup_ne (sem : GSem) (state : GState) (owner : Name) (finalInverse : Accumulator)
+    {name : Name} (hname : name ≠ owner) :
+    Finmap.lookup name (finishState sem state owner finalInverse).registry =
+      Finmap.lookup name state.registry := by
+  unfold finishState editCell
+  cases hlook : Finmap.lookup owner state.registry with
+  | none => rfl
+  | some _ => exact Finmap.lookup_insert_of_ne (a := owner) (a' := name) (s := state.registry) hname
+
+/-- L-Finish preserves `TableConfined`: the freshly committed table is the
+coeffect store projected to the owner's provisions, foreign cells are
+unchanged. -/
+theorem finish_tableConfined (sem : GSem) (state : GState) (owner : Name)
+    (finalInverse : Accumulator) (hbefore : TableConfined state) :
+    TableConfined (finishState sem state owner finalInverse) := by
+  intro name cell hlook
+  by_cases hname : name = owner
+  · subst name
+    cases hlookOwner : Finmap.lookup owner state.registry with
+    | none =>
+        have hnone : Finmap.lookup owner (finishState sem state owner finalInverse).registry = none := by
+          simp [finishState, editCell, hlookOwner]
+        rw [hnone] at hlook
+        cases hlook
+    | some ownerCell =>
+        rw [finish_lookup_owner sem state owner finalInverse hlookOwner] at hlook
+        cases hlook with
+        | refl =>
+            intro key hkey
+            change key ∈ (commitProjection state ownerCell.component.provides).keys at hkey
+            exact commitProjection_keys_subset state ownerCell.component.provides hkey
+  · rw [finish_lookup_ne sem state owner finalInverse hname] at hlook
+    exact hbefore name cell hlook
 
 /-- L-DivertAbort: identity body; the control edit enters teardown. -/
 def divertAbortState (state : GState) (owner : Name) : GState :=
