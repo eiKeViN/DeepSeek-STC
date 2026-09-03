@@ -48,9 +48,10 @@ Unload = Leave·Unload).
   `unload_full_cleanupFrame`, `unload_noAllocation`.
 * `divertAdmissible` (A.async) with landing-witness and boundary-abort
   theorems.
-* `globalStagingModel`, `baseOrchestrationRule`, `baseLifecycleRule`,
-  `globalStutterProfile`, `globalAtomicAdequacy` (ADR-08 R.base as genuine
-  macro specialization).
+* `StagingStable`/`StableBase`, `globalStagingModel` (embed/project/stable
+  over the stable subtype), `baseOrchestrationRule`, `baseLifecycleRule`,
+  the honest-empty `globalStutterProfile`, `globalAtomicAdequacy` (ADR-08
+  R.base as genuine macro specialization over stable endpoints).
 * Per-constructor D48 write/read frame discharges (identity bodies and
   control edits), the lifecycle no-allocation/registry-domain theorems, and
   the O-Insert preservation theorems for the static/data-coherence
@@ -1929,15 +1930,39 @@ inductive BaseLifeLabel (Name : Type u) (Key : Type v) where
   | reload (owner : Name) (ω : Finmap (fun _ : Key => Name))
   | unload (owner : Name)
 
-/-- The ADR-08 base model: base orchestration is the singleton orchestration
-macro; base Reload is the Begin·Finish macro path; base Unload is the
-Leave·Unload macro path. All carriers share one universe, so the frozen
+/-- ADR-08 stable base states: no fiber is mid-transition — active, normal
+inactive, or failed only; Reloading/Unloading states are not base states. -/
+def StagingStable (state : GState) : Prop :=
+  ∀ name fiber, Finmap.lookup name state.registry = some fiber →
+    fiber.phase = .active ∨ fiber.phase = .inactive ∨ fiber.phase = .failed
+
+/-- The base carrier: the `StagingStable` subtype of `GState`, single
+universe (compatible with the frozen single-universe `StagingModel`).
+Explicit parameters — implicit section-parameterized carriers do not resolve
+in declaration headers. -/
+abbrev StableBase (Name : Type u) (Key : Type u) (Value : Type u)
+    (Action : Type u) (Iterator : Type u) (Accumulator : Type u)
+    (Flight : Type u) (Error : Type u) (Ambient : Type u)
+    [DecidableEq Name] [DecidableEq Key] : Type u :=
+  { state : GlobalState Name Key Value Action Iterator Accumulator Flight Error Ambient //
+      StagingStable state }
+
+local notation "BaseState" =>
+  StableBase Name Key Value Action Iterator Accumulator Flight Error Ambient
+
+/-- The ADR-08 base model: base states are the stable subtype; base
+orchestration is the singleton orchestration macro; base Reload is the
+Begin·Finish macro path; base Unload is the Leave·Unload macro path.
+Intermediate Reloading/Unloading states are full states only and never
+project back. All carriers share one universe, so the frozen
 single-universe `StagingModel` carrier applies. -/
-def globalStagingModel (sem : GSem) :
-    StagingModel GState GState OLabel OLabel (BaseLifeLabel Name Key) LLabel :=
-  { embed := id
-    project := fun state => some state
-    stable := fun _ => True
+noncomputable def globalStagingModel (sem : GSem) :
+    StagingModel BaseState GState OLabel OLabel (BaseLifeLabel Name Key) LLabel :=
+  { embed := fun base => base.1
+    project := fun state => by
+      classical
+      exact if h : StagingStable state then some ⟨state, h⟩ else none
+    stable := StagingStable
     fullOrch := OrchestrationRule
     fullLife := LifecycleRule sem
     expandOrch := fun label => [.inl label]
@@ -1949,8 +1974,12 @@ def globalStagingModel (sem : GSem) :
     atomicLife := fun labels =>
       (∃ owner ω, labels = [.inr (.begin owner ω), .inr (.finish owner)]) ∨
         (∃ owner, labels = [.inr (.leave owner), .inr (.unload owner)])
-    project_embed := by intro base; rfl
-    stable_embed := by intro base; trivial }
+    project_embed := by
+      intro base
+      simp [base.2]
+    stable_embed := by
+      intro base
+      exact base.2 }
 
 /-- `R.base`: the base orchestration relation, derived only through
 `Staging.MacroPath`. -/
@@ -2050,9 +2079,10 @@ theorem unloadPath_lifecycle (sem : GSem) {before after : GState} {owner : Name}
                       exact ⟨_, hpremise, hpremise'⟩
           | cons _ _ => simp [Trace.labels] at hlabels
 
-/-- A base orchestration step is exactly one full orchestration step. -/
-theorem baseOrchestration_iff (sem : GSem) (label : OLabel) (before after : GState) :
-    baseOrchestrationRule sem label before after ↔ OrchestrationRule label before after := by
+/-- A base orchestration step is exactly one full orchestration step on the
+projected states. -/
+theorem baseOrchestration_iff (sem : GSem) (label : OLabel) (before after : BaseState) :
+    baseOrchestrationRule sem label before after ↔ OrchestrationRule label before.1 after.1 := by
   constructor
   · intro h
     rcases h with ⟨_hatomic, hpath⟩
@@ -2062,12 +2092,13 @@ theorem baseOrchestration_iff (sem : GSem) (label : OLabel) (before after : GSta
     refine ⟨Trace.cons (Step.orchestration label h) Trace.nil, ?_⟩
     rfl
 
-/-- A base Reload step is exactly one begin followed by one finish. -/
+/-- A base Reload step is exactly one begin followed by one finish; the
+intermediate Reloading state is a full state, never a base state. -/
 theorem baseLife_reload_iff (sem : GSem) (owner : Name) (ω : Finmap (fun _ : Key => Name))
-    (before after : GState) :
+    (before after : BaseState) :
     baseLifecycleRule sem (.reload owner ω) before after ↔
-      ∃ middle, LifecycleRule sem (.begin owner ω) before middle ∧
-        LifecycleRule sem (.finish owner) middle after := by
+      ∃ middle : GState, LifecycleRule sem (.begin owner ω) before.1 middle ∧
+        LifecycleRule sem (.finish owner) middle after.1 := by
   unfold baseLifecycleRule RbLife AtomicLifeMacro
   constructor
   · intro h
@@ -2080,11 +2111,12 @@ theorem baseLife_reload_iff (sem : GSem) (owner : Name) (ω : Finmap (fun _ : Ke
         (Trace.cons (Step.lifecycle (.finish owner) hfinish) Trace.nil), ?_⟩
     rfl
 
-/-- A base Unload step is exactly one leave followed by one unload. -/
-theorem baseLife_unload_iff (sem : GSem) (owner : Name) (before after : GState) :
+/-- A base Unload step is exactly one leave followed by one unload; the
+intermediate Unloading state is a full state, never a base state. -/
+theorem baseLife_unload_iff (sem : GSem) (owner : Name) (before after : BaseState) :
     baseLifecycleRule sem (.unload owner) before after ↔
-      ∃ middle, LifecycleRule sem (.leave owner) before middle ∧
-        LifecycleRule sem (.unload owner) middle after := by
+      ∃ middle : GState, LifecycleRule sem (.leave owner) before.1 middle ∧
+        LifecycleRule sem (.unload owner) middle after.1 := by
   unfold baseLifecycleRule RbLife AtomicLifeMacro
   constructor
   · intro h
@@ -2097,22 +2129,19 @@ theorem baseLife_unload_iff (sem : GSem) (owner : Name) (before after : GState) 
         (Trace.cons (Step.lifecycle (.unload owner) hunload) Trace.nil), ?_⟩
     rfl
 
-/-- The profile-tagged stutter permission: orchestration never stutters; a
-lifecycle stutter must be a real iter self-loop (the only admitted stutter),
-and the adequacy theorem additionally requires the projected base observation
-to be unchanged. -/
+/-- The profile-tagged stutter permission: honest empty — orchestration never
+stutters and no iter stutter is ever admitted; the adequacy theorem's
+stutter branch is therefore dead. -/
 def globalStutterProfile (sem : GSem) : StutterProfile (globalStagingModel sem) :=
   { Tag := LLabel
     orchestration := fun _tag _labels _before => False
-    lifecycle := fun tag labels before =>
-      labels = [.inr tag] ∧ (∃ owner next, tag = .iter owner next) ∧
-        LifecycleRule sem tag before before }
+    lifecycle := fun _tag _labels _before => False }
 
 /-- ADR-08 adequacy, orchestration half: every atomic orchestration macro path
 is exactly one base step. -/
-theorem orchestrationAdequacy (sem : GSem) {before after : GState}
+theorem orchestrationAdequacy (sem : GSem) {before after : BaseState}
     {labels : List (Sum OLabel LLabel)} (hatomic : (globalStagingModel sem).atomicOrch labels)
-    (path : MacroPath (globalStagingModel sem) labels before after) :
+    (path : MacroPath (globalStagingModel sem) labels before.1 after.1) :
     ∃ label, labels = (globalStagingModel sem).expandOrch label ∧
       RbOrch (globalStagingModel sem) label before after := by
   rcases hatomic with ⟨label, hlabels⟩
@@ -2124,10 +2153,10 @@ theorem orchestrationAdequacy (sem : GSem) {before after : GState}
         exact ⟨path⟩))
 
 /-- ADR-08 adequacy, lifecycle half: every atomic lifecycle macro path is
-either a tagged stutter or exactly one base step. -/
-theorem lifecycleAdequacy (sem : GSem) {before after : GState}
+exactly one base step; the stutter branch is never admitted. -/
+theorem lifecycleAdequacy (sem : GSem) {before after : BaseState}
     {labels : List (Sum OLabel LLabel)} (hatomic : (globalStagingModel sem).atomicLife labels)
-    (path : MacroPath (globalStagingModel sem) labels before after) :
+    (path : MacroPath (globalStagingModel sem) labels before.1 after.1) :
     (∃ tag, (globalStutterProfile sem).lifecycle tag labels before ∧ before = after) ∨
       ∃ label, labels = (globalStagingModel sem).expandLife label ∧
         RbLife (globalStagingModel sem) label before after := by

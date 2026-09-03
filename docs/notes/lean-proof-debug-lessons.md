@@ -315,6 +315,20 @@ instances are shadowed by the structure params and do not apply).
 
 ### Section-variable auto-inclusion skips local-notation header expansion
 
+Also applies to implicit section-parameterized `abbrev`s used in declaration
+headers (the R.base `BaseState` subtype hit `DecidableEq ?m` stuck — the
+abbrev's auto-included implicit params never resolve in a header).  Fix:
+spell the carrier's parameters explicitly in the `abbrev` binder list (they
+shadow the section variables) and reference it through a local notation
+whose RHS passes every argument explicitly; instance params still resolve
+via typeclass search in headers (same as the `GState` notation).  Related:
+a `dite`/`if h : P` over an undecidable ∀-Prop (`Decidable (StagingStable
+state)` synthesis fails) — for a semantic projection use `by classical` and
+mark the enclosing def `noncomputable`; then `simp [base.2]` discharges the
+positive branch.
+
+### Section-variable auto-inclusion skips local-notation header expansion
+
 Symptom: a local notation whose RHS needs a section variable to fill an
 implicit parameter elaborates fine in terms (`#check`, def bodies) but fails
 with `don't know how to synthesize implicit argument 'Key'` when the notation
