@@ -617,7 +617,9 @@ outside the acting envelope are preserved, the observes relation means the
 owner's required keys read the same coeffect values, and the accumulator
 frame relation means the strengthened D48 cleanup frame relative to the
 acting owner's own registered cell (the run code is that cell's
-`accumulatorCode`). Instances prove this non-vacuously (see the fixture). -/
+`accumulatorCode`), conditional on every foreign edit of the body being a
+recorded-child retirement of that owner. Instances prove this non-vacuously
+(see the fixture). -/
 structure BodyFrameAdequacy (sem : GSem) : Prop where
   registry_total : ∀ {before after}, sem.registryFrame before after →
     before.registry = after.registry
@@ -635,8 +637,11 @@ structure BodyFrameAdequacy (sem : GSem) : Prop where
   accumulator_cleanupFrame : ∀ {owner cell before after},
     Finmap.lookup owner before.registry = some cell →
       sem.accumulator cell.payload.accumulatorCode before = some after →
-        sem.accumulatorFrame cell.payload.accumulatorCode before after →
-          CleanupFrame before owner after
+        (∀ n cellN, Finmap.lookup n before.registry = some cellN → n ≠ owner →
+          Finmap.lookup n before.registry ≠ Finmap.lookup n after.registry →
+            cellN.parent = some owner) →
+          sem.accumulatorFrame cell.payload.accumulatorCode before after →
+            CleanupFrame before owner after
 
 /-! ### Frame and confinement theorems -/
 
@@ -960,20 +965,38 @@ theorem divertLand_full_writeFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
     (sem.landing_allocationFrame hland rfl)
     (divertLand_controlEdit_writeFrame sem middle owner inverse)
 
-/-- The full unload step satisfies the D48 teardown frame: the accumulator body
-fulfills the strengthened cleanup frame (foreign edits are recorded-child
-retirements only, relative to the acting owner's own cell) and the control
-edit writes only the owner cell.  The unload body may retire recorded
-children, so no full write frame is claimed. -/
+/-- The full unload step satisfies the D48 teardown frame when every foreign
+edit of the accumulator body is a recorded-child retirement relative to the
+acting owner's own cell: the body fulfills the strengthened cleanup frame and
+the control edit writes only the owner cell.  The unload body may retire
+recorded children, so no full write frame is claimed. -/
 theorem unload_full_cleanupFrame (sem : GSem) (hadq : BodyFrameAdequacy sem)
     {owner : Name} {cell : GCell} {before middle after : GState}
     (hlook : Finmap.lookup owner before.registry = some cell)
+    (hchildren : ∀ n cellN, Finmap.lookup n before.registry = some cellN → n ≠ owner →
+      Finmap.lookup n before.registry ≠ Finmap.lookup n after.registry →
+        cellN.parent = some owner)
     (haccumulator : sem.accumulator cell.payload.accumulatorCode before = some middle)
     (hedit : after = unloadState middle owner) :
     CleanupFrame before owner after := by
   rw [hedit]
+  have hchildrenMid : ∀ n cellN, Finmap.lookup n before.registry = some cellN → n ≠ owner →
+      Finmap.lookup n before.registry ≠ Finmap.lookup n middle.registry →
+        cellN.parent = some owner := by
+    intro n cellN hl hn hne
+    refine hchildren n cellN hl hn ?_
+    have hma : Finmap.lookup n middle.registry = Finmap.lookup n after.registry := by
+      rw [hedit]
+      unfold unloadState editCell
+      cases hlookM : Finmap.lookup owner middle.registry with
+      | none => rfl
+      | some _ =>
+          exact (Finmap.lookup_insert_of_ne (a := owner) (a' := n) (s := middle.registry) hn).symm
+    intro hfa
+    exact hne (hfa.trans hma.symm)
   exact cleanupFrame_trans
-    (hadq.accumulator_cleanupFrame hlook haccumulator (sem.accumulator_frame haccumulator))
+    (hadq.accumulator_cleanupFrame hlook haccumulator hchildrenMid
+      (sem.accumulator_frame haccumulator))
     (unload_controlEdit_cleanupFrame middle owner)
 
 /-- The pure control edit never touches the coeffect store. -/
