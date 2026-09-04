@@ -68,14 +68,39 @@ abbrev cell5 : Cell :=
 
 /-! ### The external semantics -/
 
-/-- The fixture's ranked iterator: rank is the code itself. Code 99 raises the
-real error 7; positive codes yield the continuation `code - 1` with the
-registration retirement inverse `[2]` when the iterator code is 1 (the parent
-harvests the outstanding child-retirement inverse) and `[]` otherwise; code 0
-halts. The stage body never changes the state. -/
-def fixtureStage (code : Nat) (before : State) : Option (State.StageResult State Nat (List Nat) Nat) :=
+/-- The D48 stage write: bind key 12 (required by no fixture cell) to 0 in the
+coeffect store. -/
+def stageWrite12 (before : State) : State :=
+  { before with coeffects := Finmap.insert 12 0 before.coeffects }
+
+/-- The D48 write guard: some installed cell requires key 12. -/
+def stageGuard12 (before : State) : Prop :=
+  ∃ name cell, Finmap.lookup name before.registry = some cell ∧ 12 ∈ cell.component.requires
+
+/-- The fixture's ranked iterator: rank is the code itself. Code 99 or 9
+raises the real error 7; code 0 halts with the empty inverse and code 4 with
+the nonempty final inverse `[3]`; the mini-trace codes 6, 5 yield `[1]`, `[2]`
+with the decreasing continuation (5, 4), code 10 yields `[1]` into the raise
+code 9, and code 8 writes key 12 when no installed cell requires it. Code 1
+keeps the child-retirement inverse `[2]`; the remaining positive codes yield
+the empty inverse. -/
+noncomputable def fixtureStage (code : Nat) (before : State) : Option (State.StageResult State Nat (List Nat) Nat) :=
   if _hfail : code = 99 then
     some (.raise 7)
+  else if _h4 : code = 4 then
+    some (.halt before [3])
+  else if _h5 : code = 5 then
+    some (.yield before [2] 4)
+  else if _h6 : code = 6 then
+    some (.yield before [1] 5)
+  else if _h8 : code = 8 then
+    @dite (Option (State.StageResult State Nat (List Nat) Nat)) (stageGuard12 before) (Classical.propDecidable _)
+      (fun _hg => some (.yield before [1] 7))
+      (fun _hg => some (.yield (stageWrite12 before) [1] 7))
+  else if _h9 : code = 9 then
+    some (.raise 7)
+  else if _h10 : code = 10 then
+    some (.yield before [1] 9)
   else if _hpos : 0 < code then
     if _hone : code = 1 then
       some (.yield before [2] (code - 1))
@@ -83,6 +108,13 @@ def fixtureStage (code : Nat) (before : State) : Option (State.StageResult State
       some (.yield before [] (code - 1))
   else
     some (.halt before [])
+
+/-- The code-8 pin: with the guard false the stage writes key 12. -/
+theorem fixtureStage_eq_8_write {before : State} (hg : ¬ stageGuard12 before) :
+    fixtureStage 8 before = some (.yield (stageWrite12 before) [1] 7) := by
+  unfold fixtureStage
+  rw [dif_neg hg]
+  rfl
 
 /-- A real landing: the landed state records the arrival in the ambient
 counter; the landing inverse is the empty list. -/
@@ -118,6 +150,28 @@ def foldRetire (code : List Nat) (state : State) : State :=
 
 def fixtureAccumulator (code : List Nat) (state : State) : Option State :=
   some (foldRetire code state)
+
+/-- A retire-name absent from the registry leaves the fold unchanged. -/
+theorem foldRetire_cons_none {n : Nat} {code : List Nat} {state : State}
+    (h : Finmap.lookup n state.registry = none) :
+    foldRetire (n :: code) state = foldRetire code state := by
+  unfold foldRetire
+  change code.foldl (fun s n => (retire? s n).getD s) ((retire? state n).getD state) = code.foldl (fun s n => (retire? s n).getD s) state
+  have hstep : (retire? state n).getD state = state := by
+    unfold retire?
+    rw [h]
+    rfl
+  rw [hstep]
+
+/-- A fold of names all absent from the registry is the identity. -/
+theorem foldRetire_absent {code : List Nat} {state : State}
+    (h : ∀ n, n ∈ code → Finmap.lookup n state.registry = none) :
+    foldRetire code state = state := by
+  induction code with
+  | nil => unfold foldRetire; rfl
+  | cons n code ih =>
+      rw [foldRetire_cons_none (h n (by simp))]
+      exact ih (fun m hm => h m (by simp [hm]))
 
 theorem cell_retire_idempotent {cell : Cell} (h : cell.retired = true) :
     { cell with retired := true } = cell := by
@@ -280,7 +334,13 @@ theorem foldRetire_keys (code : List Nat) (state : State) :
 
 /-! ### The semantic relations -/
 
-def semObserves (left right : State) : Prop := left.coeffects = right.coeffects
+/-- The fixture-local observation: every coeffect binding is preserved except
+key 12, which may change only when no installed cell requires it. NOT a
+production-grade general observation API (no symmetry is assumed); it exists
+only to discharge this fixture's law fields. -/
+def semObserves (left right : State) : Prop :=
+  ∀ key, Coeffect.lookup key left.coeffects = Coeffect.lookup key right.coeffects ∨
+    (key = 12 ∧ ¬ ∃ name cell, Finmap.lookup name left.registry = some cell ∧ 12 ∈ cell.component.requires)
 
 def semWritesWithin (env : Finset Nat) (left right : State) : Prop :=
   ∀ key, key ∉ env → Coeffect.lookup key left.coeffects = Coeffect.lookup key right.coeffects
@@ -299,35 +359,89 @@ def semAccumulatorFrame (code : List Nat) (left right : State) : Prop :=
 /-! ### The semantic laws -/
 
 /-- The stage's semantic result shape: a success reaches exactly the source
-state; the only raise is the code-99 error. -/
+state except the code-8 write (the guarded key-12 store update); the raises
+are the code-99 and code-9 errors. -/
 theorem fixtureStage_state_eq {code : Nat} {before : State}
     {result : State.StageResult State Nat (List Nat) Nat}
     (h : fixtureStage code before = some result) :
-    result.state? = some before ∨ result = .raise 7 := by
+    result.state? = some before ∨
+      (result.state? = some (stageWrite12 before) ∧ code = 8 ∧ ¬ stageGuard12 before) ∨
+        result = .raise 7 := by
   unfold fixtureStage at h
   by_cases hfail : code = 99
   · rw [dif_pos hfail] at h
     right
+    right
     exact (Option.some.inj h).symm
   · rw [dif_neg hfail] at h
-    by_cases hpos : 0 < code
-    · rw [dif_pos hpos] at h
-      by_cases hone : code = 1
-      · rw [dif_pos hone] at h
-        left
-        have hres : result = .yield before [2] (code - 1) := (Option.some.inj h).symm
-        rw [hres]
-        rfl
-      · rw [dif_neg hone] at h
-        left
-        have hres : result = .yield before [] (code - 1) := (Option.some.inj h).symm
-        rw [hres]
-        rfl
-    · rw [dif_neg hpos] at h
+    by_cases h4 : code = 4
+    · rw [dif_pos h4] at h
       left
-      have hres : result = .halt before [] := (Option.some.inj h).symm
+      have hres : result = .halt before [3] := (Option.some.inj h).symm
       rw [hres]
       rfl
+    · rw [dif_neg h4] at h
+      by_cases h5 : code = 5
+      · rw [dif_pos h5] at h
+        left
+        have hres : result = .yield before [2] 4 := (Option.some.inj h).symm
+        rw [hres]
+        rfl
+      · rw [dif_neg h5] at h
+        by_cases h6 : code = 6
+        · rw [dif_pos h6] at h
+          left
+          have hres : result = .yield before [1] 5 := (Option.some.inj h).symm
+          rw [hres]
+          rfl
+        · rw [dif_neg h6] at h
+          by_cases h8 : code = 8
+          · rw [dif_pos h8] at h
+            by_cases hg : stageGuard12 before
+            · rw [dif_pos hg] at h
+              left
+              have hres : result = .yield before [1] 7 := (Option.some.inj h).symm
+              rw [hres]
+              rfl
+            · rw [dif_neg hg] at h
+              right
+              left
+              refine ⟨?_, h8, hg⟩
+              have hres : result = .yield (stageWrite12 before) [1] 7 := (Option.some.inj h).symm
+              rw [hres]
+              rfl
+          · rw [dif_neg h8] at h
+            by_cases h9 : code = 9
+            · rw [dif_pos h9] at h
+              right
+              right
+              exact (Option.some.inj h).symm
+            · rw [dif_neg h9] at h
+              by_cases h10 : code = 10
+              · rw [dif_pos h10] at h
+                left
+                have hres : result = .yield before [1] 9 := (Option.some.inj h).symm
+                rw [hres]
+                rfl
+              · rw [dif_neg h10] at h
+                by_cases hpos : 0 < code
+                · rw [dif_pos hpos] at h
+                  by_cases hone : code = 1
+                  · rw [dif_pos hone] at h
+                    left
+                    have hres : result = .yield before [2] (code - 1) := (Option.some.inj h).symm
+                    rw [hres]
+                    rfl
+                  · rw [dif_neg hone] at h
+                    left
+                    have hres : result = .yield before [] (code - 1) := (Option.some.inj h).symm
+                    rw [hres]
+                    rfl
+                · rw [dif_neg hpos] at h
+                  left
+                  have hres : result = .halt before [] := (Option.some.inj h).symm
+                  rw [hres]
+                  rfl
 
 theorem sem_action_writesWithinProvision :
     ∀ {code before result}, fixtureAction code before = some result →
@@ -356,7 +470,9 @@ theorem sem_action_frame :
     ∀ {code before result}, fixtureAction code before = some result →
       semObserves before result.state := by
   intro code before result hacc
-  change before.coeffects = result.state.coeffects
+  unfold semObserves
+  intro key
+  left
   unfold fixtureAction at hacc
   cases hlook : Finmap.lookup 2 before.registry with
   | none =>
@@ -365,7 +481,7 @@ theorem sem_action_frame :
       · rw [dif_pos hg] at hacc
         have hres : result = { state := allocate before 2 cell2, inverse? := some [2] } := (Option.some.inj hacc).symm
         rw [hres]
-        change before.coeffects = (allocate before 2 cell2).coeffects
+        change Coeffect.lookup key before.coeffects = Coeffect.lookup key (allocate before 2 cell2).coeffects
         rw [allocate_coeffects]
       · rw [dif_neg hg] at hacc
         cases hacc
@@ -403,24 +519,51 @@ theorem sem_stage_frame :
     ∀ {code before result after}, fixtureStage code before = some result →
       result.state? = some after → semObserves before after := by
   intro code before result after hstage hstate
-  change before.coeffects = after.coeffects
-  rcases fixtureStage_state_eq hstage with hstate' | hraise
+  unfold semObserves
+  rcases fixtureStage_state_eq hstage with hstate' | hwrite | hraise
   · rw [hstate'] at hstate
     have hafter : before = after := Option.some.inj hstate
     rw [hafter]
+    intro key
+    left
+    rfl
+  · rcases hwrite with ⟨hstate', _hcode, hguard⟩
+    rw [hstate'] at hstate
+    have hafter : stageWrite12 before = after := Option.some.inj hstate
+    rw [← hafter]
+    intro key
+    by_cases hk : key = 12
+    · subst key
+      right
+      exact ⟨rfl, hguard⟩
+    · left
+      unfold stageWrite12
+      change Finmap.lookup key before.coeffects = Finmap.lookup key (Finmap.insert 12 0 before.coeffects)
+      rw [Finmap.lookup_insert_of_ne (a := 12) (a' := key) before.coeffects (by intro h; exact hk h)]
   · rw [hraise] at hstate
     simp [State.StageResult.state?] at hstate
 
 theorem sem_stage_writesWithinProvision :
     ∀ {code before result after}, fixtureStage code before = some result →
-      result.state? = some after → semWritesWithin ∅ before after := by
+      result.state? = some after →
+        semWritesWithin (if code = 8 then ({12} : Finset Nat) else ∅) before after := by
   intro code before result after hstage hstate
-  change ∀ key, key ∉ (∅ : Finset Nat) → Coeffect.lookup key before.coeffects = Coeffect.lookup key after.coeffects
-  intro key _hkey
-  rcases fixtureStage_state_eq hstage with hstate' | hraise
+  change ∀ key, key ∉ (if code = 8 then ({12} : Finset Nat) else ∅) →
+    Coeffect.lookup key before.coeffects = Coeffect.lookup key after.coeffects
+  intro key hkey
+  rcases fixtureStage_state_eq hstage with hstate' | hwrite | hraise
   · rw [hstate'] at hstate
     have hafter : before = after := Option.some.inj hstate
     rw [hafter]
+  · rcases hwrite with ⟨hstate', hcode, _hguard⟩
+    rw [hstate'] at hstate
+    have hafter : stageWrite12 before = after := Option.some.inj hstate
+    rw [← hafter]
+    unfold stageWrite12
+    rw [hcode] at hkey
+    simp at hkey
+    change Finmap.lookup key before.coeffects = Finmap.lookup key (Finmap.insert 12 0 before.coeffects)
+    rw [Finmap.lookup_insert_of_ne (a := 12) (a' := key) before.coeffects (by intro h; exact hkey h)]
   · rw [hraise] at hstate
     simp [State.StageResult.state?] at hstate
 
@@ -429,10 +572,16 @@ theorem sem_stage_registryFrame :
       result.state? = some after → semRegistryFrame before after := by
   intro code before result after hstage hstate
   change before.registry = after.registry
-  rcases fixtureStage_state_eq hstage with hstate' | hraise
+  rcases fixtureStage_state_eq hstage with hstate' | hwrite | hraise
   · rw [hstate'] at hstate
     have hafter : before = after := Option.some.inj hstate
     rw [hafter]
+  · rcases hwrite with ⟨hstate', _hcode, _hguard⟩
+    rw [hstate'] at hstate
+    have hafter : stageWrite12 before = after := Option.some.inj hstate
+    rw [← hafter]
+    unfold stageWrite12
+    rfl
   · rw [hraise] at hstate
     simp [State.StageResult.state?] at hstate
 
@@ -441,10 +590,16 @@ theorem sem_stage_allocationFrame :
       result.state? = some after → semAllocationFrame before after := by
   intro code before result after hstage hstate
   change before.ledger = after.ledger ∧ before.allocationHistory = after.allocationHistory
-  rcases fixtureStage_state_eq hstage with hstate' | hraise
+  rcases fixtureStage_state_eq hstage with hstate' | hwrite | hraise
   · rw [hstate'] at hstate
     have hafter : before = after := Option.some.inj hstate
     rw [hafter]
+    exact ⟨rfl, rfl⟩
+  · rcases hwrite with ⟨hstate', _hcode, _hguard⟩
+    rw [hstate'] at hstate
+    have hafter : stageWrite12 before = after := Option.some.inj hstate
+    rw [← hafter]
+    unfold stageWrite12
     exact ⟨rfl, rfl⟩
   · rw [hraise] at hstate
     simp [State.StageResult.state?] at hstate
@@ -454,36 +609,67 @@ theorem sem_relation_respect :
       fixtureAction code left = some left' → fixtureAction code right = some right' →
         semObserves left'.state right'.state := by
   intro code left right left' right' hlr hl hr
-  change left'.state.coeffects = right'.state.coeffects
-  change left.coeffects = right.coeffects at hlr
-  unfold fixtureAction at hl hr
-  cases hl0 : Finmap.lookup 2 left.registry with
-  | none =>
-      simp only [hl0] at hl
-      by_cases hgl : 2 ∉ left.ledger.everIssued
-      · rw [dif_pos hgl] at hl
-        have hl' : left' = { state := allocate left 2 cell2, inverse? := some [2] } := (Option.some.inj hl).symm
-        rw [hl']
-        cases hr0 : Finmap.lookup 2 right.registry with
-        | none =>
-            simp only [hr0] at hr
-            by_cases hgr : 2 ∉ right.ledger.everIssued
-            · rw [dif_pos hgr] at hr
-              have hr' : right' = { state := allocate right 2 cell2, inverse? := some [2] } := (Option.some.inj hr).symm
-              rw [hr']
-              change (allocate left 2 cell2).coeffects = (allocate right 2 cell2).coeffects
-              rw [allocate_coeffects, allocate_coeffects]
-              exact hlr
-            · rw [dif_neg hgr] at hr
+  unfold semObserves at hlr ⊢
+  intro key
+  rcases hlr key with hlr | hlr
+  · left
+    unfold fixtureAction at hl hr
+    cases hl0 : Finmap.lookup 2 left.registry with
+    | none =>
+        simp only [hl0] at hl
+        by_cases hgl : 2 ∉ left.ledger.everIssued
+        · rw [dif_pos hgl] at hl
+          have hl' : left' = { state := allocate left 2 cell2, inverse? := some [2] } := (Option.some.inj hl).symm
+          rw [hl']
+          cases hr0 : Finmap.lookup 2 right.registry with
+          | none =>
+              simp only [hr0] at hr
+              by_cases hgr : 2 ∉ right.ledger.everIssued
+              · rw [dif_pos hgr] at hr
+                have hr' : right' = { state := allocate right 2 cell2, inverse? := some [2] } := (Option.some.inj hr).symm
+                rw [hr']
+                change Coeffect.lookup key (allocate left 2 cell2).coeffects = Coeffect.lookup key (allocate right 2 cell2).coeffects
+                rw [allocate_coeffects, allocate_coeffects]
+                exact hlr
+              · rw [dif_neg hgr] at hr
+                cases hr
+          | some _ =>
+              simp only [hr0] at hr
               cases hr
-        | some _ =>
-            simp only [hr0] at hr
-            cases hr
-      · rw [dif_neg hgl] at hl
+        · rw [dif_neg hgl] at hl
+          cases hl
+    | some _ =>
+        simp only [hl0] at hl
         cases hl
-  | some _ =>
-      simp only [hl0] at hl
-      cases hl
+  · rcases hlr with ⟨hk12, hnone⟩
+    subst key
+    right
+    refine ⟨rfl, ?_⟩
+    unfold fixtureAction at hl
+    cases hl0 : Finmap.lookup 2 left.registry with
+    | none =>
+        simp only [hl0] at hl
+        by_cases hgl : 2 ∉ left.ledger.everIssued
+        · rw [dif_pos hgl] at hl
+          have hl' : left' = { state := allocate left 2 cell2, inverse? := some [2] } := (Option.some.inj hl).symm
+          rw [hl']
+          intro h12
+          rcases h12 with ⟨name, cell, hlook, hmem⟩
+          by_cases hn : name = 2
+          · subst name
+            rw [allocate_lookup_fresh left 2 cell2] at hlook
+            have hcell : cell = cell2 := (Option.some.inj hlook).symm
+            rw [hcell] at hmem
+            change 12 ∈ cell2.component.requires at hmem
+            rw [cell2] at hmem
+            simp at hmem
+          · rw [allocate_lookup_ne left 2 cell2 hn] at hlook
+            exact hnone ⟨name, cell, hlook, hmem⟩
+        · rw [dif_neg hgl] at hl
+          cases hl
+    | some _ =>
+        simp only [hl0] at hl
+        cases hl
 
 theorem sem_rank_law :
     ∀ {code before result next inverse after}, fixtureStage code before = some result →
@@ -496,31 +682,93 @@ theorem sem_rank_law :
     rw [hres] at hyield
     cases hyield
   · rw [dif_neg hfail] at hstage
-    by_cases hpos : 0 < code
-    · rw [dif_pos hpos] at hstage
-      by_cases hone : code = 1
-      · rw [dif_pos hone] at hstage
-        have hres : result = .yield before [2] (code - 1) := (Option.some.inj hstage).symm
-        rw [hres] at hyield
-        have hnext : next = code - 1 := by
-          injection hyield with _hbefore _hinverse hnext
-          exact hnext.symm
-        rw [hnext]
-        change (code - 1) < code
-        omega
-      · rw [dif_neg hone] at hstage
-        have hres : result = .yield before [] (code - 1) := (Option.some.inj hstage).symm
-        rw [hres] at hyield
-        have hnext : next = code - 1 := by
-          injection hyield with _hbefore _hinverse hnext
-          exact hnext.symm
-        rw [hnext]
-        change (code - 1) < code
-        omega
-    · rw [dif_neg hpos] at hstage
-      have hres : result = .halt before [] := (Option.some.inj hstage).symm
+    by_cases h4 : code = 4
+    · rw [dif_pos h4] at hstage
+      have hres : result = .halt before [3] := (Option.some.inj hstage).symm
       rw [hres] at hyield
       cases hyield
+    · rw [dif_neg h4] at hstage
+      by_cases h5 : code = 5
+      · rw [dif_pos h5] at hstage
+        have hres : result = .yield before [2] 4 := (Option.some.inj hstage).symm
+        rw [hres] at hyield
+        have hnext : next = 4 := by
+          injection hyield with _hbefore _hinverse hnext
+          exact hnext.symm
+        rw [hnext, h5]
+        decide
+      · rw [dif_neg h5] at hstage
+        by_cases h6 : code = 6
+        · rw [dif_pos h6] at hstage
+          have hres : result = .yield before [1] 5 := (Option.some.inj hstage).symm
+          rw [hres] at hyield
+          have hnext : next = 5 := by
+            injection hyield with _hbefore _hinverse hnext
+            exact hnext.symm
+          rw [hnext, h6]
+          decide
+        · rw [dif_neg h6] at hstage
+          by_cases h8 : code = 8
+          · rw [dif_pos h8] at hstage
+            by_cases hg : stageGuard12 before
+            · rw [dif_pos hg] at hstage
+              have hres : result = .yield before [1] 7 := (Option.some.inj hstage).symm
+              rw [hres] at hyield
+              have hnext : next = 7 := by
+                injection hyield with _hbefore _hinverse hnext
+                exact hnext.symm
+              rw [hnext, h8]
+              decide
+            · rw [dif_neg hg] at hstage
+              have hres : result = .yield (stageWrite12 before) [1] 7 := (Option.some.inj hstage).symm
+              rw [hres] at hyield
+              have hnext : next = 7 := by
+                injection hyield with _hbefore _hinverse hnext
+                exact hnext.symm
+              rw [hnext, h8]
+              decide
+          · rw [dif_neg h8] at hstage
+            by_cases h9 : code = 9
+            · rw [dif_pos h9] at hstage
+              have hres : result = .raise 7 := (Option.some.inj hstage).symm
+              rw [hres] at hyield
+              cases hyield
+            · rw [dif_neg h9] at hstage
+              by_cases h10 : code = 10
+              · rw [dif_pos h10] at hstage
+                have hres : result = .yield before [1] 9 := (Option.some.inj hstage).symm
+                rw [hres] at hyield
+                have hnext : next = 9 := by
+                  injection hyield with _hbefore _hinverse hnext
+                  exact hnext.symm
+                rw [hnext, h10]
+                decide
+              · rw [dif_neg h10] at hstage
+                by_cases hpos : 0 < code
+                · rw [dif_pos hpos] at hstage
+                  by_cases hone : code = 1
+                  · rw [dif_pos hone] at hstage
+                    have hres : result = .yield before [2] (code - 1) := (Option.some.inj hstage).symm
+                    rw [hres] at hyield
+                    have hnext : next = code - 1 := by
+                      injection hyield with _hbefore _hinverse hnext
+                      exact hnext.symm
+                    rw [hnext]
+                    change (code - 1) < code
+                    omega
+                  · rw [dif_neg hone] at hstage
+                    have hres : result = .yield before [] (code - 1) := (Option.some.inj hstage).symm
+                    rw [hres] at hyield
+                    have hnext : next = code - 1 := by
+                      injection hyield with _hbefore _hinverse hnext
+                      exact hnext.symm
+                    rw [hnext]
+                    change (code - 1) < code
+                    omega
+                · rw [dif_neg hpos] at hstage
+                  have hres : result = .halt before [] := (Option.some.inj hstage).symm
+                  rw [hres] at hyield
+                  cases hyield
 
 theorem sem_landing_stable :
     ∀ {token before state inverse}, fixtureLanding token before = some (.landed state inverse) →
@@ -538,7 +786,9 @@ theorem sem_landing_frame :
     ∀ {token before outcome after}, fixtureLanding token before = some outcome →
       outcome.state? = some after → semObserves before after := by
   intro token before outcome after hland hstate
-  change before.coeffects = after.coeffects
+  unfold semObserves
+  intro key
+  left
   unfold fixtureLanding at hland
   have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
   rw [← hres] at hstate
@@ -654,7 +904,9 @@ theorem sem_accumulator_observes :
     ∀ {code before after}, fixtureAccumulator code before = some after →
       semObserves before after := by
   intro code before after hacc
-  change before.coeffects = after.coeffects
+  unfold semObserves
+  intro key
+  left
   unfold fixtureAccumulator at hacc
   have hafter : after = foldRetire code before := (Option.some.inj hacc).symm
   rw [hafter]
@@ -663,7 +915,7 @@ theorem sem_accumulator_observes :
 /-- The concrete external semantics instantiation: every law is the hoisted
 theorem above, so the same non-degenerate semantics discharges every
 rule premise. -/
-def rulesSem : Sem :=
+noncomputable def rulesSem : Sem :=
   { action := fixtureAction
     stage := fixtureStage
     composeInverse := fun a b => b ++ a
@@ -680,7 +932,7 @@ def rulesSem : Sem :=
     allocationFrame := semAllocationFrame
     rank := fun (code : Nat) => code
     accumulatorFrame := semAccumulatorFrame
-    stageEnvelope := fun (_ : Nat) => ∅
+    stageEnvelope := fun code => if code = 8 then ({12} : Finset Nat) else ∅
     landingEnvelope := fun (_ : Unit) => ∅
     accumulatorEnvelope := fun (_ : List Nat) => ∅
     actionEnvelope := fun (_ : Unit) => ∅
@@ -721,8 +973,14 @@ theorem bodyFrameAdequacy : BodyFrameAdequacy rulesSem :=
       intro before after provides h key hkey
       exact h key hkey
     observes_readRespect := by
-      intro before after hobs owner key _hcell
-      rw [hobs]
+      intro before after hobs owner key hcell
+      rcases hcell with ⟨cell, hlook, hmem⟩
+      change semObserves before after at hobs
+      rcases hobs key with hk | hk
+      · exact hk
+      · rcases hk with ⟨hk12, hnone⟩
+        subst key
+        exact False.elim (hnone ⟨owner, cell, hlook, hmem⟩)
     accumulator_domain_total := by
       intro before after h
       exact h
@@ -750,7 +1008,7 @@ theorem bodyFrameAdequacy : BodyFrameAdequacy rulesSem :=
       · exact hhist
       · exact hcoef }
 
-abbrev model := globalControlModel rulesSem
+noncomputable def model := globalControlModel rulesSem
 
 end
 
