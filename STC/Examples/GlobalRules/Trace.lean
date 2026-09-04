@@ -1157,6 +1157,437 @@ theorem step_unload1 : LifecycleRule rulesSem (.unload 1) s26 s27 := by
       change (∅ : Finset Nat) ⊆ ({10} : Finset Nat)
       simp)
 
+/-! ### The anti-vacuity mini-traces -/
+
+/-! #### Success: Begin → Iter [1] → Iter [2] → Finish [3] gives [3,2,1] -/
+
+abbrev cellA : Cell :=
+  { incarnation := 6, parent := none, birth := 0,
+    component := { key := 6, requires := ∅, provides := ∅, actionCode := (), iteratorCode := 6, accumulatorCode := [], flightCode := (), failureCode := 0 },
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    payload := { iteratorCode := 6, accumulatorCode := [], flightCode := none, failureData := none } }
+
+abbrev a1 : State := allocate s0 6 cellA
+abbrev a2 : State := beginState rulesSem a1 6 ∅ ()
+abbrev a3 : State := iterState rulesSem a2 6 [1] 5
+abbrev a4 : State := iterState rulesSem a3 6 [2] 4
+abbrev a5 : State := finishState rulesSem a4 6 [3]
+
+abbrev cellAbegun : Cell := { cellA with phase := .reloading, committedView := ∅, payload := { cellA.payload with iteratorCode := 6, accumulatorCode := [], flightCode := some () } }
+abbrev cellAitered1 : Cell := { cellAbegun with payload := { cellAbegun.payload with iteratorCode := 5, accumulatorCode := [1] } }
+abbrev cellAitered2 : Cell := { cellAitered1 with payload := { cellAitered1.payload with iteratorCode := 4, accumulatorCode := [2,1] } }
+abbrev cellAactive : Cell := { cellAitered2 with phase := .active, committed := { entries := commitProjection a4 (∅ : Finset Nat) }, payload := { cellAitered2.payload with accumulatorCode := [3,2,1], flightCode := none, failureData := none } }
+
+theorem lookup_a1_6 : Finmap.lookup 6 a1.registry = some cellA := by
+  congr
+
+theorem lookup_a2_6 : Finmap.lookup 6 a2.registry = some cellAbegun := by
+  congr
+
+theorem lookup_a3_6 : Finmap.lookup 6 a3.registry = some cellAitered1 := by
+  congr
+
+theorem lookup_a4_6 : Finmap.lookup 6 a4.registry = some cellAitered2 := by
+  congr
+
+theorem lookup_a5_6 : Finmap.lookup 6 a5.registry = some cellAactive := by
+  congr
+
+theorem step_beginA : LifecycleRule rulesSem (.begin 6 ∅) a1 a2 := by
+  exact LifecycleRule.begin (sem := rulesSem) (cell := cellA)
+    (hlook := lookup_a1_6) (hphase := rfl) (hretired := rfl) (hnoFailure := rfl) (hnoFlight := rfl)
+    (htarget := ⟨cellA, lookup_a1_6, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hlaunch := rfl)
+
+theorem step_iterA1 : LifecycleRule rulesSem (.iter 6 5) a2 a3 := by
+  exact LifecycleRule.iter (sem := rulesSem) (cell := cellAbegun)
+    (hlook := lookup_a2_6) (hphase := rfl)
+    (htarget := ⟨cellAbegun, lookup_a2_6, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 6 a2 = some (.yield a2 [1] 5)
+      rfl)
+    (hrank := by decide)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ (∅ : Finset Nat)
+      simp)
+
+theorem step_iterA2 : LifecycleRule rulesSem (.iter 6 4) a3 a4 := by
+  exact LifecycleRule.iter (sem := rulesSem) (cell := cellAitered1)
+    (hlook := lookup_a3_6) (hphase := rfl)
+    (htarget := ⟨cellAitered1, lookup_a3_6, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 5 a3 = some (.yield a3 [2] 4)
+      rfl)
+    (hrank := by decide)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ (∅ : Finset Nat)
+      simp)
+
+theorem step_finishA : LifecycleRule rulesSem (.finish 6) a4 a5 := by
+  exact LifecycleRule.finish (sem := rulesSem) (cell := cellAitered2)
+    (hlook := lookup_a4_6) (hphase := rfl)
+    (htarget := ⟨cellAitered2, lookup_a4_6, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 4 a4 = some (.halt a4 [3])
+      rfl)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ (∅ : Finset Nat)
+      simp)
+
+/-! #### Failure: Begin → Iter [1] → Raise with the nonempty prefixUndo -/
+
+abbrev cellF : Cell :=
+  { incarnation := 7, parent := none, birth := 0,
+    component := { key := 7, requires := ∅, provides := ∅, actionCode := (), iteratorCode := 10, accumulatorCode := [], flightCode := (), failureCode := 0 },
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    payload := { iteratorCode := 10, accumulatorCode := [], flightCode := none, failureData := none } }
+
+abbrev f1 : State := allocate s0 7 cellF
+abbrev f2 : State := beginState rulesSem f1 7 ∅ ()
+abbrev f3 : State := iterState rulesSem f2 7 [1] 9
+abbrev f4 : State := raiseState f3 7 7
+
+abbrev failureEvidenceF : FailureEvidence State Nat (List Nat) :=
+  { error := 7, boundary := f3, prefixUndo := [1] }
+
+abbrev cellFbegun : Cell := { cellF with phase := .reloading, committedView := ∅, payload := { cellF.payload with iteratorCode := 10, accumulatorCode := [], flightCode := some () } }
+abbrev cellFitered : Cell := { cellFbegun with payload := { cellFbegun.payload with iteratorCode := 9, accumulatorCode := [1] } }
+
+theorem lookup_f1_7 : Finmap.lookup 7 f1.registry = some cellF := by
+  congr
+
+theorem lookup_f2_7 : Finmap.lookup 7 f2.registry = some cellFbegun := by
+  congr
+
+theorem lookup_f3_7 : Finmap.lookup 7 f3.registry = some cellFitered := by
+  congr
+
+theorem lookup_f4_7 : Finmap.lookup 7 f4.registry = some { cellFitered with phase := .unloading, payload := { cellFitered.payload with failureData := some 7 } } := by
+  congr
+
+theorem step_beginF : LifecycleRule rulesSem (.begin 7 ∅) f1 f2 := by
+  exact LifecycleRule.begin (sem := rulesSem) (cell := cellF)
+    (hlook := lookup_f1_7) (hphase := rfl) (hretired := rfl) (hnoFailure := rfl) (hnoFlight := rfl)
+    (htarget := ⟨cellF, lookup_f1_7, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hlaunch := rfl)
+
+theorem step_iterF : LifecycleRule rulesSem (.iter 7 9) f2 f3 := by
+  exact LifecycleRule.iter (sem := rulesSem) (cell := cellFbegun)
+    (hlook := lookup_f2_7) (hphase := rfl)
+    (htarget := ⟨cellFbegun, lookup_f2_7, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 10 f2 = some (.yield f2 [1] 9)
+      rfl)
+    (hrank := by decide)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ (∅ : Finset Nat)
+      simp)
+
+theorem step_raiseF : LifecycleRule rulesSem (.raise 7 failureEvidenceF) f3 f4 := by
+  exact LifecycleRule.raise (sem := rulesSem) (cell := cellFitered)
+    (hlook := lookup_f3_7) (hphase := rfl)
+    (hstage := by
+      change fixtureStage 9 f3 = some (.raise 7)
+      rfl)
+    (hbridge := by unfold FailureFromStage; rfl)
+
+/-! #### Landing: provider active → consumer Begin/Iter → provider Retire/Leave → consumer DivertLand -/
+
+abbrev viewL10 : Finmap (fun _ : Nat => Nat) := Finmap.insert 10 9 (∅ : Finmap (fun _ : Nat => Nat))
+
+abbrev cellLP : Cell :=
+  { incarnation := 9, parent := none, birth := 0,
+    component := { key := 9, requires := ∅, provides := {10}, actionCode := (), iteratorCode := 0, accumulatorCode := [], flightCode := (), failureCode := 0 },
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    payload := { iteratorCode := 0, accumulatorCode := [], flightCode := none, failureData := none } }
+
+abbrev cellL : Cell :=
+  { incarnation := 8, parent := none, birth := 1,
+    component := { key := 8, requires := {10}, provides := ∅, actionCode := (), iteratorCode := 6, accumulatorCode := [], flightCode := (), failureCode := 0 },
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    payload := { iteratorCode := 6, accumulatorCode := [], flightCode := none, failureData := none } }
+
+abbrev l1 : State := allocate s0 9 cellLP
+abbrev l2 : State := beginState rulesSem l1 9 ∅ ()
+abbrev l3 : State := finishState rulesSem l2 9 []
+abbrev l4 : State := allocate l3 8 cellL
+abbrev l5 : State := beginState rulesSem l4 8 viewL10 ()
+abbrev l6 : State := iterState rulesSem l5 8 [1] 5
+abbrev l7 : State := retireState l6 9
+abbrev l8 : State := leaveState l7 9
+abbrev l9 : State := divertLandState rulesSem { l8 with ambient := l8.ambient + 1 } 8 [7]
+
+abbrev cellLPbegun : Cell := { cellLP with phase := .reloading, committedView := ∅, payload := { cellLP.payload with iteratorCode := 0, accumulatorCode := [], flightCode := some () } }
+abbrev cellLPactive : Cell := { cellLPbegun with phase := .active, committed := { entries := commitProjection l2 ({10} : Finset Nat) }, payload := { cellLPbegun.payload with accumulatorCode := [], flightCode := none, failureData := none } }
+abbrev cellLPretired : Cell := { cellLPactive with retired := true }
+abbrev cellLPunloading : Cell := { cellLPretired with phase := .unloading }
+abbrev cellLbegun : Cell := { cellL with phase := .reloading, committedView := viewL10, payload := { cellL.payload with iteratorCode := 6, accumulatorCode := [], flightCode := some () } }
+abbrev cellLitered : Cell := { cellLbegun with payload := { cellLbegun.payload with iteratorCode := 5, accumulatorCode := [1] } }
+abbrev cellLlanded : Cell := { cellLitered with phase := .unloading, payload := { cellLitered.payload with accumulatorCode := [7,1], flightCode := none } }
+
+theorem lookup_l1_9 : Finmap.lookup 9 l1.registry = some cellLP := by
+  congr
+
+theorem lookup_l2_9 : Finmap.lookup 9 l2.registry = some cellLPbegun := by
+  congr
+
+theorem lookup_l3_9 : Finmap.lookup 9 l3.registry = some cellLPactive := by
+  congr
+
+theorem lookup_l4_9 : Finmap.lookup 9 l4.registry = some cellLPactive := by
+  congr
+
+theorem lookup_l4_8 : Finmap.lookup 8 l4.registry = some cellL := by
+  congr
+
+theorem lookup_l5_8 : Finmap.lookup 8 l5.registry = some cellLbegun := by
+  congr
+
+theorem lookup_l6_8 : Finmap.lookup 8 l6.registry = some cellLitered := by
+  congr
+
+theorem lookup_l7_9 : Finmap.lookup 9 l7.registry = some cellLPretired := by
+  congr
+
+theorem lookup_l8_9 : Finmap.lookup 9 l8.registry = some cellLPunloading := by
+  congr
+
+theorem lookup_l8_8 : Finmap.lookup 8 l8.registry = some cellLitered := by
+  congr
+
+theorem lookup_l9_8 : Finmap.lookup 8 l9.registry = some cellLlanded := by
+  congr
+
+theorem providesNow_l4_9_10 : ProvidesNow l4 9 10 :=
+  ⟨_, lookup_l4_9, by
+    change 10 ∈ (commitProjection l2 ({10} : Finset Nat)).keys
+    rw [commitProjection_mem_keys_iff]
+    refine ⟨by simp, ?_⟩
+    change 10 ∈ coeffects0.keys
+    rw [coeffects0, Finmap.mem_keys, Finmap.mem_insert]
+    simp, rfl⟩
+
+theorem targetViewAt_l4_8 : TargetViewAt l4 8 viewL10 := by
+  refine ⟨_, lookup_l4_8, ?_, ?_, ?_⟩
+  · rfl
+  · change viewL10.keys = {10}
+    apply Finset.ext
+    intro key
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def, Finset.mem_singleton]
+    change (key = 10 ∨ key ∈ (∅ : Multiset Nat)) ↔ key = 10
+    by_cases hkey : key = 10 <;> simp [hkey]
+  · intro key provider hkv
+    change Finmap.lookup key (Finmap.insert 10 9 (∅ : Finmap (fun _ : Nat => Nat))) = some provider at hkv
+    by_cases hkey : key = 10
+    · subst key
+      rw [Finmap.lookup_insert] at hkv
+      have hp : provider = 9 := (Option.some.inj hkv).symm
+      subst provider
+      exact providesNow_l4_9_10
+    · rw [Finmap.lookup_insert_of_ne (∅ : Finmap (fun _ : Nat => Nat)) hkey, Finmap.lookup_empty] at hkv
+      cases hkv
+
+theorem targetViewAt_l5_8 : TargetViewAt l5 8 viewL10 := by
+  refine ⟨_, lookup_l5_8, ?_, ?_, ?_⟩
+  · rfl
+  · change viewL10.keys = {10}
+    apply Finset.ext
+    intro key
+    rw [Finmap.mem_keys, Finmap.mem_insert, Finmap.mem_def, Finset.mem_singleton]
+    change (key = 10 ∨ key ∈ (∅ : Multiset Nat)) ↔ key = 10
+    by_cases hkey : key = 10 <;> simp [hkey]
+  · intro key provider hkv
+    change Finmap.lookup key (Finmap.insert 10 9 (∅ : Finmap (fun _ : Nat => Nat))) = some provider at hkv
+    by_cases hkey : key = 10
+    · subst key
+      rw [Finmap.lookup_insert] at hkv
+      have hp : provider = 9 := (Option.some.inj hkv).symm
+      subst provider
+      exact providesNow_l4_9_10
+    · rw [Finmap.lookup_insert_of_ne (∅ : Finmap (fun _ : Nat => Nat)) hkey, Finmap.lookup_empty] at hkv
+      cases hkv
+
+theorem targetNot_l7_9 : ¬ TargetViewAt l7 9 ∅ := by
+  intro h
+  rcases h with ⟨cell, hl, hret, _hkeys, _hall⟩
+  rw [lookup_l7_9] at hl
+  cases hl with | refl
+  cases hret
+
+theorem targetNot_l8_8 : ¬ TargetViewAt l8 8 viewL10 := by
+  intro h
+  rcases h with ⟨cell, hlook, _hret, _hkeys, hall⟩
+  have hprov : ProvidesNow l8 9 10 := hall 10 9 (Finmap.lookup_insert (∅ : Finmap (fun _ : Nat => Nat)))
+  rcases hprov with ⟨cell', hlook', _htable, hphase⟩
+  rw [lookup_l8_9] at hlook'
+  cases hlook' with | refl
+  simp at hphase
+
+theorem step_beginLP : LifecycleRule rulesSem (.begin 9 ∅) l1 l2 := by
+  exact LifecycleRule.begin (sem := rulesSem) (cell := cellLP)
+    (hlook := lookup_l1_9) (hphase := rfl) (hretired := rfl) (hnoFailure := rfl) (hnoFlight := rfl)
+    (htarget := ⟨cellLP, lookup_l1_9, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hlaunch := rfl)
+
+theorem step_finishLP : LifecycleRule rulesSem (.finish 9) l2 l3 := by
+  exact LifecycleRule.finish (sem := rulesSem) (cell := cellLPbegun)
+    (hlook := lookup_l2_9) (hphase := rfl)
+    (htarget := ⟨cellLPbegun, lookup_l2_9, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 0 l2 = some (.halt l2 [])
+      rfl)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ ({10} : Finset Nat)
+      simp)
+
+theorem step_insertL : OrchestrationRule (.insert none 8 cellL) l3 l4 := by
+  exact OrchestrationRule.insert (registrar := none) (fresh := 8) (child := cellL)
+    (by decide)
+    (by decide)
+    (by
+      simp [CanonicalInitialCell, l3, l2, l1, nextBirth, finishState, beginState, editCell,
+        allocate, beginPayload, rulesSem, Finmap.lookup_insert])
+    (by intro name cell' h
+        apply Finset.disjoint_left.mpr
+        intro key hkey
+        simp at hkey)
+
+theorem step_beginL : LifecycleRule rulesSem (.begin 8 viewL10) l4 l5 := by
+  exact LifecycleRule.begin (sem := rulesSem) (cell := cellL)
+    (hlook := lookup_l4_8) (hphase := rfl) (hretired := rfl) (hnoFailure := rfl) (hnoFlight := rfl)
+    (htarget := targetViewAt_l4_8)
+    (hlaunch := rfl)
+
+theorem step_iterL : LifecycleRule rulesSem (.iter 8 5) l5 l6 := by
+  exact LifecycleRule.iter (sem := rulesSem) (cell := cellLbegun)
+    (hlook := lookup_l5_8) (hphase := rfl)
+    (htarget := targetViewAt_l5_8)
+    (hstage := by
+      change fixtureStage 6 l5 = some (.yield l5 [1] 5)
+      rfl)
+    (hrank := by decide)
+    (henvelope := by
+      change (∅ : Finset Nat) ⊆ (∅ : Finset Nat)
+      simp)
+
+theorem step_retireLP : OrchestrationRule (.retire 9) l6 l7 := by
+  exact OrchestrationRule.retire (by change Finmap.lookup 9 l6.registry = some cellLPactive; congr)
+
+theorem step_leaveLP : LifecycleRule rulesSem (.leave 9) l7 l8 := by
+  exact LifecycleRule.leave (sem := rulesSem) (cell := cellLPretired)
+    (hlook := lookup_l7_9)
+    (hphase := rfl)
+    (hchanged := targetNot_l7_9)
+
+theorem step_divertLandL : LifecycleRule rulesSem (.divertLand 8 ()) l8 l9 := by
+  exact LifecycleRule.divertLand (sem := rulesSem) (cell := cellLitered)
+    (hlook := lookup_l8_8) (hphase := rfl) (htoken := rfl)
+    (hchanged := targetNot_l8_8)
+    (hland := by
+      change fixtureLanding () l8 = some (.landed { l8 with ambient := l8.ambient + 1 } [7])
+      rfl)
+    (henvelope := by change (∅ : Finset Nat) ⊆ (∅ : Finset Nat); simp)
+
+/-! #### D48: the guarded stage write of key 12 within the acting fiber's provision -/
+
+abbrev cellDW : Cell :=
+  { incarnation := 11, parent := none, birth := 0,
+    component := { key := 11, requires := ∅, provides := {12}, actionCode := (), iteratorCode := 8, accumulatorCode := [], flightCode := (), failureCode := 0 },
+    committed := { entries := ∅ }, committedView := ∅, retired := false, phase := .inactive,
+    payload := { iteratorCode := 8, accumulatorCode := [], flightCode := none, failureData := none } }
+
+abbrev d1 : State := allocate s0 11 cellDW
+abbrev d2 : State := beginState rulesSem d1 11 ∅ ()
+abbrev d3 : State := iterState rulesSem (stageWrite12 d2) 11 [1] 7
+
+abbrev cellDWbegun : Cell := { cellDW with phase := .reloading, committedView := ∅, payload := { cellDW.payload with iteratorCode := 8, accumulatorCode := [], flightCode := some () } }
+abbrev cellDWitered : Cell := { cellDWbegun with payload := { cellDWbegun.payload with iteratorCode := 7, accumulatorCode := [1] } }
+
+theorem lookup_d1_11 : Finmap.lookup 11 d1.registry = some cellDW := by
+  congr
+
+theorem lookup_d2_11 : Finmap.lookup 11 d2.registry = some cellDWbegun := by
+  congr
+
+theorem lookup_d3_11 : Finmap.lookup 11 d3.registry = some cellDWitered := by
+  congr
+
+theorem stageGuard12_d2_false : stageGuard12 d2 = false := by
+  decide
+
+theorem step_insertDW : OrchestrationRule (.insert none 11 cellDW) s0 d1 := by
+  exact OrchestrationRule.insert (registrar := none) (fresh := 11) (child := cellDW)
+    (by decide) (by decide)
+    (by simp [CanonicalInitialCell, nextBirth])
+    (by intro name cell' h; simp at h)
+
+theorem step_beginDW : LifecycleRule rulesSem (.begin 11 ∅) d1 d2 := by
+  exact LifecycleRule.begin (sem := rulesSem) (cell := cellDW)
+    (hlook := lookup_d1_11) (hphase := rfl) (hretired := rfl) (hnoFailure := rfl) (hnoFlight := rfl)
+    (htarget := ⟨cellDW, lookup_d1_11, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hlaunch := rfl)
+
+theorem step_iterDW : LifecycleRule rulesSem (.iter 11 7) d2 d3 := by
+  exact LifecycleRule.iter (sem := rulesSem) (cell := cellDWbegun)
+    (hlook := lookup_d2_11) (hphase := rfl)
+    (htarget := ⟨cellDWbegun, lookup_d2_11, rfl, by
+      change (∅ : Finmap (fun _ : Nat => Nat)).keys = (∅ : Finset Nat)
+      simp, by
+      intro key provider hkv
+      rw [Finmap.lookup_empty] at hkv
+      cases hkv⟩)
+    (hstage := by
+      change fixtureStage 8 d2 = some (.yield (stageWrite12 d2) [1] 7)
+      exact fixtureStage_eq_8_write stageGuard12_d2_false)
+    (hrank := by decide)
+    (henvelope := by
+      change ({12} : Finset Nat) ⊆ ({12} : Finset Nat)
+      simp)
 end
 
 end STC.Examples.GlobalRules
