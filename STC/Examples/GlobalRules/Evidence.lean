@@ -1666,6 +1666,83 @@ theorem cycleEndpoint_wellFormed : WellFormed cycleProfile c19 :=
     c19_committedViewClosed, c19_committedProvidersClosed, c19_dataCoherent,
     trivial, trivial, trivial⟩
 
+/-! ### The anti-vacuity derived evidence -/
+
+theorem composeInverse_noncommutative :
+    rulesSem.composeInverse [1] [2] ≠ rulesSem.composeInverse [2] [1] := by
+  change [2,1] ≠ [1,2]
+  decide
+
+theorem successLIFO_intermediate : cellAitered2.payload.accumulatorCode = [2,1] := by
+  unfold cellAitered2 cellAitered1
+  rfl
+
+theorem successLIFO_endpoint : cellAactive.payload.accumulatorCode = [3,2,1] := by
+  unfold cellAactive cellAitered2 cellAitered1
+  rfl
+
+theorem successLIFO_distinguishes :
+    cellAactive.payload.accumulatorCode ≠
+      rulesSem.composeInverse (rulesSem.composeInverse (rulesSem.composeInverse [] [3]) [2]) [1] := by
+  unfold cellAactive cellAitered2 cellAitered1 rulesSem
+  change [3,2,1] ≠ [1,2,3]
+  decide
+
+theorem successFlight_cleared : cellAactive.payload.flightCode = none := by
+  unfold cellAactive
+  rfl
+
+theorem failurePrefix_nonempty : failureEvidenceF.prefixUndo ≠ [] := by
+  change [1] ≠ []
+  decide
+
+theorem failureAcc_kept :
+    ∃ cell, Finmap.lookup 7 f4.registry = some cell ∧ cell.payload.accumulatorCode = [1] := by
+  refine ⟨_, lookup_f4_7, ?_⟩
+  rfl
+
+theorem landingLIFO_endpoint : cellLlanded.payload.accumulatorCode = [7,1] := by
+  unfold cellLlanded
+  rfl
+
+theorem d48_writeFrame : WriteFrame d2 11 d3 :=
+  iter_full_writeFrame rulesSem bodyFrameAdequacy lookup_d2_11
+    (by
+      change fixtureStage 8 d2 = some (.yield (stageWrite12 d2) [1] 7)
+      exact fixtureStage_eq_8_write stageGuard12_d2_false)
+    (by change ({12} : Finset Nat) ⊆ ({12} : Finset Nat); simp)
+    rfl
+
+theorem d48_readNoninterference : ReadNoninterference d2 11 d3 :=
+  iter_full_readNoninterference rulesSem bodyFrameAdequacy lookup_d2_11
+    (by
+      change fixtureStage 8 d2 = some (.yield (stageWrite12 d2) [1] 7)
+      exact fixtureStage_eq_8_write stageGuard12_d2_false)
+    rfl
+
+theorem d48_wrote12 : Coeffect.lookup 12 d2.coeffects = none ∧
+    Coeffect.lookup 12 d3.coeffects = some 0 := by
+  constructor
+  · change Finmap.lookup 12 d2.coeffects = none
+    have hd2coef : d2.coeffects = coeffects0 := by
+      unfold d2 d1 beginState editCell allocate
+      rfl
+    rw [hd2coef, coeffects0,
+      Finmap.lookup_insert_of_ne (a := 10) (a' := 12) (Finmap.insert 20 (0 : Nat) (∅ : Finmap (fun _ : Nat => Nat))) (by decide),
+      Finmap.lookup_insert_of_ne (a := 20) (a' := 12) (∅ : Finmap (fun _ : Nat => Nat)) (by decide),
+      Finmap.lookup_empty]
+  · change Finmap.lookup 12 d3.coeffects = some 0
+    unfold d3 iterState editCell stageWrite12
+    rw [Finmap.lookup_insert]
+
+theorem d48_write_nontrivial : Coeffect.lookup 12 d2.coeffects ≠ Coeffect.lookup 12 d3.coeffects := by
+  rcases d48_wrote12 with ⟨hbefore, hafter⟩
+  rw [hbefore, hafter]
+  decide
+
+theorem d48_outOfEnvelope : Coeffect.lookup 10 d2.coeffects = Coeffect.lookup 10 d3.coeffects := by
+  have hwf := d48_writeFrame
+  exact hwf.2.1 10 (by decide)
 end
 
 end STC.Examples.GlobalRules
