@@ -1,4 +1,13 @@
-# P13-T03 Lane Handoff (complete)
+# P13-T03 Lane Handoff (historical — superseded 2026-09-04)
+
+> **This whole file is historical.** It was superseded by the T02R2/T03R
+> repair lane: `docs/status/P13-lanes/T02R2-T03R-handoff.md` is the current
+> record. The monolithic `STC/Examples/GlobalRules.lean` referenced below no
+> longer exists (split into `Semantics`/`Trace`/`Evidence` modules); the
+> "fixture — in progress" status and the old rich-label signature bullets
+> below are obsolete; the single-file lean check command in the Gates
+> section was replaced by the three-module checks. Everything below is kept
+> verbatim as history only.
 
 * Scope: `STC/Control/Rules.lean`, `STC/Examples/GlobalRules.lean`.
 * Authority: lead ruling (2026-09-01) — T03 runs on top of the T02R repair

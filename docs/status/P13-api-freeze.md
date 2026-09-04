@@ -229,6 +229,7 @@ the sole union of `orchestrationRule` and `lifecycleRule`; `withdrawRule`,
   remaining work is per-rule factorization closure, write/read frame-law
   completion, and activation-provenance preservation.
 
-No frozen upstream file was edited. This inventory is not the final semantic
-freeze: per-rule factorization, write/read frame laws, and activation-provenance
-preservation must close before T05 theorem lanes can rely on these signatures.
+The T03 re-freeze intentionally supersedes the earlier T03 checkpoint; this is
+the final T03 freeze, but NOT a T04 completion — per-rule factorization,
+write/read frame laws, and activation-provenance preservation must close before
+T05 theorem lanes can rely on these signatures.

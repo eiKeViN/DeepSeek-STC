@@ -3,6 +3,8 @@
 * Branch: `codex/t02r2-t03r` (pushed to origin). Base: T02R repair + T03
   surface; this lane repairs the T03R signature breakage and rebuilds the
   anti-vacuity fixture, then re-freezes T03 and releases T04.
+* Versions: base `1327ceb0`; implementation tip `6155898`; re-freeze
+  documentation commit `b5964c1`.
 * Commits (in order): interface tasks 1-5 `ba61a15..d238c8e`; review blockers
   `c4eec65`, cleanup-adequacy premise `0e56510`; fixture rebuild
   `82ebb39`, `eedca57`, `d0a19bc`, `08c1272`; block 4c splice `f4f1769`;
