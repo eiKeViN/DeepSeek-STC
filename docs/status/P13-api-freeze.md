@@ -4,7 +4,7 @@
 |---|---|
 | Plan | `DH-P13-GLOBAL-METATHEORY-EXEC-01` |
 | Base | `96b8752` (`P13 plan added`) |
-| Freeze state | T02 + T02R checkpoints recorded; T03/T04 checkpoints remain open |
+| Freeze state | T03 re-frozen (2026-09-04, T02R2/T03R lane); T04 released |
 | Toolchain | Lean 4.33.0 / Mathlib v4.33.0 |
 
 ## T02 checkpoint (positive state and model API freeze)
@@ -187,6 +187,47 @@ the sole union of `orchestrationRule` and `lifecycleRule`; `withdrawRule`,
   single-universe.  Recorded, not T04 completion.
 * Module SHA-256 prefixes: Rules `447c2668…`, GlobalRules `8452d741…`,
   Reachability `d39c0bc5…`, Episode `ceecf4e1…`.
+
+## T03 re-freeze checkpoint (2026-09-04, T02R2/T03R lane, commits 7742455..6155898)
+
+* `STC.Control.Rules` (T02R2/T03R repair, tasks 1-5 + blockers): the
+  `ComponentSemantics` surface above with `Key` first, `FailureEvidence`,
+  envelope fields, `writesWithinProvision`, `BodyFrameAdequacy`
+  (`provision_coeffectFrame`/`observes_readRespect`/
+  `accumulator_cleanupFrame` with the recorded-children premise),
+  `NestedRegistrationWitness`, `StagingStable`/`StableBase`,
+  `divertAdmissible`. Module SHA-256 prefix: `5e2eac3a…` (supersedes the
+  `447c2668…` recording — the repair edited Rules.lean).
+* `STC.Examples.GlobalRules` (fixture, split into three modules):
+  Semantics `1b571c2f…`, Trace `1aa08cf1…`, Evidence `cd66ab99…`. The
+  monolithic `GlobalRules.lean` is removed; `Bootstrap.lean` and
+  `Examples/Global.lean` import the three.
+* Anti-vacuity additions (the re-freeze gate): the four mini-traces
+  (success LIFO `[] →[1]→ [2,1] →[3]→ [3,2,1]`; failure with
+  `prefixUndo [1]`; landing `[7]` composed onto `[1]` → `[7,1]`; the D48
+  guarded coeffect write of key 12), the noncommutativity theorems, and
+  the frame discharges. The D48 write guard is fully COMPUTABLE
+  (`Multiset.foldr` over the registry entries; zero `noncomputable` or
+  `classical` in the fixture).
+* Contract attributions recorded for the re-freeze:
+  * RECOVERY BOUNDARY: T03 proves inverse source binding, threading, and
+    LIFO composition only; the nested-registration inverse is interpreted
+    by `RetireInverseAdequate`; arbitrary stage/finish/landing inverse
+    observational recovery is MIGRATED to T05B as the relation-indexed
+    recovery profile obligation. `stage_inverse` is deleted (rationale in
+    `Component.lean`).
+  * UNLOAD OWNERSHIP: the recorded-child ownership of foreign unload
+    edits is a caller premise of `unload_full_cleanupFrame` and a declared
+    component/profile obligation — `LifecycleRule.unload` alone does not
+    guarantee the D48 cleanup shape.
+* Gates (2026-09-04): `lake build` 3092 jobs zero warnings; the three
+  fixture modules compile zero-error zero-warning under `lake env lean
+  -DautoImplicit=false -Dpp.unicode.fun=true`; `scan_lean.py STC` exit 1;
+  ledger 82/82 PASS; `git diff --check` clean.
+* T04 released: `STC.Control.Reachability` / `STC.Control.Episode` keep
+  their recorded T04-draft status (compatibility touches only); T04's
+  remaining work is per-rule factorization closure, write/read frame-law
+  completion, and activation-provenance preservation.
 
 No frozen upstream file was edited. This inventory is not the final semantic
 freeze: per-rule factorization, write/read frame laws, and activation-provenance
