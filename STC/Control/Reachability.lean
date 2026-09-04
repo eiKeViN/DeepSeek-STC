@@ -22,17 +22,17 @@ section Reachability
 
 variable {Name : Type u} {Key : Type u} {Value : Type u}
 variable {Action : Type u} {Iterator : Type u} {Accumulator : Type u}
-variable {Flight : Type u} {Failure : Type u} {Ambient : Type u}
+variable {Flight : Type u} {Error : Type u} {Ambient : Type u}
 variable [DecidableEq Name] [DecidableEq Key]
 
 local notation "GState" =>
-  GlobalState Name Key Value Action Iterator Accumulator Flight Failure Ambient
-local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Failure
+  GlobalState Name Key Value Action Iterator Accumulator Flight Error Ambient
+local notation "GCell" => FiberCell Name Key Value Action Iterator Accumulator Flight Error
 local notation "GSem" =>
-  ComponentSemantics GState Value Action Iterator Accumulator Flight Failure
+  ComponentSemantics Key GState Value Action Iterator Accumulator Flight Error
 local notation "OLabel" => GlobalOrchestrationLabel Name GCell
 local notation "LLabel" =>
-  GlobalLifecycleLabel Name Key GState Iterator Accumulator Flight Failure
+  GlobalLifecycleLabel Name Key Iterator Flight (FailureEvidence GState Error Accumulator)
 
 /-- The initial-state profile is explicit; nonempty initial active fibers need a
 valid commit certificate. -/
@@ -46,7 +46,7 @@ structure InitialProfile where
 
 local notation "IProfile" => InitialProfile (Name := Name) (Key := Key) (Value := Value)
   (Action := Action) (Iterator := Iterator) (Accumulator := Accumulator)
-  (Flight := Flight) (Failure := Failure) (Ambient := Ambient)
+  (Flight := Flight) (Error := Error) (Ambient := Ambient)
 
 /-- Reached state means an initial state followed by an actual typed trace. -/
 def ReachedFrom (sem : GSem) (profile : IProfile) (before after : GState) : Prop :=
@@ -61,16 +61,16 @@ theorem reached_trace (sem : GSem) (profile : IProfile) {before after : GState}
 /-- The actor selected by one concrete label. -/
 def actorOf : Sum OLabel LLabel → Name
   | .inl (.insert _ fresh _) => fresh
-  | .inl (.retire owner _) => owner
+  | .inl (.retire owner) => owner
   | .inl (.remove owner) => owner
-  | .inr (.begin owner _ _) => owner
-  | .inr (.iter owner _ _ _) => owner
-  | .inr (.finish owner _) => owner
+  | .inr (.begin owner _) => owner
+  | .inr (.iter owner _) => owner
+  | .inr (.finish owner) => owner
   | .inr (.divertAbort owner _) => owner
-  | .inr (.divertLand owner _ _ _) => owner
+  | .inr (.divertLand owner _) => owner
   | .inr (.raise owner _) => owner
   | .inr (.leave owner) => owner
-  | .inr (.unload owner _) => owner
+  | .inr (.unload owner) => owner
 
 /-- A replayable, nonconstant factorization witness for a labelled step. -/
 structure Factorization (before after : GState) where
@@ -113,8 +113,8 @@ trace-local successful finish. -/
 inductive ActivationProvenance (sem : GSem) (profile : IProfile) (owner : Name) : GState → Prop
   | initial {state} : profile.activationCommit owner state →
       ActivationProvenance sem profile owner state
-  | finished {before after result : GState} :
-      LifecycleRule sem (.finish owner result) before after →
+  | finished {before after : GState} :
+      LifecycleRule sem (.finish owner) before after →
         ActivationProvenance sem profile owner after
 
 /-- A partial bijection that can grow as fresh names are allocated. -/
@@ -156,7 +156,7 @@ parent, and renamed actor. -/
 def RelatedOrchestrationInput (bijection : GrowingBijection Name) : OLabel → OLabel → Prop
   | .insert registrar fresh left, .insert registrar' fresh' right =>
       registrar = registrar' ∧ bijection.forward fresh fresh' ∧ RelatedCell bijection left right
-  | .retire left _, .retire right _ => bijection.forward left right
+  | .retire left, .retire right => bijection.forward left right
   | .remove left, .remove right => bijection.forward left right
   | _, _ => False
 
@@ -207,7 +207,7 @@ theorem sameResolved_implies_sameInputs (sem : GSem) {before after : GState}
             · intro key
               cases Finmap.lookup key cell.committedView <;>
                 simp [RelatedOptionalName, GrowingBijection.identity]
-        | retire owner _ => rfl
+        | retire owner => rfl
         | remove owner => rfl
       · exact ih
 

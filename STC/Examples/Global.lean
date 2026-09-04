@@ -7,7 +7,9 @@ public import STC.Examples.GlobalDeletion
 public import STC.Examples.GlobalModel
 public import STC.Examples.GlobalProgress
 public import STC.Examples.GlobalRecovery
-public import STC.Examples.GlobalRules
+public import STC.Examples.GlobalRules.Semantics
+public import STC.Examples.GlobalRules.Trace
+public import STC.Examples.GlobalRules.Evidence
 public import STC.Examples.GlobalStructural
 public import STC.Examples.PrerequisiteCoeffect
 public import STC.Examples.PrerequisiteRecovery

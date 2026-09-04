@@ -1,4 +1,13 @@
-# P13-T03 Lane Handoff (complete)
+# P13-T03 Lane Handoff (historical — superseded 2026-09-04)
+
+> **This whole file is historical.** It was superseded by the T02R2/T03R
+> repair lane: `docs/status/P13-lanes/T02R2-T03R-handoff.md` is the current
+> record. The monolithic `STC/Examples/GlobalRules.lean` referenced below no
+> longer exists (split into `Semantics`/`Trace`/`Evidence` modules); the
+> "fixture — in progress" status and the old rich-label signature bullets
+> below are obsolete; the single-file lean check command in the Gates
+> section was replaced by the three-module checks. Everything below is kept
+> verbatim as history only.
 
 * Scope: `STC/Control/Rules.lean`, `STC/Examples/GlobalRules.lean`.
 * Authority: lead ruling (2026-09-01) — T03 runs on top of the T02R repair
@@ -76,7 +85,16 @@
 * `failureRule_enters_teardown`, `editCell_keys`, `editCell_writeFrame`,
   `editCell_readNoninterference`, `removeState_writeFrame/_readNoninterference`.
 
-## GlobalRules.lean (fixture — in progress)
+## GlobalRules fixture (SUPERSEDED by `T02R2-T03R-handoff.md`, 2026-09-04)
+
+The bullets below describe the pre-T02R fixture and are kept as history only.
+The current fixture: three modules `STC/Examples/GlobalRules/{Semantics,Trace,
+Evidence}.lean`; code-ranked stage with list accumulators (`composeInverse :=
+b ++ a`, identity `[]`, LIFO `foldRetire`); the main trace runs s0..s27 with
+rich label payloads; the anti-vacuity mini-traces and the computable D48
+coeffect write were added; `factorization_nonconstant` was replaced by
+`factor_replay_nonconstant`. See the T02R2/T03R handoff for the current
+inventory and gates.
 
 * Carriers: Name/Key/Value := Nat; Action/Flight/Failure := Unit; Iterator/
   Accumulator := Nat; Ambient := Nat. All pure-data fixture defs (cells, states,

@@ -313,6 +313,35 @@ expansion in structure headers).  Expand the notation manually in the field
 types; the structure's own `[DecidableEq …]` binders must stay (section
 instances are shadowed by the structure params and do not apply).
 
+### Section-variable auto-inclusion skips local-notation header expansion
+
+Also applies to implicit section-parameterized `abbrev`s used in declaration
+headers (the R.base `BaseState` subtype hit `DecidableEq ?m` stuck — the
+abbrev's auto-included implicit params never resolve in a header).  Fix:
+spell the carrier's parameters explicitly in the `abbrev` binder list (they
+shadow the section variables) and reference it through a local notation
+whose RHS passes every argument explicitly; instance params still resolve
+via typeclass search in headers (same as the `GState` notation).  Related:
+a `dite`/`if h : P` over an undecidable ∀-Prop (`Decidable (StagingStable
+state)` synthesis fails) — for a semantic projection use `by classical` and
+mark the enclosing def `noncomputable`; then `simp [base.2]` discharges the
+positive branch.
+
+### Section-variable auto-inclusion skips local-notation header expansion
+
+Symptom: a local notation whose RHS needs a section variable to fill an
+implicit parameter elaborates fine in terms (`#check`, def bodies) but fails
+with `don't know how to synthesize implicit argument 'Key'` when the notation
+expands in a **declaration header** (`def foo (sem : GSem)`).  The
+auto-inclusion of section variables for implicit parameters does not run
+inside the notation expansion in header positions.  Fix: make the parameter
+**explicit** in the carrier structure by writing it in the binder list —
+`structure ComponentSemantics (Key : Type u) (State : Type u) …` shadows the
+section variable (legal, preserves the API) — and pass it explicitly in the
+notation.  Watch out for the sibling trap: with the parameter *implicit*,
+`ComponentSemantics Key State …` mis-elaborates because the bare constant
+reference auto-applies the section `Key` first, shifting every argument.
+
 ### Inductive constructor headers: expand notations, use arrow form
 
 Symptom (constructor-indexed rules): `| insert {before : GState} {child :
@@ -571,6 +600,15 @@ assigns `perm := x :: y :: l`, `maps := y :: x :: l` — let the goal's displaye
 direction decide the relation order, don't guess `R.symm`.
 
 ## 7. Mathlib / core API gotchas
+
+### `Finmap.insert` carries `[DecidableEq]` — `exact Finmap.lookup_insert` sticks
+
+`exact Finmap.lookup_insert` on a goal `Finmap.lookup a (Finmap.insert a b s) = some b`
+fails with `typeclass instance problem is stuck: DecidableEq ?m` even though the
+goal's insert elaborated fine: elaborating the bare theorem constant with `a` as a
+metavariable must elaborate `insert a b s`, which needs `[DecidableEq ?m]`.  `rw
+[Finmap.lookup_insert]` works — the rewrite tactic elaborates the lemma against the
+goal, pinning `a` first.  Same family as the instance-elaboration-order trap above.
 
 ### `Finmap.lookup_insert_of_ne` binder order
 

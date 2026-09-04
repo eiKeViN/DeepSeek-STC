@@ -33,85 +33,163 @@ structure Component (Key : Type u) (Value : Type v) (Action : Type w)
   flightCode : Flight
   failureCode : Failure
 
+/-- The complete retained failure evidence: the current stage error, the
+boundary state where the iterator raised, and the successful-prefix undo (the
+accumulated accumulator code before the failing stage). -/
+structure FailureEvidence (State : Type u) (Error : Type v) (Accumulator : Type w) where
+  error : Error
+  boundary : State
+  prefixUndo : Accumulator
+
 /-- One executed iterator stage. `yield` carries the after-state, the yielded
 inverse, and the continuation; `halt` the after-state and the final inverse;
-`raise` the state at which the stage failed and the failure payload. -/
+`raise` carries only the current error — the boundary and the accumulated
+prefix are supplied by the `FailureFromStage` bridge of the rules, never by
+the stage itself. -/
 inductive StageResult (State : Type u) (Iterator : Type v) (Accumulator : Type w)
-    (Failure : Type x) where
+    (Error : Type x) where
   | yield (after : State) (inverse : Accumulator) (next : Iterator)
   | halt (after : State) (inverse : Accumulator)
-  | raise (before : State) (failure : Failure)
+  | raise (error : Error)
 
 namespace StageResult
 
-/-- The state reached (or held, for a raise) by one stage execution. -/
-def state {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → State
-  | .yield after _ _ => after
-  | .halt after _ => after
-  | .raise before _ => before
+/-- The state reached by a successful stage; `none` for a raise. -/
+def state? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option State
+  | .yield after _ _ => some after
+  | .halt after _ => some after
+  | .raise _ => none
 
 /-- The yielded/final inverse, present exactly for non-raising stages. -/
-def inverse? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → Option Accumulator
+def inverse? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option Accumulator
   | .yield _ inverse _ => some inverse
   | .halt _ inverse => some inverse
-  | .raise _ _ => none
+  | .raise _ => none
 
 /-- The failure payload, present exactly for raising stages. -/
-def failure? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Failure : Type x} :
-    StageResult State Iterator Accumulator Failure → Option Failure
+def failure? {State : Type u} {Iterator : Type v} {Accumulator : Type w} {Error : Type x} :
+    StageResult State Iterator Accumulator Error → Option Error
   | .yield _ _ _ => none
   | .halt _ _ => none
-  | .raise _ failure => some failure
+  | .raise error => some error
 
 end StageResult
 
+/-- The result of one action execution: the reached state plus an optional
+returned inverse to be recorded in the caller's accumulator (nested
+registration). -/
+structure ActionResult (State : Type u) (Accumulator : Type v) where
+  state : State
+  inverse? : Option Accumulator
+
+/-- One landing of a stored flight token: a successful landing binds the landed
+state and the inverse it produced; a failed landing is a genuine landing
+failure, never reclassified as success. -/
+inductive LandingOutcome (State : Type u) (Accumulator : Type v) (Failure : Type w) where
+  | landed (state : State) (inverse : Accumulator)
+  | failed (failure : Failure)
+
+namespace LandingOutcome
+
+/-- The landed state of a successful landing; `none` for a landing failure. -/
+def state? {State : Type u} {Accumulator : Type v} {Failure : Type w} :
+    LandingOutcome State Accumulator Failure → Option State
+  | .landed state _ => some state
+  | .failed _ => none
+
+end LandingOutcome
+
 /-- External semantic interpretation for a component code. Each code family
 carries its own universe so the profile instantiates over mixed-universe
-carriers like `GlobalState`. -/
-structure ComponentSemantics (State : Type u) (Value : Type v) (Action : Type w)
-    (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Failure : Type x) where
-  action : Action → State → Option State
-  stage : Iterator → State → Option (StageResult State Iterator Accumulator Failure)
+carriers like `GlobalState`.  The frame relations are abstract here and are
+instantiated non-vacuously in the fixtures: `observes` (reads respect the
+owner's required/coeffect window), `writesWithinProvision` (writes stay in
+the given provision envelope), `registryFrame` (foreign fibers and static
+declarations unchanged — stage/landing bodies only), `domainFrame` (registry
+keys unchanged — the accumulator may retire recorded children but never
+allocates), `allocationFrame` (ledger and allocation history unchanged),
+`accumulatorFrame` (the explicit owner/recorded-child cleanup frame).  Every
+code family declares its own provision envelope via the `*Envelope` fields.
+Actions carry NO no-change frame laws: an action is the nested-registration
+primitive and its effect IS the registration delta, pinned by the
+`NestedRegistrationWitness` O-Insert linkage — only the read window
+(`action_frame`), the provision envelope (`action_writesWithinProvision`),
+and the undo inverse (`inverse_law`) are axiomatized.  Stage inverses carry
+no undo law either: a yielded inverse is data recorded by the control edit
+(a registration retirement inverse, say) — its semantics is the
+`RetireInverseAdequate` interpretation, never a stage-undo, which the
+retirement accumulator cannot realize. -/
+structure ComponentSemantics (Key : Type u) (State : Type u) (Value : Type v) (Action : Type w)
+    (Iterator : Type x) (Accumulator : Type y) (Flight : Type z) (Error : Type x) where
+  action : Action → State → Option (ActionResult State Accumulator)
+  stage : Iterator → State → Option (StageResult State Iterator Accumulator Error)
   composeInverse : Accumulator → Accumulator → Accumulator
   identityAccumulator : Accumulator
   accumulator : Accumulator → State → Option State
   launch : State → Option Flight
-  flight : Flight → State → Option State
-  failure : Failure → State → Option State
+  landing : Flight → State → Option (LandingOutcome State Accumulator Error)
   undo : State → Option State
   observes : State → State → Prop
-  writesWithinProvision : State → State → Prop
+  writesWithinProvision : Finset Key → State → State → Prop
   continuationStable : State → State → Prop
-  rank : State → Nat
+  registryFrame : State → State → Prop
+  domainFrame : State → State → Prop
+  allocationFrame : State → State → Prop
+  rank : Iterator → Nat
   accumulatorFrame : Accumulator → State → State → Prop
-  noWriteOutside : ∀ {code before after}, action code before = some after →
-    writesWithinProvision before after
-  action_frame : ∀ {code before after}, action code before = some after →
-    observes before after
-  stage_frame : ∀ {code before result}, stage code before = some result →
-    observes before (StageResult.state result)
-  inverse_law : ∀ {code before after}, action code before = some after →
-    undo after = some before
-  stage_inverse : ∀ {code before result inverse},
-    stage code before = some result → result.inverse? = some inverse →
-      accumulator inverse (StageResult.state result) = some before
+  stageEnvelope : Iterator → Finset Key
+  landingEnvelope : Flight → Finset Key
+  accumulatorEnvelope : Accumulator → Finset Key
+  actionEnvelope : Action → Finset Key
+  action_writesWithinProvision : ∀ {code before result}, action code before = some result →
+    writesWithinProvision (actionEnvelope code) before result.state
+  action_frame : ∀ {code before result}, action code before = some result →
+    observes before result.state
+  inverse_law : ∀ {code before result}, action code before = some result →
+    undo result.state = some before
+  stage_frame : ∀ {code before result after}, stage code before = some result →
+    result.state? = some after → observes before after
+  stage_writesWithinProvision : ∀ {code before result after},
+    stage code before = some result → result.state? = some after →
+      writesWithinProvision (stageEnvelope code) before after
+  stage_registryFrame : ∀ {code before result after}, stage code before = some result →
+    result.state? = some after → registryFrame before after
+  stage_allocationFrame : ∀ {code before result after}, stage code before = some result →
+    result.state? = some after → allocationFrame before after
   relation_respect : ∀ {code left right left' right'}, observes left right →
-    action code left = some left' → action code right = some right' → observes left' right'
-  rank_law : ∀ {code before result}, stage code before = some result →
-    result.failure? = none → rank (StageResult.state result) < rank before
-  continuation_stable : ∀ {code before after}, flight code before = some after →
-    continuationStable before after
-  flight_frame : ∀ {code before after}, flight code before = some after →
-    observes before after
-  failure_frame : ∀ {code before after}, failure code before = some after →
-    observes before after
+    action code left = some left' → action code right = some right' →
+      observes left'.state right'.state
+  rank_law : ∀ {code before result next inverse after}, stage code before = some result →
+    result = .yield after inverse next → rank next < rank code
+  landing_stable : ∀ {token before state inverse}, landing token before =
+      some (.landed state inverse) → continuationStable before state
+  landing_frame : ∀ {token before outcome after}, landing token before = some outcome →
+    outcome.state? = some after → observes before after
+  landing_writesWithinProvision : ∀ {token before outcome after},
+    landing token before = some outcome → outcome.state? = some after →
+      writesWithinProvision (landingEnvelope token) before after
+  landing_registryFrame : ∀ {token before outcome after},
+    landing token before = some outcome → outcome.state? = some after →
+      registryFrame before after
+  landing_allocationFrame : ∀ {token before outcome after},
+    landing token before = some outcome → outcome.state? = some after →
+      allocationFrame before after
   composeInverse_law : ∀ {a b before mid after}, accumulator b before = some mid →
     accumulator a mid = some after → accumulator (composeInverse a b) before = some after
   identityAccumulator_law : ∀ state, accumulator identityAccumulator state = some state
   accumulator_frame : ∀ {code before after}, accumulator code before = some after →
     accumulatorFrame code before after
+  accumulator_writesWithinProvision : ∀ {code before after},
+    accumulator code before = some after →
+      writesWithinProvision (accumulatorEnvelope code) before after
+  accumulator_domainFrame : ∀ {code before after}, accumulator code before = some after →
+    domainFrame before after
+  accumulator_allocationFrame : ∀ {code before after}, accumulator code before = some after →
+    allocationFrame before after
+  accumulator_observes : ∀ {code before after}, accumulator code before = some after →
+    observes before after
 
 /-- A component's declared provisions are disjoint from foreign writes under a
 supplied local footprint relation. -/
