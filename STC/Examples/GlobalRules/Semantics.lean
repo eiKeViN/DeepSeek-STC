@@ -73,9 +73,66 @@ coeffect store. -/
 def stageWrite12 (before : State) : State :=
   { before with coeffects := Finmap.insert 12 0 before.coeffects }
 
-/-- The D48 write guard: some installed cell requires key 12. -/
-def stageGuard12 (before : State) : Prop :=
-  ∃ name cell, Finmap.lookup name before.registry = some cell ∧ 12 ∈ cell.component.requires
+/-- The D48 write guard: true when some installed cell requires key 12. -/
+def stageGuard12 (before : State) : Bool :=
+  @Multiset.foldr (Sigma (fun _ : Nat => Cell)) Bool
+    (fun e acc => acc || decide (12 ∈ e.2.component.requires))
+    (⟨by intro a b c; cases c <;> cases h : decide (12 ∈ a.2.component.requires) <;> cases h' : decide (12 ∈ b.2.component.requires) <;> rfl⟩ : LeftCommutative (fun (e : Sigma (fun _ : Nat => Cell)) (acc : Bool) => acc || decide (12 ∈ e.2.component.requires)))
+    false before.registry.entries
+
+/-- The guard's boolean fold agrees with the plain existence of a
+12-requiring cell. -/
+theorem stageGuard12_foldr_true_iff (s : Multiset (Sigma (fun _ : Nat => Cell))) :
+    @Multiset.foldr (Sigma (fun _ : Nat => Cell)) Bool
+      (fun e acc => acc || decide (12 ∈ e.2.component.requires))
+      (⟨by intro a b c; cases c <;> cases h : decide (12 ∈ a.2.component.requires) <;> cases h' : decide (12 ∈ b.2.component.requires) <;> rfl⟩ : LeftCommutative (fun (e : Sigma (fun _ : Nat => Cell)) (acc : Bool) => acc || decide (12 ∈ e.2.component.requires)))
+      false s = true ↔
+        ∃ e, e ∈ s ∧ decide (12 ∈ e.2.component.requires) = true := by
+  refine Quot.inductionOn s ?_
+  intro l
+  change l.foldr (fun e acc => acc || decide (12 ∈ e.2.component.requires)) false = true ↔
+    ∃ e, e ∈ (l : Multiset (Sigma (fun _ : Nat => Cell))) ∧ decide (12 ∈ e.2.component.requires) = true
+  induction l with
+  | nil =>
+      constructor <;> intro h
+      · cases h
+      · rcases h with ⟨e, hm, _hd⟩
+        simp at hm
+  | cons e l ih =>
+      simp only [List.foldr_cons, Bool.or_eq_true]
+      constructor
+      · intro h
+        rcases h with htail | hhead
+        · rcases ih.mp htail with ⟨e', hm, hd⟩
+          refine ⟨e', ?_, hd⟩
+          rw [Multiset.mem_coe, List.mem_cons]
+          right
+          exact (Multiset.mem_coe).1 hm
+        · exact ⟨e, by simp, hhead⟩
+      · rintro ⟨e', hm, hd⟩
+        simp at hm
+        rcases hm with heq | hmem
+        · rw [heq] at hd
+          right
+          exact hd
+        · left
+          exact ih.mpr ⟨e', (Multiset.mem_coe).2 hmem, hd⟩
+
+/-- The guard is true exactly when some installed cell requires key 12. -/
+theorem stageGuard12_iff (before : State) :
+    stageGuard12 before = true ↔
+      ∃ name cell, Finmap.lookup name before.registry = some cell ∧ 12 ∈ cell.component.requires := by
+  unfold stageGuard12
+  constructor
+  · intro htrue
+    rw [stageGuard12_foldr_true_iff] at htrue
+    rcases htrue with ⟨e, hmem, hdec⟩
+    refine ⟨e.1, e.2, (Finmap.lookup_eq_some_iff).2 hmem, ?_⟩
+    exact of_decide_eq_true hdec
+  · rintro ⟨name, cell, hl, hmem⟩
+    rw [stageGuard12_foldr_true_iff]
+    refine ⟨Sigma.mk name cell, (Finmap.lookup_eq_some_iff).1 hl, ?_⟩
+    exact decide_eq_true hmem
 
 /-- The fixture's ranked iterator: rank is the code itself. Code 99 or 9
 raises the real error 7; code 0 halts with the empty inverse and code 4 with
@@ -84,7 +141,7 @@ with the decreasing continuation (5, 4), code 10 yields `[1]` into the raise
 code 9, and code 8 writes key 12 when no installed cell requires it. Code 1
 keeps the child-retirement inverse `[2]`; the remaining positive codes yield
 the empty inverse. -/
-noncomputable def fixtureStage (code : Nat) (before : State) : Option (State.StageResult State Nat (List Nat) Nat) :=
+def fixtureStage (code : Nat) (before : State) : Option (State.StageResult State Nat (List Nat) Nat) :=
   if _hfail : code = 99 then
     some (.raise 7)
   else if _h4 : code = 4 then
@@ -94,9 +151,10 @@ noncomputable def fixtureStage (code : Nat) (before : State) : Option (State.Sta
   else if _h6 : code = 6 then
     some (.yield before [1] 5)
   else if _h8 : code = 8 then
-    @dite (Option (State.StageResult State Nat (List Nat) Nat)) (stageGuard12 before) (Classical.propDecidable _)
-      (fun _hg => some (.yield before [1] 7))
-      (fun _hg => some (.yield (stageWrite12 before) [1] 7))
+    if _hg : stageGuard12 before = true then
+      some (.yield before [1] 7)
+    else
+      some (.yield (stageWrite12 before) [1] 7)
   else if _h9 : code = 9 then
     some (.raise 7)
   else if _h10 : code = 10 then
@@ -110,16 +168,20 @@ noncomputable def fixtureStage (code : Nat) (before : State) : Option (State.Sta
     some (.halt before [])
 
 /-- The code-8 pin: with the guard false the stage writes key 12. -/
-theorem fixtureStage_eq_8_write {before : State} (hg : ¬ stageGuard12 before) :
+theorem fixtureStage_eq_8_write {before : State} (hg : stageGuard12 before = false) :
     fixtureStage 8 before = some (.yield (stageWrite12 before) [1] 7) := by
   unfold fixtureStage
-  rw [dif_neg hg]
-  rfl
+  rw [dif_neg (show ¬ (8 : Nat) = 99 from by decide)]
+  rw [dif_neg (show ¬ (8 : Nat) = 4 from by decide)]
+  rw [dif_neg (show ¬ (8 : Nat) = 5 from by decide)]
+  rw [dif_neg (show ¬ (8 : Nat) = 6 from by decide)]
+  rw [dif_pos (show (8 : Nat) = 8 from rfl)]
+  rw [dif_neg (show ¬ stageGuard12 before = true from by intro h; rw [h] at hg; cases hg)]
 
 /-- A real landing: the landed state records the arrival in the ambient
-counter; the landing inverse is the empty list. -/
+counter; the landing inverse is the nonempty retirement list `[7]`. -/
 def fixtureLanding (_token : Unit) (before : State) : Option (LandingOutcome State (List Nat) Nat) :=
-  some (.landed { before with ambient := before.ambient + 1 } [])
+  some (.landed { before with ambient := before.ambient + 1 } [7])
 
 /-- The nested-registration action: registers cell 2 when it is fresh and
 returns the canonical retirement inverse `[2]`. -/
@@ -365,7 +427,7 @@ theorem fixtureStage_state_eq {code : Nat} {before : State}
     {result : State.StageResult State Nat (List Nat) Nat}
     (h : fixtureStage code before = some result) :
     result.state? = some before ∨
-      (result.state? = some (stageWrite12 before) ∧ code = 8 ∧ ¬ stageGuard12 before) ∨
+      (result.state? = some (stageWrite12 before) ∧ code = 8 ∧ stageGuard12 before = false) ∨
         result = .raise 7 := by
   unfold fixtureStage at h
   by_cases hfail : code = 99
@@ -406,10 +468,13 @@ theorem fixtureStage_state_eq {code : Nat} {before : State}
             · rw [dif_neg hg] at h
               right
               left
-              refine ⟨?_, h8, hg⟩
-              have hres : result = .yield (stageWrite12 before) [1] 7 := (Option.some.inj h).symm
-              rw [hres]
-              rfl
+              refine ⟨?_, h8, ?_⟩
+              · have hres : result = .yield (stageWrite12 before) [1] 7 := (Option.some.inj h).symm
+                rw [hres]
+                rfl
+              · have hfalse : stageGuard12 before = false := by
+                  cases hg' : stageGuard12 before <;> simp [hg'] at hg ⊢
+                exact hfalse
           · rw [dif_neg h8] at h
             by_cases h9 : code = 9
             · rw [dif_pos h9] at h
@@ -535,7 +600,11 @@ theorem sem_stage_frame :
     by_cases hk : key = 12
     · subst key
       right
-      exact ⟨rfl, hguard⟩
+      refine ⟨rfl, ?_⟩
+      intro hex
+      have ht : stageGuard12 before = true := (stageGuard12_iff before).2 hex
+      rw [ht] at hguard
+      cases hguard
     · left
       unfold stageWrite12
       change Finmap.lookup key before.coeffects = Finmap.lookup key (Finmap.insert 12 0 before.coeffects)
@@ -776,7 +845,7 @@ theorem sem_landing_stable :
   intro token before state inverse hland
   change before.registry = state.registry
   unfold fixtureLanding at hland
-  have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = .landed state inverse := Option.some.inj hland
+  have hres : (.landed { before with ambient := before.ambient + 1 } [7] : LandingOutcome State (List Nat) Nat) = .landed state inverse := Option.some.inj hland
   have hstate : state = { before with ambient := before.ambient + 1 } := by
     injection hres with hstate _hinverse
     exact hstate.symm
@@ -790,7 +859,7 @@ theorem sem_landing_frame :
   intro key
   left
   unfold fixtureLanding at hland
-  have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
+  have hres : (.landed { before with ambient := before.ambient + 1 } [7] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
   rw [← hres] at hstate
   simp [LandingOutcome.state?] at hstate
   rw [← hstate]
@@ -802,7 +871,7 @@ theorem sem_landing_writesWithinProvision :
   change ∀ key, key ∉ (∅ : Finset Nat) → Coeffect.lookup key before.coeffects = Coeffect.lookup key after.coeffects
   intro key _hkey
   unfold fixtureLanding at hland
-  have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
+  have hres : (.landed { before with ambient := before.ambient + 1 } [7] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
   rw [← hres] at hstate
   simp [LandingOutcome.state?] at hstate
   rw [← hstate]
@@ -813,7 +882,7 @@ theorem sem_landing_registryFrame :
   intro token before outcome after hland hstate
   change before.registry = after.registry
   unfold fixtureLanding at hland
-  have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
+  have hres : (.landed { before with ambient := before.ambient + 1 } [7] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
   rw [← hres] at hstate
   simp [LandingOutcome.state?] at hstate
   rw [← hstate]
@@ -824,7 +893,7 @@ theorem sem_landing_allocationFrame :
   intro token before outcome after hland hstate
   change before.ledger = after.ledger ∧ before.allocationHistory = after.allocationHistory
   unfold fixtureLanding at hland
-  have hres : (.landed { before with ambient := before.ambient + 1 } [] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
+  have hres : (.landed { before with ambient := before.ambient + 1 } [7] : LandingOutcome State (List Nat) Nat) = outcome := Option.some.inj hland
   rw [← hres] at hstate
   simp [LandingOutcome.state?] at hstate
   rw [← hstate]; simp
@@ -915,7 +984,7 @@ theorem sem_accumulator_observes :
 /-- The concrete external semantics instantiation: every law is the hoisted
 theorem above, so the same non-degenerate semantics discharges every
 rule premise. -/
-noncomputable def rulesSem : Sem :=
+def rulesSem : Sem :=
   { action := fixtureAction
     stage := fixtureStage
     composeInverse := fun a b => b ++ a
@@ -1008,7 +1077,7 @@ theorem bodyFrameAdequacy : BodyFrameAdequacy rulesSem :=
       · exact hhist
       · exact hcoef }
 
-noncomputable def model := globalControlModel rulesSem
+abbrev model := globalControlModel rulesSem
 
 end
 

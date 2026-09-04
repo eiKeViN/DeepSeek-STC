@@ -81,13 +81,13 @@ theorem finish1_tableConfined : TableConfined s5 :=
 
 theorem divertLand2_writeFrame : WriteFrame s22 2 s23 :=
   divertLand_full_writeFrame (landing := ()) rulesSem bodyFrameAdequacy lookup_s22_2
-    (by change fixtureLanding () s22 = some (.landed { s22 with ambient := s22.ambient + 1 } []); rfl)
+    (by change fixtureLanding () s22 = some (.landed { s22 with ambient := s22.ambient + 1 } [7]); rfl)
     (by change (∅ : Finset Nat) ⊆ ({20} : Finset Nat); simp)
     rfl
 
 theorem divertLand2_readNoninterference : ReadNoninterference s22 2 s23 :=
   divertLand_full_readNoninterference (landing := ()) rulesSem bodyFrameAdequacy lookup_s22_2
-    (by change fixtureLanding () s22 = some (.landed { s22 with ambient := s22.ambient + 1 } []); rfl)
+    (by change fixtureLanding () s22 = some (.landed { s22 with ambient := s22.ambient + 1 } [7]); rfl)
     rfl
 
 /-- Every foreign edit of the unload1 body is a recorded-child retirement of
@@ -150,7 +150,7 @@ theorem unload1_noAllocation :
               rw [editCell_lookup_ne s24 4 _ (by decide)]
               change Finmap.lookup 3 (editCell s23 4 (fun cell => { cell with phase := .unloading })).registry = none
               rw [editCell_lookup_ne s23 4 _ (by decide)]
-              change Finmap.lookup 3 (editCell { s22 with ambient := s22.ambient + 1 } 2 (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := rulesSem.composeInverse cell.payload.accumulatorCode [], flightCode := none } })).registry = none
+              change Finmap.lookup 3 (editCell { s22 with ambient := s22.ambient + 1 } 2 (fun cell => { cell with phase := .unloading, payload := { cell.payload with accumulatorCode := rulesSem.composeInverse cell.payload.accumulatorCode [7], flightCode := none } })).registry = none
               rw [editCell_lookup_ne { s22 with ambient := s22.ambient + 1 } 2 _ (by decide)]
               change Finmap.lookup 3 { s22 with ambient := s22.ambient + 1 }.registry = none
               change Finmap.lookup 3 (Finmap.erase 3 s21.registry) = none
@@ -712,7 +712,7 @@ abbrev c9 : State := iterState rulesSem c8 1 [2] 0
 abbrev c10 : State := retireState c9 1
 abbrev c11 : State := retireState c10 3
 abbrev c12 : State := leaveState c11 3
-abbrev c13 : State := divertLandState rulesSem { c12 with ambient := c12.ambient + 1 } 1 []
+abbrev c13 : State := divertLandState rulesSem { c12 with ambient := c12.ambient + 1 } 1 [7]
 abbrev c14 : State := unloadState c13 1
 abbrev c15 : State := leaveState c14 0
 abbrev c16 : State := unloadState c15 0
@@ -734,7 +734,7 @@ abbrev cellRinactive : Cell := { cellRleft with phase := .inactive, committedVie
 abbrev cellCbegun : Cell := { cellC with phase := .reloading, committedView := view20p, payload := { cellC.payload with iteratorCode := 1, accumulatorCode := [], flightCode := some () } }
 abbrev cellCitered : Cell := { cellCbegun with payload := { cellCbegun.payload with iteratorCode := 0, accumulatorCode := [2] } }
 abbrev cellCretired : Cell := { cellCitered with retired := true }
-abbrev cellCunloading : Cell := { cellCretired with phase := .unloading, payload := { cellCretired.payload with accumulatorCode := [2], flightCode := none } }
+abbrev cellCunloading : Cell := { cellCretired with phase := .unloading, payload := { cellCretired.payload with accumulatorCode := [7,2], flightCode := none } }
 abbrev cellCinactive : Cell := { cellCunloading with phase := .inactive, committedView := ∅, payload := { cellCunloading.payload with flightCode := none } }
 
 theorem lookup_c2_3 : Finmap.lookup 3 c2.registry = some cellPbegun := by
@@ -1013,11 +1013,24 @@ theorem cycleStep_divertLandC : LifecycleRule rulesSem (.divertLand 1 ()) c12 c1
     (hphase := rfl) (htoken := rfl)
     (hchanged := cycleTargetNot_c12_1)
     (hland := by
-      change fixtureLanding () c12 = some (.landed { c12 with ambient := c12.ambient + 1 } [])
+      change fixtureLanding () c12 = some (.landed { c12 with ambient := c12.ambient + 1 } [7])
       rfl)
     (henvelope := by change (∅ : Finset Nat) ⊆ (∅ : Finset Nat); simp)
 
 theorem cycleStep_unloadC : LifecycleRule rulesSem (.unload 1) c13 c14 := by
+  have hnone7 : Finmap.lookup 7 c13.registry = none := by
+    simp [c13, c12, c11, c10, c9, c8, c7, c6, c5, c4, c3, c2, c1, divertLandState, leaveState,
+      retireState, iterState, finishState, beginState, editCell, allocate, beginPayload, iterPayload,
+      rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne, Finmap.lookup_empty]
+  have hnone2 : Finmap.lookup 2 c13.registry = none := by
+    simp [c13, c12, c11, c10, c9, c8, c7, c6, c5, c4, c3, c2, c1, divertLandState, leaveState,
+      retireState, iterState, finishState, beginState, editCell, allocate, beginPayload, iterPayload,
+      rulesSem, Finmap.lookup_insert, Finmap.lookup_insert_of_ne, Finmap.lookup_empty]
+  have hfold : foldRetire [7,2] c13 = c13 := by
+    rw [foldRetire_cons_none hnone7, foldRetire_cons_none hnone2, foldRetire_absent]
+    intro n hn
+    cases hn
+  rw [show c14 = unloadState (foldRetire [7,2] c13) 1 from by rw [hfold]]
   exact LifecycleRule.unload (sem := rulesSem) (cell := cellCunloading)
     (hlook := lookup_c13_1) (hphase := rfl)
     (hfree := by
@@ -1048,7 +1061,7 @@ theorem cycleStep_unloadC : LifecycleRule rulesSem (.unload 1) c13 c14 := by
             rw [hnone] at hl
             cases hl)
     (haccumulator := by
-      change fixtureAccumulator [2] c13 = some (foldRetire [2] c13)
+      change fixtureAccumulator [7,2] c13 = some (foldRetire [7,2] c13)
       rfl)
     (henvelope := by change (∅ : Finset Nat) ⊆ (∅ : Finset Nat); simp)
 
